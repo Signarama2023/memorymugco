@@ -113,14 +113,20 @@ behaviour changes.
 
 ## The mug photograph
 
-By default the mug is a drawing. Set a real photograph in the admin panel under
-**The mug itself** and every preview on the page becomes the real product: the
-drawing switches off, and the artwork **multiplies** onto the photo so the ceramic's
-shading and highlights read through it the way a pressed print does.
+The shop's own 15 oz mug is already in place. It is embedded in `index.html` as a
+data URI so the page stays a single file; the source image is kept alongside it at
+`assets/15ozMugTemplate.webp` so it can be re-derived or re-measured.
 
-Shoot it straight on, against white, handle to the right. Four percentage boxes then
-place the print area on it, with a live preview — every mug photo is framed
-differently, so those are data, not constants.
+The artwork **multiplies** onto the photograph, so the ceramic's shading and
+highlights read through it the way a pressed print does, rather than sitting on top
+like a sticker. The illustrated mug is still in the file and takes over automatically
+if the photo is ever removed.
+
+To swap in a different mug: admin panel → **The mug itself**. Shoot it straight on,
+handle to the right, on a transparent or white background. Four percentage boxes then
+place the print area on it, with a live preview. Those numbers are measured against
+one specific photograph — change the photo and they need redoing, which is exactly
+why they are editable and not baked in.
 
 ---
 
@@ -155,7 +161,8 @@ Honest list. None of these are bugs; they are things only the owner can answer.
 - **Two service claims were written speculatively** and need confirming or cutting:
   "Background removal if you want it — no charge" and "Color correction by hand,
   every time."
-- **There is no product photography.** The mug is an illustration until a real photo
-  is loaded. This is the single biggest thing between the page and looking like a
-  real shop.
+- **The mug is real; the artwork on it is not.** The blank mug is the shop's own
+  photograph, but every example design printed on it is an illustration. Photographs
+  of actual finished mugs would do more for the page than anything else left on this
+  list. Load them in the admin panel under **Example photos**.
 - **The shipping note must match the real Shopify shipping rates.**

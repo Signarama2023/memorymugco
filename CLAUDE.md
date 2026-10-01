@@ -26,6 +26,11 @@ Those four used to be written out by hand in four bits of markup, and moving the
 meant getting all four right. Change the print area in `layoutPanel()`, never in the
 markup, and never rescale the scenes.
 
+`MUG_PHOTO` holds the shop's mug as a data URI and `PRINT_AREA` is measured against
+that one photograph: its body runs x 221-756, y 250-930 of 1100, and the print is
+inset from that. Swap the photo and those four numbers are wrong until they are
+redone. `assets/15ozMugTemplate.webp` is the source image.
+
 `getBBox()` reports coordinates in an element's **own** user space and ignores the
 scale wrapper. Measure in screen pixels (`getBoundingClientRect`) when checking
 whether artwork lands where you think it does.
