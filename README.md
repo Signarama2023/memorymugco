@@ -1,5 +1,8 @@
 # Memory Mug Company
 
+**Live at [www.memorymugco.com](https://www.memorymugco.com)** — served by GitHub Pages,
+republished on every push to `main`.
+
 A one-page storefront for custom photo mugs, operated by [H3 Customs](https://h3customs.com).
 
 One product: a 15 oz white ceramic mug, $28, the customer's photo wrapped around it.
@@ -33,6 +36,9 @@ built to look right when that request fails.
 The site is served by **GitHub Pages**, with **memorymugco.com** registered at GoDaddy
 and pointed at it. No hosting plan, no monthly bill, HTTPS that renews itself, and
 every push to `main` republishes.
+
+All of this is already done. It is written down for whoever has to redo it on a new
+domain, a new repository, or a new owner.
 
 ### 1. Turn Pages on
 
