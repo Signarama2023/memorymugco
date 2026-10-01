@@ -1225,7 +1225,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         </div>
         <div class="foot-col">
           <h4>Reach us</h4>
-          <a href="mailto:hello@memorymugcompany.com" data-cfg-mail="supportEmail"><span data-cfg="supportEmail">hello@memorymugcompany.com</span></a>
+          <a href="mailto:hello@memorymugco.com" data-cfg-mail="supportEmail"><span data-cfg="supportEmail">hello@memorymugco.com</span></a>
           <a href="https://h3customs.com" data-cfg-href="operatorUrl"><span data-cfg="operatorDomain">h3customs.com</span></a>
         </div>
       </div>
@@ -1584,7 +1584,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
     /* Where customers email their photo. MUST be a real, monitored address
        before launch — this default goes nowhere. */
-    supportEmail: 'hello@memorymugcompany.com',
+    supportEmail: 'hello@memorymugco.com',
 
     /* The Shopify store that takes payment and fulfills the orders. */
     shopifyDomain: '',
@@ -2400,7 +2400,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     var qs = [];
     var note = ($('cart-note') && $('cart-note').value.trim()) || '';
     if (note) qs.push('note=' + encodeURIComponent(note));
-    qs.push('attributes[Ordered via]=' + encodeURIComponent('memorymugcompany.com'));
+    /* Reads the host it is actually running on, so this tag cannot go stale
+       the next time the domain changes. Falls back to the name off-host. */
+    var via = (location.hostname && location.hostname.indexOf('.') > 0)
+      ? location.hostname.replace(/^www\./, '') : 'memorymugco.com';
+    qs.push('attributes[Ordered via]=' + encodeURIComponent(via));
     if (ownPhoto && ownPhoto.name) {
       qs.push('attributes[Photo to expect]=' + encodeURIComponent(ownPhoto.name));
     }

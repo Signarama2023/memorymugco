@@ -1,15 +1,15 @@
-# Publishes index.html to GitHub Pages on every push to main.
+# The alternative to GoDaddy: publish to GitHub Pages instead.
 #
-# One-time setup, which only a repository admin can do and which no workflow
-# can do for you: Settings -> Pages -> Build and deployment -> Source ->
-# "GitHub Actions". Until that is set this workflow runs and then fails at the
-# deploy step, which is the expected way round: the site is never published
-# from a setting nobody chose.
-name: Deploy to GitHub Pages
+# The site is hosted on GoDaddy, so this does not run on its own -- start it
+# by hand from the Actions tab if you ever want a free copy on
+# signarama2023.github.io/memorymugco, for staging or as a fallback.
+#
+# It needs one setting first, which only a repository admin can make and no
+# workflow can make for you: Settings -> Pages -> Build and deployment ->
+# Source -> "GitHub Actions".
+name: Deploy to GitHub Pages (manual)
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:

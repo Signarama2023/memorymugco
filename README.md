@@ -30,16 +30,50 @@ built to look right when that request fails.
 
 ## Hosting it
 
-The workflow deploys to GitHub Pages automatically. It needs **one** setting that only
-a repository admin can turn on:
+The site answers on **memorymugco.com**, a domain registered at GoDaddy. There are
+two ways to serve it, and the repo is set up for both.
 
-> Settings → Pages → Build and deployment → Source → **GitHub Actions**
+### GitHub Pages, with GoDaddy pointing at it
 
-Then every push to `main` republishes the site. For `memorymugcompany.com`, add the
-domain under Settings → Pages → Custom domain and point the DNS at GitHub.
+Free, HTTPS renews itself, and every push to `main` republishes. Needs no hosting
+plan.
 
-Any static host works just as well — drop `index.html` on Netlify, Cloudflare Pages,
-S3, or the shop's existing server.
+1. **Settings → Pages → Build and deployment → Source → GitHub Actions.** Only a
+   repository admin can set this, and no workflow can set it for you.
+2. **Settings → Pages → Custom domain → `memorymugco.com`.** The `CNAME` file in
+   this repo is what keeps that setting from being wiped on the next deploy.
+3. At GoDaddy, **Domain → DNS → Manage DNS**, and point the apex at GitHub:
+
+   | Type | Name | Value |
+   |---|---|---|
+   | A | @ | `185.199.108.153` |
+   | A | @ | `185.199.109.153` |
+   | A | @ | `185.199.110.153` |
+   | A | @ | `185.199.111.153` |
+   | CNAME | www | `signarama2023.github.io` |
+
+   Delete GoDaddy's parked A record for `@` first, or it will fight these.
+4. Back in Pages, tick **Enforce HTTPS** once the certificate is issued. DNS can take
+   anywhere from minutes to a few hours.
+
+Then run the **Deploy to GitHub Pages (manual)** workflow from the Actions tab, or
+push anything.
+
+### GoDaddy cPanel hosting
+
+If the account has a hosting plan, upload `index.html` into `public_html` through
+cPanel's File Manager and the site is live. Nothing else needs to go up: the mug
+photo, the styles and the scripts are all inside that one file.
+
+To stop that being a manual job every time, `.github/workflows/deploy.yml` will push
+it over FTPS on every commit as soon as three secrets exist — `FTP_SERVER`,
+`FTP_USERNAME`, `FTP_PASSWORD`, under Settings → Secrets and variables → Actions.
+Until then the workflow runs, finds nothing, says so, and exits clean. Make a
+dedicated FTP account in cPanel scoped to `public_html` rather than using the main
+cPanel login, so a leaked deploy password costs you one folder and not the hosting
+account.
+
+Any other static host works just as well — Netlify, Cloudflare Pages, S3.
 
 ---
 
