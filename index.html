@@ -2,54 +2,53 @@
 <title>Memory Mug Company</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Caveat:wght@400;600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500;1,600&family=Caveat:wght@400;600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
 
 <style>
 /* ── Tokens ─────────────────────────────────────────────── */
 :root{
-  --ground:#FFFFFF;
-  --surface:#FFFFFF;
-  --surface-2:#F5F3F0;
-  --ink:#1F1D1B;
-  --ink-2:#58524C;
-  --ink-3:#726B64;   /* 4.50:1 worst case — verified on every ground */
-  --rule:#E7E3DD;
-  --rule-2:#CFC9C1;   /* decorative edges only */
-  --field:#8E867E;    /* editable-control boundaries — needs 3:1, not decorative */
+  --ground:#F3EEE6;       /* warm paper */
+  --surface:#FFFCF8;
+  --surface-2:#E7DFD2;
+  --ink:#161311;          /* near-black */
+  --ink-2:#3A3531;
+  --ink-3:#5C564E;        /* 4.5:1 on paper and on surface-2 */
+  --rule:#E3D9CC;
+  --rule-2:#C9BBA8;
+  --field:#6F675F;        /* editable-control boundaries — needs 3:1, not decorative */
 
-  --red:#B5301B;          /* red as a FILL, white text on top */
-  --red-ink:#A52C19;      /* red as TEXT on a light ground */
-  --red-deep:#8E2414;
-  --red-soft:#FBEAE6;
-  --red-soft-2:#F6DCD5;   /* blush button hover */
+  /* One accent. Saturated rust, used as a real fill with white text. */
+  --red:#C12F1A;
+  --red-ink:#8E2414;      /* rust as TEXT on a light ground */
+  --red-deep:#7A1E12;
+  --red-soft:#F8E4DE;
+  --red-soft-2:#F0D2C8;
 
-  --sun:#F0A92B;
-  --sun-ink:#8F5D02;
-  --sun-soft:#FFF7E6;
+  /* Kept so older illustration classes still resolve. Not used as UI accents. */
+  --sun:#C4A574;
+  --sun-ink:#8E2414;
+  --sun-soft:#F8E4DE;
+  --sky:#5C564E;
+  --sky-ink:#3A3531;
+  --sky-soft:#E7DFD2;
+  --mint:#5C564E;
+  --mint-ink:#3A3531;
+  --mint-soft:#E7DFD2;
 
-  --sky:#3AA3D9;
-  --sky-ink:#166E9B;
-  --sky-soft:#EDF7FD;
+  --coffee:#8A5A3C;
+  --art-red:#C46A4A;
+  --art-sun:#E0B15A;
+  --art-sky:#6E8EA4;
+  --art-mint:#5E8F6E;
 
-  --mint:#3FB57F;
-  --mint-ink:#1E7048;
-  --mint-soft:#EBF9F1;
-
-  --coffee:#A6764F;
-  /* Illustration-only tints — lighter than the UI accents, which must hold contrast. */
-  --art-red:#E8705F;
-  --art-sun:#F5C46A;
-  --art-sky:#7CC1E3;
-  --art-mint:#72CBA0;
-
-  --shadow:rgba(31,29,27,.08);
-  --shadow-2:rgba(31,29,27,.13);
+  --shadow:rgba(22,19,17,.10);
+  --shadow-2:rgba(22,19,17,.22);
 
   --wrap:1120px;
   --gutter:20px;
-  --r-sm:4px;
-  --r-md:6px;
-  --r-lg:10px;
+  --r-sm:3px;
+  --r-md:5px;
+  --r-lg:8px;
   --r-pill:999px;
 
   --f-display:"Lora","Iowan Old Style",Georgia,serif;
@@ -68,7 +67,7 @@ body{
   line-height:1.65;
   -webkit-font-smoothing:antialiased;
 }
-h1,h2,h3{font-family:var(--f-display);font-weight:500;line-height:1.22;margin:0;text-wrap:balance;letter-spacing:-.006em}
+h1,h2,h3{font-family:var(--f-display);font-weight:500;line-height:1.08;margin:0;text-wrap:balance;letter-spacing:-.022em}
 p{margin:0}
 a{color:inherit}
 img,svg{max-width:100%}
@@ -82,14 +81,14 @@ img,svg{max-width:100%}
 section{scroll-margin-top:92px}
 .band{padding-block:clamp(54px,7.5vw,98px)}
 .band--alt{background:var(--surface-2);border-block:1px solid var(--rule)}
-.band--tint{background:#FAF8F6;border-block:1px solid var(--rule)}
+.band--tint{background:#EFE7DB;border-block:1px solid var(--rule)}
 
 /* ── Shared type ────────────────────────────────────────── */
 .eyebrow{
-  font-family:var(--f-body);font-weight:700;font-size:.9375rem;letter-spacing:.04em;
-  color:var(--ink-2);margin:0 0 12px;line-height:1.6;
+  font-family:var(--f-body);font-weight:700;font-size:.78rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--red-ink);margin:0 0 12px;line-height:1.5;
 }
-.h2{font-size:clamp(1.95rem,4.2vw,2.85rem)}
+.h2{font-size:clamp(2.15rem,4.6vw,3.35rem);line-height:1.05}
 .lede{font-size:clamp(1rem,1.3vw,1.08rem);color:var(--ink-2);max-width:58ch}
 .section-head{display:flex;flex-direction:column;gap:14px;margin-bottom:clamp(30px,5vw,50px);max-width:64ch}
 
@@ -101,15 +100,14 @@ section{scroll-margin-top:92px}
   text-decoration:none;cursor:pointer;
   transition:transform .16s ease,background .16s ease,color .16s ease,border-color .16s ease,box-shadow .16s ease;
 }
-/* Primary CTA is a light blush fill; the red border and bold red label carry the affordance.
-   #B32A1E on #FFEFEC is 5.8:1, so it stays legible without a saturated background. */
-.btn--fill{background:var(--red-soft);color:var(--red-deep);border-color:var(--red);box-shadow:0 4px 12px -6px var(--shadow-2)}
-.btn--fill:hover{background:var(--red-soft-2);border-color:var(--red-deep);transform:translateY(-2px);box-shadow:0 8px 18px -8px var(--shadow-2)}
+/* Primary CTA is a solid rust fill. White on #C12F1A is about 5.7:1. */
+.btn--fill{background:var(--red);color:#FFFFFF;border-color:var(--red);box-shadow:0 10px 18px -12px rgba(193,47,26,.9)}
+.btn--fill:hover{background:var(--red-deep);border-color:var(--red-deep);color:#FFFFFF;transform:translateY(-1px);box-shadow:0 14px 22px -12px rgba(122,30,18,.85)}
 .btn--fill:active{transform:translateY(0)}
-.btn--line{background:var(--surface);color:var(--ink);border-color:var(--field)}
-.btn--line:hover{border-color:var(--ink);transform:translateY(-2px)}
+.btn--line{background:var(--surface);color:var(--ink);border-color:var(--ink)}
+.btn--line:hover{background:var(--ink);color:#FFFFFF;transform:translateY(-1px)}
 .btn--line:active{transform:translateY(0)}
-.btn--sm{padding:11px 20px;font-size:.9375rem}
+.btn--sm{padding:11px 16px;font-size:.9375rem}
 
 /* ── Announcement + header ──────────────────────────────── */
 .promo{background:var(--ink);color:#FFFFFF;text-align:center}
@@ -120,11 +118,11 @@ section{scroll-margin-top:92px}
   background:var(--ground);
   background:color-mix(in srgb,var(--ground) 92%,transparent);
   backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  border-bottom:2px solid var(--rule);
+  border-bottom:1px solid var(--rule);
 }
-.header-row{display:flex;align-items:center;gap:18px;padding-block:13px}
-.brand{display:flex;align-items:center;gap:11px;text-decoration:none;margin-right:auto}
-.brand-mark{flex:none;color:var(--red-ink)}
+.header-row{display:flex;align-items:center;gap:14px;padding-block:10px}
+.brand{display:flex;align-items:center;gap:11px;text-decoration:none;margin-right:auto;min-width:0}
+.brand-mark{flex:none;color:var(--red)}
 .brand-text{display:flex;flex-direction:column;line-height:1.1}
 .brand-name{font-family:var(--f-display);font-weight:600;font-size:1.24rem;letter-spacing:-.012em}
 .brand-sub{font-weight:700;font-size:.63rem;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3);margin-top:3px}
@@ -135,20 +133,33 @@ section{scroll-margin-top:92px}
 }
 .site-nav a:hover{color:var(--red-ink);border-color:var(--red)}
 @media (max-width:900px){.site-nav{display:none}}
+@media (max-width:720px){
+  .brand-sub{display:none}
+  .header-row{gap:8px}
+  .header-row .btn--sm{padding:10px 12px;font-size:.875rem}
+}
+@media (max-width:380px){
+  :root{--gutter:12px}
+  .brand-name{font-size:1rem}
+  .header-row .btn--sm{padding:9px 10px;font-size:.8125rem}
+  .cart-btn{width:40px;height:40px}
+}
 
 /* ── Hero ───────────────────────────────────────────────── */
-.hero{padding-block:clamp(28px,3.6vw,46px) clamp(32px,4.5vw,58px)}
-.hero-head{max-width:46ch;margin:0 auto clamp(26px,3.4vw,42px);display:flex;flex-direction:column;gap:14px;text-align:center}
+.hero{padding-block:clamp(12px,2vw,22px) clamp(28px,4vw,48px)}
+.hero-aside{display:flex;flex-direction:column;gap:16px;min-width:0;padding-top:6px}
+.hero-head{margin:0;display:flex;flex-direction:column;gap:12px;text-align:left;min-width:0}
 .buy{
-  background:var(--surface);border:2px solid var(--rule);border-radius:var(--r-lg);
-  padding:clamp(22px,2.6vw,30px);display:flex;flex-direction:column;gap:14px;align-self:center;min-width:0;
+  background:var(--surface);border:1px solid var(--rule-2);border-radius:var(--r-lg);
+  padding:clamp(16px,2vw,22px);display:flex;flex-direction:column;gap:10px;align-self:stretch;min-width:0;
+  box-shadow:0 18px 40px -28px rgba(22,19,17,.55);
 }
-.buy h2{font-size:clamp(1.45rem,2.3vw,1.85rem)}
+.buy h2{font-size:clamp(1.35rem,2vw,1.6rem)}
 .buy-facts{font-size:.9375rem;font-weight:700;color:var(--ink-2)}
 .buy-facts i{font-style:normal;color:var(--ink-3);padding-inline:5px}
 .proof{
-  border:1px solid var(--rule-2);border-radius:var(--r-sm);padding:14px;
-  display:flex;flex-direction:column;gap:9px;background:var(--surface-2);
+  border:1px solid var(--rule-2);border-radius:var(--r-sm);padding:12px;
+  display:flex;flex-direction:column;gap:8px;background:var(--ground);
 }
 .proof-head{font-weight:700;font-size:.9375rem}
 .proof-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -186,16 +197,23 @@ section{scroll-margin-top:92px}
   padding:10px 13px;display:flex;align-items:center;gap:9px;
 }
 .nudge::before{content:"+";font-weight:700;color:var(--ink-3);font-size:1.05rem;line-height:1}
-.nudge--free{background:var(--mint-soft);border-color:var(--mint);color:var(--mint-ink);font-weight:700}
-.nudge--free::before{content:"\2713";color:var(--mint-ink)}
+.nudge--free{background:var(--red-soft);border-color:var(--red);color:var(--red-deep);font-weight:700}
+.nudge--free::before{content:"\2713";color:var(--red-deep)}
 .buy-process{
   font-size:.9375rem;color:var(--ink-2);line-height:1.55;
   background:var(--surface-2);border-radius:var(--r-md);padding:12px 14px;
 }
-.hero-grid{display:grid;grid-template-columns:minmax(0,1.06fr) minmax(0,.94fr);gap:clamp(26px,4vw,48px);align-items:center}
-@media (max-width:920px){.hero-grid{grid-template-columns:minmax(0,1fr);gap:32px}}
-.hero h1{font-size:clamp(2rem,3.8vw,3rem);line-height:1.18;letter-spacing:-.012em;font-weight:500}
-.hero h1 em{font-style:italic;font-weight:400;color:var(--ink)}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:clamp(18px,3vw,40px);align-items:start}
+@media (max-width:920px){
+  .hero-grid{grid-template-columns:minmax(0,1fr);gap:16px}
+  .hero-aside{display:contents}
+  .hero-head{order:0}
+  .stage{order:1}
+  .buy{order:2}
+  #shop-notice{order:3}
+}
+.hero h1{font-size:clamp(2.65rem,4.4vw,4.05rem);line-height:.98;letter-spacing:-.03em;font-weight:500}
+.hero h1 em{font-style:italic;font-weight:500;color:var(--red-ink)}
 .hero-copy{display:flex;flex-direction:column;gap:20px;min-width:0}
 .hero-actions{display:flex;flex-wrap:wrap;gap:13px;align-items:center}
 .hero-note{display:flex;flex-wrap:wrap;gap:8px}
@@ -204,15 +222,12 @@ section{scroll-margin-top:92px}
   background:var(--surface);border:2px solid var(--rule);border-radius:var(--r-sm);
   padding:6px 14px;font-size:.85rem;font-weight:600;color:var(--ink-2);
 }
-.hero-note span::before{content:"";width:8px;height:8px;border-radius:50%;flex:none;background:var(--mint)}
-.hero-note span:nth-child(2)::before{background:var(--sky)}
-.hero-note span:nth-child(3)::before{background:var(--sun)}
-.hero-note span:nth-child(4)::before{background:var(--red)}
+.hero-note span::before{content:"";width:7px;height:7px;border-radius:50%;flex:none;background:var(--red)}
 
 /* ── Mug stage ──────────────────────────────────────────── */
-.stage{display:flex;flex-direction:column;gap:16px;align-items:center;min-width:0}
-.mug-frame{width:100%;max-width:520px;aspect-ratio:52/42}
-.mug-frame svg{display:block;width:100%;height:100%}
+.stage{display:flex;flex-direction:column;gap:12px;align-items:center;min-width:0}
+.mug-frame{width:100%;max-width:640px;aspect-ratio:390/340}
+.mug-frame svg{display:block;width:100%;height:100%;filter:drop-shadow(0 18px 22px rgba(48,28,18,.16))}
 /* SVG presentation attributes can't read custom properties, so paint via CSS. */
 .mug-svg .f-ink{fill:var(--ink)}
 .mug-svg .f-surf{fill:var(--surface)}
@@ -252,22 +267,23 @@ section{scroll-margin-top:92px}
 }
 .chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:center}
 .chip{
-  font-family:var(--f-body);font-weight:700;font-size:.9375rem;
-  padding:12px 18px;border-radius:var(--r-sm);border:1.5px solid var(--rule-2);
+  font-family:var(--f-body);font-weight:700;font-size:.875rem;
+  padding:8px 12px;border-radius:var(--r-sm);border:1px solid var(--rule-2);
   background:var(--surface);color:var(--ink-2);cursor:pointer;
-  transition:background .15s ease,color .15s ease,border-color .15s ease,transform .15s ease;
+  transition:background .15s ease,color .15s ease,border-color .15s ease;
 }
-.chip:hover{border-color:var(--ink-3);color:var(--ink);transform:translateY(-2px)}
-.chip[aria-pressed="true"]{background:var(--red-soft);border-color:var(--red);color:var(--red-ink)}
+.chip:hover{border-color:var(--ink);color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--red);border-color:var(--red);color:#FFFFFF}
+.chip[aria-pressed="true"]:hover{background:var(--red-deep);color:#FFFFFF}
 .chip--more{border-style:dashed;color:var(--ink-3)}
 .stage-caption{font-size:.9375rem;color:var(--ink-2);text-align:center;max-width:42ch;min-height:3.4em}
 
 /* ── Ticker ─────────────────────────────────────────────── */
-.ticker{background:var(--surface-2);border-block:1px solid var(--rule)}
-.ticker-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;padding-block:26px}
+.ticker{background:var(--ink);color:#F6F1EA;border:0}
+.ticker-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;padding-block:22px}
 .ticker-cell{display:flex;flex-direction:column;gap:3px;align-items:center;text-align:center}
-.ticker-k{font-size:.9375rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
-.ticker-v{font-family:var(--f-display);font-weight:600;font-size:1.28rem;letter-spacing:-.012em}
+.ticker-k{font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#D9CFC3}
+.ticker-v{font-family:var(--f-display);font-weight:600;font-size:1.35rem;letter-spacing:-.02em;color:#FFFFFF}
 @media (max-width:760px){.ticker-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}}
 
 /* ── Catalog ──────────────────────────────────────────── */
@@ -275,14 +291,14 @@ section{scroll-margin-top:92px}
 @media (max-width:900px){.cat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:560px){.cat-grid{grid-template-columns:minmax(0,1fr)}}
 .cat{
-  background:var(--surface);border:2px solid var(--rule);border-radius:var(--r-lg);
-  padding:26px 24px 28px;display:flex;flex-direction:column;gap:11px;
+  background:var(--surface);border:1px solid var(--rule-2);border-radius:var(--r-lg);
+  padding:22px 20px 24px;display:flex;flex-direction:column;gap:10px;
   transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
 }
-.cat:hover{transform:translateY(-5px);border-color:var(--ink-3);box-shadow:0 16px 30px -18px var(--shadow-2)}
+.cat:hover{transform:translateY(-3px);border-color:var(--ink);box-shadow:0 16px 30px -18px var(--shadow-2)}
 .cat-icon{
-  width:52px;height:52px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;
-  background:var(--surface-2);color:var(--ink-2);margin-bottom:4px;
+  width:44px;height:44px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;
+  background:var(--red-soft);color:var(--red-ink);margin-bottom:2px;
 }
 .cat h3{font-size:1.3rem}
 .cat p{font-size:.97rem;color:var(--ink-2);line-height:1.6}
@@ -290,11 +306,11 @@ section{scroll-margin-top:92px}
 /* ── Steps ──────────────────────────────────────────────── */
 .steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(22px,3.5vw,38px)}
 @media (max-width:840px){.steps{grid-template-columns:minmax(0,1fr);gap:28px}}
-.step{display:flex;flex-direction:column;gap:11px;padding-top:20px;border-top:2px solid var(--rule-2)}
+.step{display:flex;flex-direction:column;gap:11px;padding-top:18px;border-top:2px solid var(--red)}
 .step-n{
-  width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-family:var(--f-display);font-weight:600;font-size:1.4rem;
-  background:var(--surface-2);color:var(--ink);border:2px solid var(--rule-2);margin-bottom:4px;
+  width:42px;height:42px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;
+  font-family:var(--f-display);font-weight:600;font-size:1.35rem;
+  background:var(--red);color:#FFFFFF;border:0;margin-bottom:4px;
 }
 .step h3{font-size:1.38rem}
 .step p{font-size:.99rem;color:var(--ink-2)}
@@ -305,13 +321,14 @@ section{scroll-margin-top:92px}
 .craft-body{display:flex;flex-direction:column;gap:18px}
 .craft-body p{color:var(--ink-2)}
 .pull{
-  background:var(--surface-2);border-radius:var(--r-lg);padding:20px 24px;
-  font-family:var(--f-display);font-weight:500;font-size:1.22rem;line-height:1.42;color:var(--ink);
+  background:var(--surface);border-radius:0 var(--r-sm) var(--r-sm) 0;padding:18px 22px;
+  border-left:3px solid var(--red);
+  font-family:var(--f-display);font-weight:500;font-size:1.28rem;line-height:1.35;color:var(--ink);
 }
-.spec{border:2px solid var(--rule);border-radius:var(--r-lg);background:var(--surface);overflow:hidden}
+.spec{border:1px solid var(--rule-2);border-radius:var(--r-lg);background:var(--surface);overflow:hidden}
 .spec-head{
-  padding:16px 24px;background:var(--surface-2);color:var(--ink-2);
-  font-weight:700;font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;
+  padding:14px 22px;background:var(--ink);color:#F6F1EA;
+  font-weight:700;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;
 }
 .spec dl{margin:0;display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr)}
 .spec dt,.spec dd{margin:0;padding:13px 24px;border-top:2px solid var(--rule);font-size:.95rem}
@@ -335,8 +352,8 @@ section{scroll-margin-top:92px}
 
 /* ── FAQ ────────────────────────────────────────────────── */
 .faq{display:flex;flex-direction:column;gap:11px}
-.faq details{background:var(--surface);border:2px solid var(--rule);border-radius:var(--r-md);transition:border-color .15s ease}
-.faq details[open]{border-color:var(--field)}
+.faq details{background:var(--surface);border:1px solid var(--rule-2);border-radius:var(--r-md);transition:border-color .15s ease}
+.faq details[open]{border-color:var(--red)}
 .faq summary{
   list-style:none;cursor:pointer;padding:19px 56px 19px 22px;position:relative;
   font-family:var(--f-display);font-weight:600;font-size:1.14rem;letter-spacing:-.008em;
@@ -347,17 +364,23 @@ section{scroll-margin-top:92px}
   width:28px;height:28px;border-radius:50%;background:var(--surface-2);color:var(--ink-3);
   font-size:1.2rem;font-weight:700;line-height:27px;text-align:center;
 }
-.faq details[open] summary::after{content:"–";background:var(--red-soft);color:var(--red-ink)}
+.faq details[open] summary::after{content:"–";background:var(--red);color:#FFFFFF}
 .faq summary:hover{color:var(--red-ink)}
 .faq-a{padding:0 22px 22px;max-width:68ch;color:var(--ink-2);font-size:.99rem}
 .faq-a a{color:var(--red-ink);font-weight:700}
 
 /* ── Closer ─────────────────────────────────────────────── */
-.closer{background:var(--surface-2)}
+.closer{background:var(--ground);border-top:1px solid var(--rule)}
+.closer-copy{display:flex;flex-direction:column;gap:14px;min-width:0}
 .closer-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.86fr);gap:clamp(28px,4.5vw,56px);align-items:center}
 @media (max-width:840px){.closer-grid{grid-template-columns:minmax(0,1fr)}}
 .closer h2{font-size:clamp(2rem,4.5vw,3rem)}
-.signup{display:flex;flex-direction:column;gap:12px}
+.signup{
+  display:flex;flex-direction:column;gap:12px;
+  background:var(--surface);border:1px solid var(--rule-2);border-radius:var(--r-lg);
+  padding:clamp(18px,2.2vw,26px);
+  box-shadow:0 18px 40px -28px rgba(22,19,17,.55);
+}
 .signup label{font-weight:700;font-size:.95rem}
 .signup-row{display:flex;gap:11px;flex-wrap:wrap}
 .signup input{
@@ -369,11 +392,11 @@ section{scroll-margin-top:92px}
 .signup-fine{font-size:.9375rem;color:var(--ink-2)}
 .signup-done{
   display:flex;gap:13px;align-items:flex-start;padding:20px 22px;border-radius:var(--r-lg);
-  background:var(--surface);border:2.5px solid var(--mint);
+  background:var(--surface);border:1.5px solid var(--red);
 }
 .signup-done .tick{
-  flex:none;width:28px;height:28px;border-radius:50%;background:var(--mint-soft);color:var(--mint-ink);
-  border:2px solid var(--mint);font-weight:700;line-height:24px;text-align:center;font-size:.95rem;
+  flex:none;width:28px;height:28px;border-radius:50%;background:var(--red);color:#FFFFFF;
+  border:0;font-weight:700;line-height:28px;text-align:center;font-size:.95rem;
 }
 .signup-done b{display:block;font-family:var(--f-display);font-weight:600;font-size:1.12rem;margin-bottom:2px}
 .signup-done p{font-size:.94rem;color:var(--ink-2)}
@@ -394,11 +417,11 @@ section{scroll-margin-top:92px}
 .single-body h3{font-size:clamp(1.4rem,2.4vw,1.85rem)}
 .single-blurb{font-size:1rem;color:var(--ink-2)}
 .single-price{display:flex;align-items:baseline;gap:9px;font-variant-numeric:tabular-nums}
-.single-price b{font-family:var(--f-display);font-weight:600;font-size:2.9rem;line-height:1;color:var(--red-ink);letter-spacing:-.03em}
+.single-price b{font-family:var(--f-display);font-weight:600;font-size:clamp(2.7rem,4vw,3.45rem);line-height:1;color:var(--red-ink);letter-spacing:-.03em}
 .single-price span{font-size:.9rem;font-weight:700;color:var(--ink-3)}
 .single-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
 .single-list li{font-size:.95rem;color:var(--ink-2);display:flex;gap:11px;line-height:1.5}
-.single-list li::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--ink-3);margin-top:.55em}
+.single-list li::before{content:"";flex:none;width:6px;height:6px;border-radius:1px;background:var(--red);margin-top:.55em}
 .single-buy select,.line-qty select{
   font:inherit;font-size:.9375rem;font-weight:700;color:var(--ink);
   padding:13px 15px;border-radius:var(--r-sm);border:1.5px solid var(--field);
@@ -407,19 +430,19 @@ section{scroll-margin-top:92px}
 .single-buy select:hover,.line-qty select:hover{border-color:var(--ink)}
 .line-qty select{padding:7px 11px;font-size:.87rem;font-weight:600}
 .single-buy{display:flex;gap:11px;align-items:center;flex-wrap:wrap;margin-top:4px}
-.single-buy .btn{flex:1 1 190px}
+.single-buy .btn{flex:1 1 160px;min-width:0}
 .single-fine{font-size:.9375rem;color:var(--ink-3);line-height:1.6}
-.line-thumb .ph{font-family:var(--f-display);font-weight:600;font-size:1.3rem;color:var(--sky-ink);opacity:.55}
+.line-thumb .ph{font-family:var(--f-display);font-weight:600;font-size:1.3rem;color:var(--red-ink)}
 .owner-row{margin-top:28px;display:flex;justify-content:center}
 .owner-link{
   background:none;border:2px dashed var(--rule-2);border-radius:var(--r-sm);
   padding:12px 22px;font:inherit;font-size:.9375rem;font-weight:500;color:var(--ink-3);cursor:pointer;
   transition:border-color .15s ease,color .15s ease;
 }
-.owner-link:hover{border-color:var(--sky);color:var(--sky-ink)}
+.owner-link:hover{border-color:var(--red);color:var(--red-ink)}
 .shop-msg{
-  border:2px dashed var(--rule-2);border-radius:var(--r-lg);padding:24px;
-  text-align:center;color:var(--ink-2);font-size:.96rem;
+  border:1px solid var(--rule-2);border-radius:var(--r-lg);padding:16px 18px;
+  text-align:center;color:var(--ink-2);font-size:.95rem;background:var(--surface);
 }
 .shop-msg b{display:block;font-family:var(--f-display);font-size:1.1rem;color:var(--ink);margin-bottom:5px}
 
@@ -496,11 +519,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   background-repeat:no-repeat;background-position:right 14px center;background-size:12px 8px}
 .field input:focus-visible,.field textarea:focus-visible,.field select:focus-visible{border-color:var(--red-deep)}
 .field .hint{font-size:.9375rem;color:var(--ink-3);line-height:1.5}
-.field .hint a{color:var(--sky-ink);font-weight:700}
+.field .hint a{color:var(--red-ink);font-weight:700}
 .status{border-radius:var(--r-md);padding:14px 16px;font-size:.92rem;line-height:1.55}
-.status--ok{background:var(--mint-soft);color:var(--mint-ink);border:2px solid var(--mint)}
+.status--ok{background:var(--red-soft);color:var(--red-deep);border:2px solid var(--red)}
 .status--bad{background:var(--red-soft);color:var(--red-deep);border:2px solid var(--red)}
-.status--info{background:var(--sky-soft);color:var(--sky-ink);border:2px solid var(--sky)}
+.status--info{background:var(--surface-2);color:var(--ink);border:2px solid var(--rule-2)}
 .status b{display:block;margin-bottom:3px}
 .snippet{
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.8rem;line-height:1.7;
@@ -520,9 +543,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 .photo-slot{border:2px solid var(--rule);border-radius:var(--r-md);overflow:hidden;background:var(--surface-2);display:flex;flex-direction:column}
 .photo-thumb{position:relative;aspect-ratio:1/1;max-width:100%;background:var(--surface-2);display:flex;align-items:center;justify-content:center;overflow:hidden}
 .photo-thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.photo-thumb span{font-size:.7rem;font-weight:700;color:var(--sky-ink);opacity:.7;text-align:center;padding:6px;line-height:1.3}
+.photo-thumb span{font-size:.7rem;font-weight:700;color:var(--ink-3);text-align:center;padding:6px;line-height:1.3}
 .photo-slot .cap{padding:6px 6px 0;font-size:.68rem;font-weight:700;text-align:center;color:var(--ink-2)}
-.photo-slot .pick{display:block;padding:6px;font-size:.7rem;font-weight:700;text-align:center;color:var(--sky-ink);cursor:pointer}
+.photo-slot .pick{display:block;padding:6px;font-size:.7rem;font-weight:700;text-align:center;color:var(--red-ink);cursor:pointer}
 .photo-slot .pick:hover{text-decoration:underline}
 .photo-slot input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .photo-slot .drop{background:none;border:0;padding:0 0 7px;font:inherit;font-size:.68rem;font-weight:700;color:var(--ink-3);cursor:pointer}
@@ -589,20 +612,12 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
 <!-- ══ HERO ════════════════════════════════════════════════ -->
 <section class="wrap hero">
-  <div class="hero-head">
-    <p class="eyebrow">Custom photo mugs · By <span data-cfg="operatorName">H3 Customs</span></p>
-    <h1>Put your <em>favorite people</em> on a mug.</h1>
-    <p class="lede">
-      Turn a photo you already have into a gift they'll reach for every morning.
-    </p>
-  </div>
-
   <div class="hero-grid" id="order">
     <div class="stage">
       <div class="mug-frame">
-        <svg class="mug-svg" viewBox="0 0 520 420" role="img" aria-labelledby="mug-title mug-desc">
+        <svg class="mug-svg" viewBox="70 30 390 340" role="img" aria-labelledby="mug-title mug-desc">
           <title id="mug-title">A ceramic mug printed with a family photo</title>
-          <desc id="mug-desc">A white mug showing a printed family picture, with a child's crayon drawing and a photo of a dog propped beside it. Use the buttons below to preview other styles.</desc>
+          <desc id="mug-desc">A white 15 oz mug with an example family photograph printed across the front. A child's drawing and a photo of a dog sit beside it. The picture is an example — your photo goes on yours.</desc>
 
           <defs>
             <linearGradient id="ceramic" x1="0" y1="0" x2="1" y2="0">
@@ -619,6 +634,32 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
             <clipPath id="panelClip"><rect x="178" y="146" width="140" height="172" rx="7"/></clipPath>
             <clipPath id="snapA"><rect x="39" y="67" width="100" height="94"/></clipPath>
             <clipPath id="snapB"><rect x="379" y="249" width="100" height="94"/></clipPath>
+            <linearGradient id="famSky" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#F0B56A"/>
+              <stop offset="46%" stop-color="#E08A45"/>
+              <stop offset="100%" stop-color="#C4622E"/>
+            </linearGradient>
+            <!-- Mid tones only. The print is multiplied onto white ceramic,
+                 so anything near white disappears and the face goes blank. -->
+            <radialGradient id="skinLight" cx="38%" cy="32%" r="72%">
+              <stop offset="0%" stop-color="#E0A87E"/>
+              <stop offset="70%" stop-color="#C4845C"/>
+              <stop offset="100%" stop-color="#A86B44"/>
+            </radialGradient>
+            <radialGradient id="skinMid" cx="40%" cy="34%" r="72%">
+              <stop offset="0%" stop-color="#C98458"/>
+              <stop offset="70%" stop-color="#A86A40"/>
+              <stop offset="100%" stop-color="#8A5232"/>
+            </radialGradient>
+            <radialGradient id="skinDeep" cx="36%" cy="30%" r="75%">
+              <stop offset="0%" stop-color="#D7A07A"/>
+              <stop offset="100%" stop-color="#B57A52"/>
+            </radialGradient>
+            <radialGradient id="fur" cx="42%" cy="38%" r="68%">
+              <stop offset="0%" stop-color="#4C433C"/>
+              <stop offset="48%" stop-color="#241F1C"/>
+              <stop offset="100%" stop-color="#100E0C"/>
+            </radialGradient>
           </defs>
 
           <!-- ── The real mug ──
@@ -634,20 +675,18 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
           <g transform="rotate(-9 89 122)">
             <rect class="f-ink" x="32" y="61" width="118" height="128" rx="6" opacity=".09"/>
             <rect class="f-surf s-rule2" x="30" y="58" width="118" height="128" rx="6" stroke-width="2"/>
-            <rect class="f-sun-s" x="39" y="67" width="100" height="94" rx="2"/>
+            <rect x="39" y="67" width="100" height="94" rx="2" fill="#F4E3C6"/>
             <g id="snap-a" clip-path="url(#snapA)">
-              <circle class="f-sun" cx="57" cy="84" r="9"/>
-              <g class="s-sun" stroke-width="2.4" stroke-linecap="round">
-                <path d="M57 68v-5M42 84h-5M46 73l-4-4M68 73l4-4"/>
+              <circle cx="58" cy="86" r="8" fill="#F0C14A" stroke="#D9922A" stroke-width="2"/>
+              <g stroke="#D9922A" stroke-width="2" stroke-linecap="round">
+                <path d="M58 72v-4M46 86h-4M50 76l-3-3M66 76l3-3"/>
               </g>
-              <path class="f-red" d="M74 112 98 90l24 22Z"/>
-              <rect class="f-red-s s-red" x="80" y="112" width="36" height="34" rx="2" stroke-width="2.6"/>
-              <rect class="f-sun" x="92" y="128" width="12" height="18" rx="2"/>
-              <g class="s-sky" stroke-width="2.6" stroke-linecap="round" fill="none">
-                <circle cx="57" cy="118" r="6"/>
-                <path d="M57 124v13M50 129h14M57 137l-5 9M57 137l5 9"/>
-              </g>
-              <path class="s-mint" d="M39 152c8-4 14 4 22 0s14 4 22 0 14 4 22 0 14 4 22 0" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+              <path d="M78 112 96 94l18 18Z" fill="#E15A42"/>
+              <rect x="82" y="112" width="28" height="26" fill="#FBF6EC" stroke="#E15A42" stroke-width="2.4"/>
+              <rect x="92" y="124" width="8" height="14" fill="#C47A32"/>
+              <circle cx="62" cy="124" r="6" fill="#F2C8A4" stroke="#2A211C" stroke-width="1.8"/>
+              <path d="M56 130h12v12a6 6 0 0 1-12 0Z" fill="#3C7CC0" stroke="#2A211C" stroke-width="1.8"/>
+              <path d="M39 154c8-5 14 4 22 0s14 4 22 0 14 4 22 0 12 3 16-1" fill="none" stroke="#3E8A52" stroke-width="3.2" stroke-linecap="round"/>
             </g>
             <path class="s-ink3" d="M52 173h44" stroke-width="3" stroke-linecap="round" opacity=".4"/>
             <rect class="f-sun" x="66" y="50" width="46" height="14" rx="3" opacity=".6" transform="rotate(-4 89 57)"/>
@@ -689,134 +728,145 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
           <g class="panel-art" clip-path="url(#panelClip)">
            <g id="panel-fit" transform="translate(-51.3103,-40.7429) scale(1.206897,1.228571)">
 
-            <!-- FAMILY — sunset, hills, the whole crew and the dog -->
+            <!-- FAMILY — a close photo of the crew, full-bleed on the print -->
             <g class="memory is-on" data-key="family">
-              <rect x="190" y="152" width="116" height="140" fill="url(#sky)"/>
-              <circle class="f-sun" cx="281" cy="201" r="20" opacity=".9"/>
-              <g class="s-ink3" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".45">
-                <path d="M205 180c2-3 4-3 6 0M211 176c2-3 4-3 6 0"/>
-                <path d="M237 170c2-3 4-3 6 0M243 167c2-3 4-3 6 0"/>
+              <rect x="190" y="152" width="116" height="140" fill="url(#famSky)"/>
+              <circle cx="230" cy="176" r="28" fill="#F6D7A8" opacity=".85"/>
+              <ellipse cx="248" cy="250" rx="70" ry="36" fill="#8E4A2C" opacity=".22"/>
+              <!-- one shoulder line, like a cropped snapshot -->
+              <path d="M190 236c14-18 36-26 58-18 16 6 34 2 58-10 0 0 0 84 0 84H190Z" fill="#2C3A4C"/>
+              <path d="M214 228c10-16 28-18 40-8 8 6 10 16 6 26l4 46h-62Z" fill="#9A341F"/>
+              <path d="M252 240c12-14 32-12 40 2l8 50h-56Z" fill="#3A322C"/>
+              <!-- hair sits behind each face -->
+              <circle cx="208" cy="200" r="20" fill="#1A1614"/>
+              <circle cx="248" cy="184" r="22" fill="#1A1614"/>
+              <circle cx="286" cy="202" r="18" fill="#3A241C"/>
+              <circle cx="232" cy="236" r="15" fill="#2A211C"/>
+              <!-- necks -->
+              <rect x="202" y="214" width="12" height="16" rx="5" fill="#C48B66"/>
+              <rect x="240" y="198" width="14" height="18" rx="6" fill="#A86B44"/>
+              <rect x="278" y="214" width="12" height="16" rx="5" fill="#C48B66"/>
+              <rect x="226" y="246" width="11" height="12" rx="4" fill="#D7A484"/>
+              <!-- faces -->
+              <ellipse cx="210" cy="210" rx="15" ry="17" fill="url(#skinLight)"/>
+              <ellipse cx="248" cy="194" rx="16.5" ry="18" fill="url(#skinMid)"/>
+              <ellipse cx="284" cy="212" rx="14" ry="16" fill="url(#skinLight)"/>
+              <ellipse cx="234" cy="246" rx="12" ry="13" fill="url(#skinDeep)"/>
+              <!-- bangs, kept above the eyes -->
+              <path d="M196 204c4-12 20-16 30-8 1 3-6 6-12 4-6-1-12 0-18 4Z" fill="#1A1614"/>
+              <path d="M232 186c6-12 24-14 34-6 1 4-6 6-14 4-8-2-14 0-20 2Z" fill="#1A1614"/>
+              <path d="M272 206c4-10 18-12 26-4 0 3-6 5-12 3-6-1-10 0-14 1Z" fill="#3A241C"/>
+              <path d="M224 240c3-8 16-10 22-3 0 3-5 4-10 3-5-1-9 0-12 0Z" fill="#2A211C"/>
+              <!-- eyes. Dark on the skin: a white sclera would multiply away. -->
+              <g fill="#1A1614">
+                <ellipse cx="204" cy="210" rx="1.7" ry="2"/>
+                <ellipse cx="216" cy="210" rx="1.7" ry="2"/>
+                <ellipse cx="242" cy="194" rx="1.8" ry="2.1"/>
+                <ellipse cx="254" cy="194" rx="1.8" ry="2.1"/>
+                <ellipse cx="279" cy="212" rx="1.55" ry="1.85"/>
+                <ellipse cx="289" cy="212" rx="1.55" ry="1.85"/>
+                <ellipse cx="230" cy="246" rx="1.35" ry="1.6"/>
+                <ellipse cx="238" cy="246" rx="1.35" ry="1.6"/>
               </g>
-              <path class="f-mint" d="M190 238c16-14 30-6 46-13s30-12 46-4c10 5 24 11 24 11v60H190Z" opacity=".26"/>
-              <path class="f-mint" d="M190 256c22-11 36 3 56-3s36-9 52-1c4 2 8 4 8 4v36H190Z" opacity=".46"/>
-              <rect class="f-mint" x="190" y="272" width="116" height="20" opacity=".78"/>
-              <rect class="f-coffee" x="205" y="250" width="5" height="24" rx="2.5"/>
-              <circle class="f-mint" cx="207.5" cy="243" r="13"/>
-              <circle class="f-mint" cx="199" cy="250" r="8"/>
-              <circle class="f-mint" cx="216" cy="250" r="7.5"/>
-              <!-- Color keeps the four of them readable at this size; the hair does the characterizing. -->
-              <rect class="f-red" x="228" y="246" width="16" height="36" rx="8"/>
-              <circle class="f-ink" cx="236" cy="239" r="7.5"/>
-              <path class="f-ink" d="M243 236c4 1 6 6 4 10l-4-2c1-3 0-6-2-7Z"/>
-              <rect class="f-sky" x="249" y="242" width="17" height="40" rx="8.5"/>
-              <circle class="f-ink" cx="257.5" cy="234" r="8"/>
-              <rect class="f-sun" x="271" y="258" width="13" height="24" rx="6.5"/>
-              <circle class="f-ink" cx="277.5" cy="252" r="6"/>
-              <g class="f-ink">
-                <ellipse cx="294" cy="276" rx="8" ry="5"/>
-                <circle cx="300" cy="270" r="4.5"/>
-                <path d="M298 266c-1-4 1-6 2-5s2 3 1 5Z"/>
-                <path d="M287 273c-3-2-2-6 1-7l1 3c-1 1-1 3 0 4Z"/>
+              <g fill="none" stroke="#A86B44" stroke-width="1.15" stroke-linecap="round">
+                <path d="M206 218c2.2 1.5 5.2 1.5 7.2 0"/>
+                <path d="M244 202c2.4 1.6 5.6 1.6 8 0"/>
+                <path d="M280 219c2 1.3 4.6 1.3 6.6 0"/>
+                <path d="M230 252c1.8 1.1 4 1.1 5.8 0"/>
               </g>
-              <rect class="f-red" x="296" y="273" width="9" height="3" rx="1.5"/>
+              <!-- the dog, in the foreground of the same photo -->
+              <path d="M268 262c10-8 24-6 30 4 4 8 2 16-6 20-8 2-16-2-20-8-2 6-10 8-16 4-6-4-8-12-2-16 4-6 8-8 14-4Z" fill="url(#fur)"/>
+              <path d="M292 258c6-7 14-6 16 1 1 4-3 7-7 7-3 0-7-3-9-8Z" fill="#1A1614"/>
+              <ellipse cx="284" cy="274" rx="7" ry="5" fill="#C9956E"/>
+              <ellipse cx="281" cy="270" rx="1.8" ry="1.5" fill="#E0B48A"/>
+              <circle cx="281.6" cy="270.2" r=".7" fill="#1A1614"/>
+              <ellipse cx="286" cy="275" rx="2.4" ry="1.6" fill="#1A1614"/>
             </g>
 
-            <!-- KID'S ART — rainbow, wobbly house, the whole fridge-door look -->
+            <!-- KID'S ART — a crayon drawing, photographed flat -->
             <g class="memory" data-key="art">
-              <rect class="f-surf" x="190" y="152" width="116" height="140"/>
-              <g fill="none" stroke-width="4" stroke-linecap="round">
-                <path class="s-red"  d="M197 212a51 51 0 0 1 102 0"/>
-                <path class="s-sun"  d="M204 212a44 44 0 0 1 88 0"/>
-                <path class="s-mint" d="M211 212a37 37 0 0 1 74 0"/>
-                <path class="s-sky"  d="M218 212a30 30 0 0 1 60 0"/>
+              <rect x="190" y="152" width="116" height="140" fill="#F4E3C6"/>
+              <circle cx="214" cy="174" r="11" fill="#F0C14A" stroke="#D9922A" stroke-width="2.5"/>
+              <g stroke="#D9922A" stroke-width="3" stroke-linecap="round">
+                <path d="M214 156v-7M197 174h-7M203 162l-5-5M225 162l5-5M203 186l-5 5M225 186l5 5"/>
               </g>
-              <circle class="f-sun" cx="199" cy="170" r="9"/>
-              <g class="s-sun" stroke-width="2.4" stroke-linecap="round">
-                <path d="M199 155v-4M183 170h-4M188 159l-3-3M210 159l3-3M188 181l-3 3"/>
-              </g>
-              <!-- house -->
-              <path class="f-red" d="M224 234 254 210l30 24Z"/>
-              <rect class="f-red-s s-red" x="231" y="234" width="46" height="40" rx="2" stroke-width="3"/>
-              <rect class="f-sun" x="247" y="252" width="14" height="22" rx="1"/>
-              <rect class="f-sky-s s-sky" x="235" y="240" width="12" height="11" rx="1" stroke-width="2"/>
-              <path class="s-ink3" d="M273 214c4-5-3-8 1-13" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".5"/>
-              <rect class="f-red" x="270" y="216" width="7" height="12" rx="1"/>
-              <!-- two stick figures holding hands -->
-              <g class="s-sky" stroke-width="2.6" fill="none" stroke-linecap="round">
-                <circle cx="205" cy="240" r="6"/>
-                <path d="M205 246v14M198 251h14M205 260l-5 12M205 260l5 12"/>
-              </g>
-              <g class="s-mint" stroke-width="2.6" fill="none" stroke-linecap="round">
-                <circle cx="222" cy="248" r="5"/>
-                <path d="M222 253v11M216 257h12M222 264l-4 9M222 264l4 9"/>
-              </g>
-              <path class="s-ink3" d="M211 252h6" stroke-width="2.4" stroke-linecap="round" opacity=".55"/>
-              <!-- flowers and grass -->
-              <g class="s-mint" stroke-width="2.4" fill="none" stroke-linecap="round"><path d="M292 276v-12M300 276v-9"/></g>
-              <circle class="f-red" cx="292" cy="261" r="4"/>
-              <circle class="f-sun" cx="300" cy="265" r="3.5"/>
-              <path class="s-mint" d="M190 278c9-6 16 5 25-1s16 5 25-1 16 5 25-1 16 5 25-1" stroke-width="4" fill="none" stroke-linecap="round"/>
+              <path d="M198 212c10-18 32-24 52-14 16 8 30 4 42-8" fill="none" stroke="#D4533C" stroke-width="5" stroke-linecap="round"/>
+              <path d="M206 214c8-12 26-16 40-8 12 6 22 3 32-6" fill="none" stroke="#E0A03A" stroke-width="5" stroke-linecap="round"/>
+              <path d="M214 216c6-8 18-10 28-4 8 5 16 2 22-4" fill="none" stroke="#3E8A52" stroke-width="5" stroke-linecap="round"/>
+              <path d="M238 232 260 210 282 232Z" fill="#E15A42"/>
+              <rect x="244" y="232" width="32" height="28" fill="#FBF6EC" stroke="#E15A42" stroke-width="3"/>
+              <rect x="255" y="246" width="10" height="14" fill="#C47A32"/>
+              <rect x="248" y="238" width="8" height="7" fill="#7EB6D6" stroke="#2E6E9C" stroke-width="1.6"/>
+              <circle cx="210" cy="250" r="8" fill="#F2C8A4" stroke="#2A211C" stroke-width="2.2"/>
+              <path d="M202 258h16v18a8 8 0 0 1-16 0Z" fill="#3C7CC0" stroke="#2A211C" stroke-width="2.2"/>
+              <path d="M202 266h-8M218 266h8" stroke="#2A211C" stroke-width="2.6" stroke-linecap="round"/>
+              <circle cx="228" cy="256" r="7" fill="#E8B898" stroke="#2A211C" stroke-width="2.2"/>
+              <path d="M221 262h14v14a7 7 0 0 1-14 0Z" fill="#7A5AB5" stroke="#2A211C" stroke-width="2.2"/>
+              <path d="M190 284c10-8 16 6 26-2s16 6 26-2 16 6 26-2 16 6 26-2" fill="none" stroke="#3E8A52" stroke-width="4.5" stroke-linecap="round"/>
             </g>
 
-            <!-- THE DOG — a proper portrait, collar and all -->
+            <!-- THE DOG — a close portrait, background knocked back -->
             <g class="memory" data-key="pet">
-              <rect class="f-sun-s" x="190" y="152" width="116" height="140"/>
-              <circle class="f-sky" cx="248" cy="214" r="47" opacity=".22"/>
-              <g class="f-ink">
-                <path d="M219 200c-7-15-5-30 3-30s15 13 15 27Z"/>
-                <path d="M277 200c7-15 5-30-3-30s-15 13-15 27Z"/>
-                <path d="M248 182c21 0 35 16 35 36s-14 34-35 34-35-15-35-34 14-36 35-36Z"/>
-              </g>
-              <path class="f-surf" d="M248 184c5 0 8 6 8 14s-3 14-8 14-8-6-8-14 3-14 8-14Z" opacity=".9"/>
-              <g class="f-surf">
-                <circle cx="235" cy="210" r="5.5"/>
-                <circle cx="261" cy="210" r="5.5"/>
-                <ellipse cx="248" cy="234" rx="16" ry="12"/>
-              </g>
-              <g class="f-ink">
-                <circle cx="236" cy="211" r="2.8"/>
-                <circle cx="260" cy="211" r="2.8"/>
-                <ellipse cx="248" cy="228" rx="6" ry="4.5"/>
-              </g>
-              <path class="s-ink" d="M248 232v5m0 0c-3 4-9 3-9-1m9 1c3 4 9 3 9-1" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-              <path class="f-red" d="M243 240h10c0 6-2 9-5 9s-5-3-5-9Z" opacity=".85"/>
-              <rect class="f-red" x="219" y="256" width="58" height="11" rx="3"/>
-              <circle class="f-sun" cx="248" cy="270" r="6"/>
+              <rect x="190" y="152" width="116" height="140" fill="#E7D3BE"/>
+              <circle cx="230" cy="188" r="28" fill="#F4E6D6" opacity=".7"/>
+              <circle cx="286" cy="250" r="36" fill="#D7BBA4" opacity=".55"/>
+              <path d="M206 198c-14-4-24-26-14-44 8-14 24-12 32 2 4 8 4 20 0 28-4 8-10 14-18 14Z" fill="#1C1917"/>
+              <path d="M290 198c14-4 24-26 14-44-8-14-24-12-32 2-4 8-4 20 0 28 4 8 10 14 18 14Z" fill="#1C1917"/>
+              <path d="M214 190c-6 0-12-12-6-20 4-6 12-4 14 2 2 6 0 14-2 16-2 2-4 2-6 2Z" fill="#3A2E28"/>
+              <path d="M282 190c6 0 12-12 6-20-4-6-12-4-14 2-2 6 0 14 2 16 2 2 4 2 6 2Z" fill="#3A2E28"/>
+              <path d="M248 166c26 0 46 18 50 44 4 30-16 58-50 60s-54-24-52-54c2-28 24-50 52-50Z" fill="url(#fur)"/>
+              <path d="M224 196c10-12 38-14 52-2 2 2-4 8-12 6-14-6-30-4-40-4Z" fill="#322C28" opacity=".85"/>
+              <ellipse cx="248" cy="230" rx="22" ry="17" fill="#C9956E"/>
+              <ellipse cx="248" cy="238" rx="13" ry="9" fill="#D7B08A"/>
+              <ellipse cx="232" cy="206" rx="8" ry="9" fill="#D7B89A"/>
+              <ellipse cx="264" cy="206" rx="8" ry="9" fill="#D7B89A"/>
+              <ellipse cx="233.5" cy="207.5" rx="3.8" ry="4.4" fill="#1A1614"/>
+              <ellipse cx="265.5" cy="207.5" rx="3.8" ry="4.4" fill="#1A1614"/>
+              <circle cx="235" cy="205.6" r="1.3" fill="#E7C4A4"/>
+              <circle cx="267" cy="205.6" r="1.3" fill="#E7C4A4"/>
+              <path d="M248 220c6 0 10 3.2 10 7s-4 6-10 6-10-2.6-10-6 4-7 10-7Z" fill="#1A1614"/>
+              <path d="M245.5 223.5c1.4-1.2 3.4-1.2 4.8.2" fill="none" stroke="#6A5348" stroke-width="1" stroke-linecap="round"/>
+              <path d="M248 233v6" stroke="#1A1614" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+              <path d="M236 240c4 5 8 6 12 1" fill="none" stroke="#1A1614" stroke-width="1.4" stroke-linecap="round"/>
+              <path d="M248 241c4 5 8 4 12-1" fill="none" stroke="#1A1614" stroke-width="1.4" stroke-linecap="round"/>
+              <path d="M212 258c10 16 62 18 80 2 2 8-10 14-40 14s-44-6-40-16Z" fill="#C12F1A"/>
+              <circle cx="248" cy="270" r="4.6" fill="#F4E4C8"/>
+              <circle cx="248" cy="270" r="2.1" fill="#C12F1A"/>
             </g>
 
-            <!-- HANDWRITING — a note off the fridge, ruled paper and all -->
+            <!-- HANDWRITING — a note off the fridge -->
             <g class="memory" data-key="hand">
-              <rect class="f-surf" x="190" y="152" width="116" height="140"/>
-              <g class="s-sky" stroke-width="1" opacity=".4">
-                <path d="M196 198h104M196 224h104M196 250h104M196 276h104"/>
+              <rect x="190" y="152" width="116" height="140" fill="#E6D2B6"/>
+              <g stroke="#E4D3C0" stroke-width="1">
+                <path d="M198 198h100M198 224h100M198 250h100M198 276h100"/>
               </g>
-              <path class="s-red" d="M212 152v140" stroke-width="1" opacity=".28"/>
-              <g class="f-ink" font-family="Caveat, cursive" text-anchor="start">
+              <path d="M210 152v140" stroke="#C12F1A" stroke-width="1.25" opacity=".45"/>
+              <g fill="#1A1614" font-family="Caveat, cursive" text-anchor="start">
                 <text x="219" y="194" font-size="26" textLength="68" lengthAdjust="spacingAndGlyphs">Love you</text>
                 <text x="219" y="220" font-size="26" textLength="56" lengthAdjust="spacingAndGlyphs">always,</text>
               </g>
-              <text class="f-red" x="232" y="248" font-family="Caveat, cursive" font-size="24" textLength="52" lengthAdjust="spacingAndGlyphs">— Mom</text>
-              <path class="f-red" d="M252 260c-5-7-14-2-14 4 0 6 9 10 14 14 5-4 14-8 14-14 0-6-9-11-14-4Z" opacity=".85"/>
+              <text fill="#C12F1A" x="232" y="248" font-family="Caveat, cursive" font-size="24" textLength="52" lengthAdjust="spacingAndGlyphs">— Mom</text>
+              <path fill="#C12F1A" d="M252 260c-5-7-14-2-14 4 0 6 9 10 14 14 5-4 14-8 14-14 0-6-9-11-14-4Z" opacity=".9"/>
             </g>
 
-            <!-- RECIPE — the actual index card -->
+            <!-- RECIPE — the index card -->
             <g class="memory" data-key="recipe">
-              <rect class="f-surf2" x="190" y="152" width="116" height="140"/>
-              <rect class="f-surf s-rule2" x="197" y="161" width="102" height="122" rx="3" stroke-width="1.5"/>
-              <path class="f-red" d="M197 164a3 3 0 0 1 3-3h96a3 3 0 0 1 3 3v14H197Z"/>
-              <text class="f-surf" x="248" y="175" font-family="Caveat, cursive" font-size="15" text-anchor="middle" textLength="46" lengthAdjust="spacingAndGlyphs">Grandma&#8217;s</text>
-              <text class="f-ink" x="248" y="200" font-family="Caveat, cursive" font-size="19" font-weight="600" text-anchor="middle" textLength="84" lengthAdjust="spacingAndGlyphs">Peach Cobbler</text>
-              <g class="s-sky" stroke-width="1" opacity=".45">
+              <rect x="190" y="152" width="116" height="140" fill="#E4D2B8"/>
+              <rect x="197" y="161" width="102" height="122" rx="3" fill="#F0E2CC" stroke="#B7A48C" stroke-width="1.5"/>
+              <path d="M197 164a3 3 0 0 1 3-3h96a3 3 0 0 1 3 3v14H197Z" fill="#C12F1A"/>
+              <text fill="#FFFFFF" x="248" y="175" font-family="Caveat, cursive" font-size="15" text-anchor="middle" textLength="46" lengthAdjust="spacingAndGlyphs">Grandma&#8217;s</text>
+              <text fill="#1A1614" x="248" y="200" font-family="Caveat, cursive" font-size="19" font-weight="600" text-anchor="middle" textLength="84" lengthAdjust="spacingAndGlyphs">Peach Cobbler</text>
+              <g stroke="#E4D3C0" stroke-width="1">
                 <path d="M204 212h88M204 228h88M204 244h88M204 260h88"/>
               </g>
-              <g class="f-ink" font-family="Caveat, cursive" font-size="15" opacity=".82">
+              <g fill="#1A1614" font-family="Caveat, cursive" font-size="15" opacity=".88">
                 <text x="206" y="225" textLength="76" lengthAdjust="spacingAndGlyphs">6 peaches, sliced</text>
                 <text x="206" y="241" textLength="54" lengthAdjust="spacingAndGlyphs">1 cup sugar</text>
                 <text x="206" y="257" textLength="62" lengthAdjust="spacingAndGlyphs">1 stick butter</text>
               </g>
-              <text class="f-red" x="206" y="275" font-family="Caveat, cursive" font-size="15" textLength="60" lengthAdjust="spacingAndGlyphs">Bake 45 min!</text>
-              <circle class="f-sun" cx="284" cy="268" r="9"/>
-              <path class="f-mint" d="M284 259c4-4 9-4 9-4s0 5-4 7Z"/>
+              <text fill="#C12F1A" x="206" y="275" font-family="Caveat, cursive" font-size="15" textLength="60" lengthAdjust="spacingAndGlyphs">Bake 45 min!</text>
+              <circle cx="286" cy="266" r="8" fill="#E7A04A"/>
+              <path d="M286 258c3-4 8-4 8-3s-1 5-4 6c-2 1-4 0-4-3Z" fill="#6B8F4E"/>
             </g>
 
             <!-- THE CUSTOMER'S OWN PHOTO — filled in on this device only -->
@@ -824,16 +874,16 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
             <!-- THE CREW — a shop badge, for team and logo mugs -->
             <g class="memory" data-key="team">
-              <rect class="f-ink" x="190" y="152" width="116" height="140"/>
-              <circle class="s-sun" cx="248" cy="216" r="41" fill="none" stroke-width="2.5"/>
-              <circle class="s-sun" cx="248" cy="216" r="35" fill="none" stroke-width="1" opacity=".45"/>
-              <g class="s-sun" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M234 198h18v15a9 9 0 0 1-9 9h0a9 9 0 0 1-9-9Z"/>
-                <path d="M252 202h4a5 5 0 0 1 0 10h-4"/>
+              <rect x="190" y="152" width="116" height="140" fill="#1A1614"/>
+              <circle cx="248" cy="208" r="42" fill="none" stroke="#C12F1A" stroke-width="2.5"/>
+              <circle cx="248" cy="208" r="36" fill="none" stroke="#F6E7D4" stroke-width="1" opacity=".45"/>
+              <g fill="none" stroke="#F6E7D4" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M234 190h18v15a9 9 0 0 1-9 9h0a9 9 0 0 1-9-9Z"/>
+                <path d="M252 194h4a5 5 0 0 1 0 10h-4"/>
               </g>
-              <text class="f-sun" x="248" y="243" font-family="Fredoka, sans-serif" font-size="11" font-weight="600" text-anchor="middle" textLength="54" lengthAdjust="spacingAndGlyphs">THE CREW</text>
-              <path class="s-sun" d="M228 250h40" stroke-width="1.5" opacity=".5"/>
-              <text class="f-sun" x="248" y="264" font-family="Fredoka, sans-serif" font-size="9" text-anchor="middle" opacity=".75" textLength="42" lengthAdjust="spacingAndGlyphs">EST. 2019</text>
+              <text fill="#C12F1A" x="248" y="236" font-family="DM Sans, sans-serif" font-size="11" font-weight="700" text-anchor="middle" textLength="54" lengthAdjust="spacingAndGlyphs">THE CREW</text>
+              <path d="M226 244h44" stroke="#F6E7D4" stroke-width="1.2" opacity=".45"/>
+              <text fill="#F6E7D4" x="248" y="258" font-family="DM Sans, sans-serif" font-size="9" text-anchor="middle" textLength="42" lengthAdjust="spacingAndGlyphs">EST. 2019</text>
             </g>
            </g>
           </g>
@@ -843,20 +893,21 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
           <g transform="rotate(8 429 304)">
             <rect class="f-ink" x="372" y="243" width="118" height="128" rx="6" opacity=".09"/>
             <rect class="f-surf s-rule2" x="370" y="240" width="118" height="128" rx="6" stroke-width="2"/>
-            <rect class="f-sky-s" x="379" y="249" width="100" height="94" rx="2"/>
+            <rect x="379" y="249" width="100" height="94" rx="2" fill="#E7D3BE"/>
             <g id="snap-b" clip-path="url(#snapB)">
-              <circle class="f-mint" cx="429" cy="308" r="40" opacity=".25"/>
-              <g class="f-ink">
-                <path d="M406 284c-3-13 1-22 6-21s11 9 10 19Z"/>
-                <path d="M452 284c3-13-1-22-6-21s-11 9-10 19Z"/>
-                <path d="M429 278c17 0 28 13 28 29s-11 28-28 28-28-12-28-28 11-29 28-29Z"/>
-              </g>
-              <g class="f-surf">
-                <circle cx="420" cy="303" r="3.5"/>
-                <circle cx="438" cy="303" r="3.5"/>
-                <ellipse cx="429" cy="317" rx="6" ry="4.5"/>
-              </g>
-              <path class="f-red" d="M401 330h56v7c0 2-2 4-4 4h-48c-2 0-4-2-4-4Z"/>
+              <circle cx="408" cy="270" r="16" fill="#F4E6D6" opacity=".8"/>
+              <path d="M408 286c-8-2-14-14-8-24 4-6 12-4 14 2 2 4 1 10 0 14-1 4-3 7-6 8Z" fill="#1C1917"/>
+              <path d="M450 286c8-2 14-14 8-24-4-6-12-4-14 2-2 4-1 10 0 14 1 4 3 7 6 8Z" fill="#1C1917"/>
+              <path d="M429 274c16 0 28 12 30 28 2 16-10 32-30 33s-32-14-30-30c0-16 14-31 30-31Z" fill="#1C1917"/>
+              <ellipse cx="429" cy="312" rx="12" ry="9" fill="#E7C4A4"/>
+              <ellipse cx="418" cy="298" rx="4.5" ry="5" fill="#D7B89A"/>
+              <ellipse cx="440" cy="298" rx="4.5" ry="5" fill="#D7B89A"/>
+              <circle cx="419" cy="299" r="2.2" fill="#1A1614"/>
+              <circle cx="441" cy="299" r="2.2" fill="#1A1614"/>
+              <circle cx="419.8" cy="297.8" r=".7" fill="#E7C4A4"/>
+              <circle cx="441.8" cy="297.8" r=".7" fill="#E7C4A4"/>
+              <ellipse cx="429" cy="308" rx="3.2" ry="2.3" fill="#1A1614"/>
+              <path d="M414 328c6 8 24 8 30 0 1 4-4 8-15 8s-16-4-15-8Z" fill="#C12F1A"/>
             </g>
             <path class="s-ink3" d="M392 355h44" stroke-width="3" stroke-linecap="round" opacity=".4"/>
             <rect class="f-sky" x="406" y="232" width="46" height="14" rx="3" opacity=".55" transform="rotate(5 429 239)"/>
@@ -880,9 +931,16 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       <p class="stage-caption" id="stage-fineprint" style="margin-top:-8px">Illustrated example — your mug carries your photo.</p>
     </div>
 
-    <div style="min-width:0">
+    <div class="hero-aside">
+      <div class="hero-head">
+        <p class="eyebrow">Custom photo mugs · By <span data-cfg="operatorName">H3 Customs</span></p>
+        <h1>Put your <em>favorite people</em> on a mug.</h1>
+        <p class="lede">
+          Turn a photo you already have into a gift they'll reach for every morning.
+        </p>
+      </div>
       <div class="buy" id="shop-single"></div>
-      <div id="shop-notice" style="margin-top:16px"></div>
+      <div id="shop-notice"></div>
     </div>
   </div>
 </section>
@@ -1163,7 +1221,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 <!-- ══ CLOSER ══════════════════════════════════════════════ -->
 <section class="band closer" id="start">
   <div class="wrap closer-grid">
-    <div style="display:flex;flex-direction:column;gap:16px">
+    <div class="closer-copy">
       <p class="eyebrow">Make my mug</p>
       <h2>You've already got the photo. That's the hard part done.</h2>
       <p class="lede">
@@ -2141,7 +2199,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     /* The print area's width and height in screen pixels, so a drag of n
        pixels becomes the right fraction whatever size the mug is drawn at. */
     var span = function () {
-      var r = svg.getBoundingClientRect(), b = printBox(), scale = r.width / 520;
+      var r = svg.getBoundingClientRect(), b = printBox();
+      var vb = svg.viewBox && svg.viewBox.baseVal;
+      var scale = r.width / ((vb && vb.width) || 520);
       return [Math.max(1, b[2] * scale), Math.max(1, b[3] * scale)];
     };
 
