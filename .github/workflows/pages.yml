@@ -4,15 +4,20 @@
 # Pages, which is free and renews its own certificate. The CNAME file in this
 # repository is what keeps the custom domain set across deploys.
 #
-# It switches Pages on for the repository itself the first time it runs
-# (`enablement: true` below), so there is no setting to go and find first.
-# That is only appropriate because publishing this site is the whole point of
-# the repository; it is not something to copy into a repo where a deploy
-# should wait for a human.
+# One setting has to be made by hand first, by a repository admin:
 #
-# If that step is ever refused -- Pages needs the repository to be public on a
-# free plan -- the fallback is one field by hand:
-# Settings -> Pages -> Build and deployment -> Source -> "GitHub Actions".
+#   Settings -> Pages -> Build and deployment -> Source -> "GitHub Actions"
+#
+# No workflow can do it for you. configure-pages has an `enablement` input
+# that creates the site through the API, and it was tried here: the Actions
+# token is refused with "Create Pages site failed. Resource not accessible by
+# integration", because enabling Pages is an administration permission that
+# GITHUB_TOKEN does not carry. So the input is left off rather than kept as a
+# step that always fails.
+#
+# Until the source is set, this workflow fails on configure-pages with
+# "Get Pages site failed ... Not Found". That is the only thing standing
+# between this repository and a live site.
 name: Deploy to GitHub Pages
 
 on:
@@ -40,10 +45,6 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: actions/configure-pages@v5
-        with:
-          # Creates the Pages site on the first run instead of failing
-          # with "Get Pages site failed ... Not Found".
-          enablement: true
       - name: Upload the site
         uses: actions/upload-pages-artifact@v3
         with:
