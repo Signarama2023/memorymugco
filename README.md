@@ -40,8 +40,15 @@ Only a repository admin can, and no workflow can do it for you:
 
 > Settings → Pages → Build and deployment → Source → **GitHub Actions**
 
-Then, on the same page, set **Custom domain** to `memorymugco.com`. The `CNAME` file
-in this repository is what stops that setting being wiped on the next deploy.
+Then, on the same page, set **Custom domain** to `www.memorymugco.com`. The `CNAME`
+file in this repository holds the same value, and that is what stops the setting being
+wiped on the next deploy — **if you change one, change the other**, or each deploy
+will undo the settings page.
+
+`www` is the primary name rather than the bare domain because a CNAME follows GitHub
+wherever its edge addresses move, while the apex is pinned to four fixed IPs. The bare
+domain still works: the A records below make it resolve, and GitHub redirects it to
+`www`.
 
 ### 2. Point the domain at it
 
@@ -50,16 +57,18 @@ At GoDaddy: **My Products → the domain → DNS → Manage DNS**.
 Delete GoDaddy's parked `@` A record first, and remove any domain forwarding, or they
 will fight what you add next. Then:
 
-| Type | Name | Value | TTL |
-|---|---|---|---|
-| A | @ | `185.199.108.153` | 600 |
-| A | @ | `185.199.109.153` | 600 |
-| A | @ | `185.199.110.153` | 600 |
-| A | @ | `185.199.111.153` | 600 |
-| CNAME | www | `signarama2023.github.io` | 600 |
+| Type | Name | Value | TTL | What it does |
+|---|---|---|---|---|
+| CNAME | www | `signarama2023.github.io` | 600 | serves the site |
+| A | @ | `185.199.108.153` | 600 | bare domain resolves… |
+| A | @ | `185.199.109.153` | 600 | … |
+| A | @ | `185.199.110.153` | 600 | … |
+| A | @ | `185.199.111.153` | 600 | … and redirects to www |
 
-All four A records are needed — they are GitHub's four edge addresses, and listing
-one is a single point of failure rather than a shortcut. Optionally add the matching
+The CNAME is the one that actually serves the site. The four A records exist so that
+somebody typing the domain without `www` still arrives; GitHub redirects them. All
+four are needed — they are four edge addresses, so listing one is a single point of
+failure rather than a shortcut. Optionally add the matching
 AAAA records for IPv6: `2606:50c0:8000::153` through `2606:50c0:8003::153`.
 
 ### 3. Wait, then force HTTPS
