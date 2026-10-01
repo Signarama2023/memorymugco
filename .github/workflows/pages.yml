@@ -1,15 +1,21 @@
-# The alternative to GoDaddy: publish to GitHub Pages instead.
+# Publishes the site on every push to main.
 #
-# The site is hosted on GoDaddy, so this does not run on its own -- start it
-# by hand from the Actions tab if you ever want a free copy on
-# signarama2023.github.io/memorymugco, for staging or as a fallback.
+# memorymugco.com is a GoDaddy domain pointed here; the hosting is GitHub
+# Pages, which is free and renews its own certificate. The CNAME file in this
+# repository is what keeps the custom domain set across deploys.
 #
-# It needs one setting first, which only a repository admin can make and no
-# workflow can make for you: Settings -> Pages -> Build and deployment ->
-# Source -> "GitHub Actions".
-name: Deploy to GitHub Pages (manual)
+# One setting has to be made by hand first, by a repository admin, and no
+# workflow can make it for you:
+#
+#   Settings -> Pages -> Build and deployment -> Source -> "GitHub Actions"
+#
+# Until that is set, this workflow runs and fails at the deploy step. That is
+# the right way round: a site is never published from a setting nobody chose.
+name: Deploy to GitHub Pages
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:

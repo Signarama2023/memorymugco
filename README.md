@@ -30,22 +30,55 @@ built to look right when that request fails.
 
 ## Hosting it
 
-The site answers on **memorymugco.com**, a domain registered at GoDaddy. There are
-two ways to serve it, and the repo is set up for both.
+The site is served by **GitHub Pages**, with **memorymugco.com** registered at GoDaddy
+and pointed at it. No hosting plan, no monthly bill, HTTPS that renews itself, and
+every push to `main` republishes.
 
-### GitHub Pages, with GoDaddy pointing at it
+### 1. Turn Pages on
 
-Free, HTTPS renews itself, and every push to `main` republishes. Needs no hosting
-plan.
+Only a repository admin can, and no workflow can do it for you:
 
-1. **Settings → Pages → Build and deployment → Source → GitHub Actions.** Only a
-   repository admin can set this, and no workflow can set it for you.
-2. **Settings → Pages → Custom domain → `memorymugco.com`.** The `CNAME` file in
-   this repo is what keeps that setting from being wiped on the next deploy.
-3. At GoDaddy, **Domain → DNS → Manage DNS**, and point the apex at GitHub:
+> Settings → Pages → Build and deployment → Source → **GitHub Actions**
 
-   | Type | Name | Value |
-   |---|---|---|
+Then, on the same page, set **Custom domain** to `memorymugco.com`. The `CNAME` file
+in this repository is what stops that setting being wiped on the next deploy.
+
+### 2. Point the domain at it
+
+At GoDaddy: **My Products → the domain → DNS → Manage DNS**.
+
+Delete GoDaddy's parked `@` A record first, and remove any domain forwarding, or they
+will fight what you add next. Then:
+
+| Type | Name | Value | TTL |
+|---|---|---|---|
+| A | @ | `185.199.108.153` | 600 |
+| A | @ | `185.199.109.153` | 600 |
+| A | @ | `185.199.110.153` | 600 |
+| A | @ | `185.199.111.153` | 600 |
+| CNAME | www | `signarama2023.github.io` | 600 |
+
+All four A records are needed — they are GitHub's four edge addresses, and listing
+one is a single point of failure rather than a shortcut. Optionally add the matching
+AAAA records for IPv6: `2606:50c0:8000::153` through `2606:50c0:8003::153`.
+
+### 3. Wait, then force HTTPS
+
+DNS takes anywhere from a few minutes to a few hours. Once GitHub reports the domain
+as verified, tick **Enforce HTTPS** on the Pages settings page. The certificate is
+issued and renewed by GitHub; there is nothing to buy or remember.
+
+Until all of that is done, the site is still reachable at
+`signarama2023.github.io/memorymugco`.
+
+### If the shop ever moves to real hosting
+
+An FTPS deploy workflow for GoDaddy cPanel was written and then removed when it
+turned out there was no hosting plan. It is in the git history —
+`git log --diff-filter=D -- .github/workflows/deploy.yml` — and can be restored
+rather than rewritten. Any static host works: the whole site is one file.
+
+---|---|---|
    | A | @ | `185.199.108.153` |
    | A | @ | `185.199.109.153` |
    | A | @ | `185.199.110.153` |
