@@ -164,6 +164,20 @@ section{scroll-margin-top:92px}
 .proof-drop{background:none;border:0;padding:6px 0;font:inherit;font-size:.9375rem;font-weight:500;
   color:var(--ink-3);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .proof-drop:hover{color:var(--red-ink)}
+.proof-tools{display:flex;flex-direction:column;gap:7px}
+.proof-zoom{display:flex;align-items:center;gap:12px}
+.proof-zoom label{font-weight:700;font-size:.9375rem;flex:0 0 auto}
+.proof-zoom input[type=range]{flex:1 1 90px;min-width:0;accent-color:var(--red-deep);height:22px}
+.proof-zoom input[type=range]:focus-visible{outline:2px solid var(--red-deep);outline-offset:3px}
+.proof-hint{font-size:.9375rem;color:var(--ink-3);line-height:1.5}
+
+/* The mug is a control only while the customer's own photo is on it: that is
+   when the grab cursor appears and when a finger on it drags instead of
+   scrolling the page. */
+.mug-frame.has-mine{cursor:grab;touch-action:none}
+.mug-frame.has-mine.dragging{cursor:grabbing}
+.mug-frame.has-mine:focus-visible{outline:2px solid var(--red-deep);outline-offset:6px;border-radius:var(--r-md)}
+
 .proof-note{font-size:.9375rem;color:var(--ink-2);line-height:1.55}
 .proof-note b{color:var(--ink)}
 .nudge{
@@ -1481,7 +1495,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     hand:   "Her actual handwriting, lifted off the note. Same pen pressure, same shaky letters.",
     recipe: "The index card as she wrote it, big enough to read from across the counter.",
     team:   "Your logo or your crew badge, printed sharp on the white base.",
-    yours:  "Your photo, roughly as it will sit on the mug. We send a real proof before printing."
+    yours:  "Your photo, about where it will sit. Drag or zoom to move it; we send a real proof before printing."
   };
 
   var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
@@ -1986,21 +2000,185 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
      the device, and a Shopify cart permalink cannot carry a file. So the
      wording promises a preview and nothing more, and the filename rides
      along on the order so the emailed photo can be matched to it. */
-  var ownPhoto = null;   /* { dataUri, name } — in memory only, never stored */
+  /* { dataUri, name, w, h, zoom, ox, oy } — in memory only, never stored.
+     zoom 1 is the photo just covering the print; above that it crops in.
+     ox/oy are the offset from centre as a fraction of the print's own width
+     and height. */
+  var ownPhoto = null;
+
+  /**
+   * Works out the rectangle the photo is drawn into, in the space the scenes
+   * are drawn in, clamping the offset back into range as it goes.
+   *
+   * The clamp is the point: however far somebody drags, the photo keeps
+   * covering the print, so a white gap can never open along an edge and the
+   * preview never shows a crop the press could not produce.
+   */
+  function photoRect() {
+    if (!ownPhoto || !ownPhoto.w || !ownPhoto.h) return null;
+    var P = ART_BOX, a = ownPhoto.w / ownPhoto.h, pa = P[2] / P[3], w, h;
+    if (a > pa) { h = P[3]; w = h * a; } else { w = P[2]; h = w / a; }
+    w *= ownPhoto.zoom; h *= ownPhoto.zoom;
+
+    var mx = (w - P[2]) / 2 / P[2], my = (h - P[3]) / 2 / P[3];
+    ownPhoto.ox = Math.max(-mx, Math.min(mx, ownPhoto.ox));
+    ownPhoto.oy = Math.max(-my, Math.min(my, ownPhoto.oy));
+
+    return { x: P[0] + (P[2] - w) / 2 + ownPhoto.ox * P[2],
+             y: P[1] + (P[3] - h) / 2 + ownPhoto.oy * P[3],
+             w: w, h: h, canMoveX: mx > 0.001, canMoveY: my > 0.001 };
+  }
 
   function paintOwnPhoto(dataUri) {
     var SVG = 'http://www.w3.org/2000/svg', XLINK = 'http://www.w3.org/1999/xlink';
     var g = document.querySelector('.memory[data-key="yours"]');
     if (!g) return;
     g.innerHTML = '';
-    if (!dataUri) return;
+    var frame = document.querySelector('.hero .mug-frame');
+    if (frame) {
+      frame.classList.toggle('has-mine', !!dataUri);
+      /* Only reachable by keyboard while there is something to move. */
+      if (dataUri) {
+        frame.setAttribute('tabindex', '0');
+        frame.setAttribute('role', 'application');
+        frame.setAttribute('aria-label',
+          'Your photo on the mug. Use the arrow keys to move it, or the zoom slider below.');
+      } else {
+        frame.removeAttribute('tabindex');
+        frame.removeAttribute('role');
+        frame.removeAttribute('aria-label');
+      }
+    }
+    if (!dataUri) { syncPhotoControls(); return; }
+
+    var r = photoRect();
     var img = document.createElementNS(SVG, 'image');
-    img.setAttribute('x', 190); img.setAttribute('y', 152);
-    img.setAttribute('width', 116); img.setAttribute('height', 140);
+    if (r) {
+      img.setAttribute('x', r.x.toFixed(3)); img.setAttribute('y', r.y.toFixed(3));
+      img.setAttribute('width', r.w.toFixed(3)); img.setAttribute('height', r.h.toFixed(3));
+    } else {
+      /* No dimensions to work from. Cover the print and leave it centred. */
+      img.setAttribute('x', ART_BOX[0]); img.setAttribute('y', ART_BOX[1]);
+      img.setAttribute('width', ART_BOX[2]); img.setAttribute('height', ART_BOX[3]);
+    }
+    /* The box is already the photo's own aspect; slice absorbs the rounding
+       rather than letterboxing it. */
     img.setAttribute('preserveAspectRatio', 'xMidYMid slice');
     img.setAttribute('href', dataUri);
     img.setAttributeNS(XLINK, 'xlink:href', dataUri);
     g.appendChild(img);
+    syncPhotoControls();
+  }
+
+  /**
+   * How the customer left the photo sitting, in words short enough to ride on
+   * the order. Empty when they did not move it, so the shop only ever reads a
+   * placement that somebody actually chose.
+   */
+  function placementNote() {
+    if (!ownPhoto) return '';
+    var z = Math.round((ownPhoto.zoom || 1) * 100);
+    var ox = Math.round((ownPhoto.ox || 0) * 100), oy = Math.round((ownPhoto.oy || 0) * 100);
+    if (z === 100 && !ox && !oy) return '';
+    var sign = function (n) { return (n > 0 ? '+' : '') + n + '%'; };
+    return 'zoom ' + z + '%, offset ' + sign(ox) + ' across, ' + sign(oy) + ' down';
+  }
+
+  /** Moves the photo by a fraction of the print area, and redraws. */
+  function movePhoto(dx, dy) {
+    if (!ownPhoto) return;
+    ownPhoto.ox += dx; ownPhoto.oy += dy;
+    paintOwnPhoto(ownPhoto.dataUri);
+  }
+
+  function zoomPhoto(z) {
+    if (!ownPhoto) return;
+    ownPhoto.zoom = Math.max(1, Math.min(3, z));
+    paintOwnPhoto(ownPhoto.dataUri);
+  }
+
+  function centerPhoto() {
+    if (!ownPhoto) return;
+    ownPhoto.zoom = 1; ownPhoto.ox = 0; ownPhoto.oy = 0;
+    paintOwnPhoto(ownPhoto.dataUri);
+  }
+
+  /** Keeps the slider and the hint in step with the photo's actual state. */
+  function syncPhotoControls() {
+    var box = $('photo-tools');
+    if (box) box.hidden = !ownPhoto;
+    var slider = $('photo-zoom');
+    if (slider && ownPhoto && document.activeElement !== slider) {
+      slider.value = Math.round(ownPhoto.zoom * 100);
+    }
+    var hint = $('photo-move-hint');
+    if (hint) {
+      var r = ownPhoto && photoRect();
+      hint.textContent = !r ? ''
+        : (r.canMoveX || r.canMoveY)
+          ? 'Drag it on the mug to move it, or use the arrow keys.'
+          : 'Zoom in to choose which part of the photo shows.';
+    }
+  }
+
+  /**
+   * Dragging on the mug moves the photo.
+   *
+   * Wired once, on the frame rather than on the image, so it survives the
+   * order panel re-rendering. It only does anything while the customer's own
+   * photo is the scene on show, and `touch-action` is only given up in that
+   * same state — otherwise a finger on the mug could not scroll the page.
+   */
+  function wirePhotoDrag() {
+    var frame = document.querySelector('.hero .mug-frame');
+    var svg = document.querySelector('.hero .mug-svg');
+    if (!frame || !svg) return;
+
+    var active = function () {
+      var on = document.querySelector('.memory.is-on');
+      return !!ownPhoto && !!on && on.getAttribute('data-key') === 'yours';
+    };
+    /* The print area's width and height in screen pixels, so a drag of n
+       pixels becomes the right fraction whatever size the mug is drawn at. */
+    var span = function () {
+      var r = svg.getBoundingClientRect(), b = printBox(), scale = r.width / 520;
+      return [Math.max(1, b[2] * scale), Math.max(1, b[3] * scale)];
+    };
+
+    var last = null;
+    frame.addEventListener('pointerdown', function (e) {
+      if (!active()) return;
+      var r = photoRect();
+      if (!r || (!r.canMoveX && !r.canMoveY)) return;
+      last = [e.clientX, e.clientY];
+      try { frame.setPointerCapture(e.pointerId); } catch (err) {}
+      frame.classList.add('dragging');
+      e.preventDefault();
+    });
+    frame.addEventListener('pointermove', function (e) {
+      if (!last) return;
+      var s = span();
+      movePhoto((e.clientX - last[0]) / s[0], (e.clientY - last[1]) / s[1]);
+      last = [e.clientX, e.clientY];
+    });
+    var stop = function (e) {
+      if (!last) return;
+      last = null;
+      frame.classList.remove('dragging');
+      try { frame.releasePointerCapture(e.pointerId); } catch (err) {}
+    };
+    frame.addEventListener('pointerup', stop);
+    frame.addEventListener('pointercancel', stop);
+
+    /* Arrow keys do the same job for anyone not using a pointer. */
+    frame.addEventListener('keydown', function (e) {
+      if (!active()) return;
+      var d = { ArrowLeft:[-1,0], ArrowRight:[1,0], ArrowUp:[0,-1], ArrowDown:[0,1] }[e.key];
+      if (!d) return;
+      e.preventDefault();
+      var step = e.shiftKey ? 0.01 : 0.04;
+      movePhoto(d[0] * step, d[1] * step);
+    });
   }
 
   function buildProofPicker() {
@@ -2017,6 +2195,26 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     var name = el('span', 'proof-name');
     row.appendChild(name);
     wrap.appendChild(row);
+
+    /* Only useful once there is a photo, so it starts hidden and
+       syncPhotoControls() decides from the state, not from the caller. */
+    var tools = el('div', 'proof-tools');
+    tools.id = 'photo-tools'; tools.hidden = true;
+
+    var zoomRow = el('div', 'proof-zoom');
+    var zlab = el('label', null, 'Zoom');
+    zlab.setAttribute('for', 'photo-zoom');
+    var zoom = document.createElement('input');
+    zoom.type = 'range'; zoom.id = 'photo-zoom';
+    zoom.min = '100'; zoom.max = '300'; zoom.step = '1'; zoom.value = '100';
+    zoom.addEventListener('input', function () { zoomPhoto(Number(zoom.value) / 100); });
+    var center = el('button', 'proof-drop', 'Center');
+    center.type = 'button';
+    center.onclick = function () { centerPhoto(); };
+    zoomRow.appendChild(zlab); zoomRow.appendChild(zoom); zoomRow.appendChild(center);
+    tools.appendChild(zoomRow);
+    tools.appendChild(el('p', 'proof-hint', '')).id = 'photo-move-hint';
+    wrap.appendChild(tools);
 
     var note = el('p', 'proof-note');
     wrap.appendChild(note);
@@ -2057,9 +2255,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     input.onchange = function () {
       var f = input.files && input.files[0];
       if (!f) return;
-      readImage(f, function (dataUri, problem) {
+      readImage(f, function (dataUri, problem, size) {
         if (problem) { name.textContent = problem; return; }
-        ownPhoto = { dataUri: dataUri, name: f.name };
+        ownPhoto = { dataUri: dataUri, name: f.name,
+                     w: (size && size.w) || 0, h: (size && size.h) || 0,
+                     zoom: 1, ox: 0, oy: 0 };
         paintOwnPhoto(dataUri);
         var chip = $('chip-yours');
         if (chip) { chip.hidden = false; chip.click(); }
@@ -2070,6 +2270,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     };
     if (ownPhoto) { name.textContent = ownPhoto.name; addDrop(); }
     setNote();
+    syncPhotoControls();
     return wrap;
   }
 
@@ -2203,6 +2404,8 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     if (ownPhoto && ownPhoto.name) {
       qs.push('attributes[Photo to expect]=' + encodeURIComponent(ownPhoto.name));
     }
+    var place = placementNote();
+    if (place) qs.push('attributes[Photo placement]=' + encodeURIComponent(place));
     return { url: 'https://' + host(c) + '/cart/' + parts.join(',') + '?' + qs.join('&') };
   }
 
@@ -2349,7 +2552,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         var uri;
         try { uri = c.toDataURL('image/jpeg', 0.82); }
         catch (e) { cb(null, 'That image could not be converted.'); return; }
-        cb(uri);
+        cb(uri, null, { w: c.width, h: c.height });
       };
       im.src = fr.result;
     };
@@ -2764,6 +2967,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     mountPhotos();
     renderMugSlot();
     wireMugSlot();
+    wirePhotoDrag();
     applyConfig();
     buildVariantFields();
     renderShop();

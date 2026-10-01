@@ -46,6 +46,19 @@ box exists at all.
 Keep it that way. If you add copy about sending photos, drive it from
 `applyArtworkCopy()` rather than writing a second source of truth.
 
+## The customer's photo keeps covering the print
+
+`photoRect()` works out where the customer's photo is drawn and clamps the offset
+back into range on every call, so panning and zooming can never open a white gap
+along an edge. Anything that moves the photo goes through `movePhoto`, `zoomPhoto`
+or `centerPhoto` and then repaints — do not write to `ownPhoto.ox`/`oy`/`zoom` and
+paint separately, or the clamp is skipped and the preview starts promising a crop
+the press cannot produce.
+
+The mug only becomes a drag target while the customer's own photo is the scene on
+show. That is also the only time `touch-action: none` applies, because otherwise a
+finger on the mug could not scroll the page.
+
 ## Traps already paid for
 
 - Presentation attributes cannot resolve CSS custom properties. `fill="var(--ink)"`

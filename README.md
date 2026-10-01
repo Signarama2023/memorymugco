@@ -109,6 +109,16 @@ from this page — a Shopify cart permalink can carry text but not a file. The w
 on the page says exactly that, and it must keep saying it unless the underlying
 behaviour changes.
 
+They can place it, though. Dragging the photo on the mug moves it, a zoom slider
+crops in, arrow keys do the same for anyone not using a pointer, and **Center** puts
+it back. However far it is dragged, the photo keeps covering the print area, so the
+preview never shows a crop the press could not produce.
+
+Where they do adjust it, the placement rides along on the order as
+`Photo placement: zoom 165%, offset -12% across, -4% down`, so the work is not thrown
+away at checkout. Nothing is added when they leave it alone, and this only applies to
+the cart-permalink flow — a Shopify product URL carries no attributes.
+
 ---
 
 ## The mug photograph
