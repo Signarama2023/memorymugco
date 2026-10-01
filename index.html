@@ -1,0 +1,2811 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><style>:root{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body>
+<title>Memory Mug Company</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Caveat:wght@400;600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
+
+<style>
+/* ── Tokens ─────────────────────────────────────────────── */
+:root{
+  --ground:#FFFFFF;
+  --surface:#FFFFFF;
+  --surface-2:#F5F3F0;
+  --ink:#1F1D1B;
+  --ink-2:#58524C;
+  --ink-3:#726B64;   /* 4.50:1 worst case — verified on every ground */
+  --rule:#E7E3DD;
+  --rule-2:#CFC9C1;   /* decorative edges only */
+  --field:#8E867E;    /* editable-control boundaries — needs 3:1, not decorative */
+
+  --red:#B5301B;          /* red as a FILL, white text on top */
+  --red-ink:#A52C19;      /* red as TEXT on a light ground */
+  --red-deep:#8E2414;
+  --red-soft:#FBEAE6;
+  --red-soft-2:#F6DCD5;   /* blush button hover */
+
+  --sun:#F0A92B;
+  --sun-ink:#8F5D02;
+  --sun-soft:#FFF7E6;
+
+  --sky:#3AA3D9;
+  --sky-ink:#166E9B;
+  --sky-soft:#EDF7FD;
+
+  --mint:#3FB57F;
+  --mint-ink:#1E7048;
+  --mint-soft:#EBF9F1;
+
+  --coffee:#A6764F;
+  /* Illustration-only tints — lighter than the UI accents, which must hold contrast. */
+  --art-red:#E8705F;
+  --art-sun:#F5C46A;
+  --art-sky:#7CC1E3;
+  --art-mint:#72CBA0;
+
+  --shadow:rgba(31,29,27,.08);
+  --shadow-2:rgba(31,29,27,.13);
+
+  --wrap:1120px;
+  --gutter:20px;
+  --r-sm:4px;
+  --r-md:6px;
+  --r-lg:10px;
+  --r-pill:999px;
+
+  --f-display:"Lora","Iowan Old Style",Georgia,serif;
+  --f-body:"DM Sans","Helvetica Neue",Arial,sans-serif;
+}
+/* ── Base ───────────────────────────────────────────────── */
+:root{color-scheme:light}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:var(--f-body);
+  font-size:1.075rem;
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:var(--f-display);font-weight:500;line-height:1.22;margin:0;text-wrap:balance;letter-spacing:-.006em}
+p{margin:0}
+a{color:inherit}
+img,svg{max-width:100%}
+:focus-visible{outline:3px solid var(--red-deep);outline-offset:3px;border-radius:6px}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+
+.wrap{width:100%;max-width:calc(var(--wrap) + var(--gutter)*2);margin-inline:auto;padding-inline:var(--gutter)}
+section{scroll-margin-top:92px}
+.band{padding-block:clamp(54px,7.5vw,98px)}
+.band--alt{background:var(--surface-2);border-block:1px solid var(--rule)}
+.band--tint{background:#FAF8F6;border-block:1px solid var(--rule)}
+
+/* ── Shared type ────────────────────────────────────────── */
+.eyebrow{
+  font-family:var(--f-body);font-weight:700;font-size:.9375rem;letter-spacing:.04em;
+  color:var(--ink-2);margin:0 0 12px;line-height:1.6;
+}
+.h2{font-size:clamp(1.95rem,4.2vw,2.85rem)}
+.lede{font-size:clamp(1rem,1.3vw,1.08rem);color:var(--ink-2);max-width:58ch}
+.section-head{display:flex;flex-direction:column;gap:14px;margin-bottom:clamp(30px,5vw,50px);max-width:64ch}
+
+/* ── Buttons ────────────────────────────────────────────── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  font-family:var(--f-body);font-weight:700;font-size:1rem;
+  padding:15px 30px;border-radius:var(--r-sm);border:2px solid transparent;
+  text-decoration:none;cursor:pointer;
+  transition:transform .16s ease,background .16s ease,color .16s ease,border-color .16s ease,box-shadow .16s ease;
+}
+/* Primary CTA is a light blush fill; the red border and bold red label carry the affordance.
+   #B32A1E on #FFEFEC is 5.8:1, so it stays legible without a saturated background. */
+.btn--fill{background:var(--red-soft);color:var(--red-deep);border-color:var(--red);box-shadow:0 4px 12px -6px var(--shadow-2)}
+.btn--fill:hover{background:var(--red-soft-2);border-color:var(--red-deep);transform:translateY(-2px);box-shadow:0 8px 18px -8px var(--shadow-2)}
+.btn--fill:active{transform:translateY(0)}
+.btn--line{background:var(--surface);color:var(--ink);border-color:var(--field)}
+.btn--line:hover{border-color:var(--ink);transform:translateY(-2px)}
+.btn--line:active{transform:translateY(0)}
+.btn--sm{padding:11px 20px;font-size:.9375rem}
+
+/* ── Announcement + header ──────────────────────────────── */
+.promo{background:var(--ink);color:#FFFFFF;text-align:center}
+.promo p{padding-block:11px;font-weight:700;font-size:.9375rem}
+.promo .fl{padding-inline:7px}
+.site-header{
+  position:sticky;top:env(safe-area-inset-top,0px);z-index:50;
+  background:var(--ground);
+  background:color-mix(in srgb,var(--ground) 92%,transparent);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-bottom:2px solid var(--rule);
+}
+.header-row{display:flex;align-items:center;gap:18px;padding-block:13px}
+.brand{display:flex;align-items:center;gap:11px;text-decoration:none;margin-right:auto}
+.brand-mark{flex:none;color:var(--red-ink)}
+.brand-text{display:flex;flex-direction:column;line-height:1.1}
+.brand-name{font-family:var(--f-display);font-weight:600;font-size:1.24rem;letter-spacing:-.012em}
+.brand-sub{font-weight:700;font-size:.63rem;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3);margin-top:3px}
+.site-nav{display:flex;gap:24px}
+.site-nav a{
+  text-decoration:none;font-weight:600;font-size:.96rem;color:var(--ink-2);
+  padding-block:12px;border-bottom:2.5px solid transparent;transition:color .15s ease,border-color .15s ease;
+}
+.site-nav a:hover{color:var(--red-ink);border-color:var(--red)}
+@media (max-width:900px){.site-nav{display:none}}
+
+/* ── Hero ───────────────────────────────────────────────── */
+.hero{padding-block:clamp(28px,3.6vw,46px) clamp(32px,4.5vw,58px)}
+.hero-head{max-width:46ch;margin:0 auto clamp(26px,3.4vw,42px);display:flex;flex-direction:column;gap:14px;text-align:center}
+.buy{
+  background:var(--surface);border:2px solid var(--rule);border-radius:var(--r-lg);
+  padding:clamp(22px,2.6vw,30px);display:flex;flex-direction:column;gap:14px;align-self:center;min-width:0;
+}
+.buy h2{font-size:clamp(1.45rem,2.3vw,1.85rem)}
+.buy-facts{font-size:.9375rem;font-weight:700;color:var(--ink-2)}
+.buy-facts i{font-style:normal;color:var(--ink-3);padding-inline:5px}
+.proof{
+  border:1px solid var(--rule-2);border-radius:var(--r-sm);padding:14px;
+  display:flex;flex-direction:column;gap:9px;background:var(--surface-2);
+}
+.proof-head{font-weight:700;font-size:.9375rem}
+.proof-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.proof input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.proof-pick{
+  display:inline-flex;align-items:center;justify-content:center;
+  font-family:var(--f-body);font-weight:700;font-size:.9375rem;cursor:pointer;
+  padding:11px 18px;border-radius:var(--r-sm);border:2px solid var(--ink);
+  background:var(--surface);color:var(--ink);
+}
+.proof-pick:hover{background:var(--ink);color:#FFFFFF}
+.proof-name{font-size:.9375rem;color:var(--ink-2);word-break:break-all;flex:1 1 120px;min-width:0}
+.proof-drop{background:none;border:0;padding:6px 0;font:inherit;font-size:.9375rem;font-weight:500;
+  color:var(--ink-3);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.proof-drop:hover{color:var(--red-ink)}
+.proof-note{font-size:.9375rem;color:var(--ink-2);line-height:1.55}
+.proof-note b{color:var(--ink)}
+.nudge{
+  font-size:.9375rem;font-weight:500;color:var(--ink-2);
+  background:var(--surface-2);border:1px solid var(--rule-2);border-radius:var(--r-sm);
+  padding:10px 13px;display:flex;align-items:center;gap:9px;
+}
+.nudge::before{content:"+";font-weight:700;color:var(--ink-3);font-size:1.05rem;line-height:1}
+.nudge--free{background:var(--mint-soft);border-color:var(--mint);color:var(--mint-ink);font-weight:700}
+.nudge--free::before{content:"\2713";color:var(--mint-ink)}
+.buy-process{
+  font-size:.9375rem;color:var(--ink-2);line-height:1.55;
+  background:var(--surface-2);border-radius:var(--r-md);padding:12px 14px;
+}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.06fr) minmax(0,.94fr);gap:clamp(26px,4vw,48px);align-items:center}
+@media (max-width:920px){.hero-grid{grid-template-columns:minmax(0,1fr);gap:32px}}
+.hero h1{font-size:clamp(2rem,3.8vw,3rem);line-height:1.18;letter-spacing:-.012em;font-weight:500}
+.hero h1 em{font-style:italic;font-weight:400;color:var(--ink)}
+.hero-copy{display:flex;flex-direction:column;gap:20px;min-width:0}
+.hero-actions{display:flex;flex-wrap:wrap;gap:13px;align-items:center}
+.hero-note{display:flex;flex-wrap:wrap;gap:8px}
+.hero-note span{
+  display:inline-flex;align-items:center;gap:7px;
+  background:var(--surface);border:2px solid var(--rule);border-radius:var(--r-sm);
+  padding:6px 14px;font-size:.85rem;font-weight:600;color:var(--ink-2);
+}
+.hero-note span::before{content:"";width:8px;height:8px;border-radius:50%;flex:none;background:var(--mint)}
+.hero-note span:nth-child(2)::before{background:var(--sky)}
+.hero-note span:nth-child(3)::before{background:var(--sun)}
+.hero-note span:nth-child(4)::before{background:var(--red)}
+
+/* ── Mug stage ──────────────────────────────────────────── */
+.stage{display:flex;flex-direction:column;gap:16px;align-items:center;min-width:0}
+.mug-frame{width:100%;max-width:520px;aspect-ratio:52/42}
+.mug-frame svg{display:block;width:100%;height:100%}
+/* SVG presentation attributes can't read custom properties, so paint via CSS. */
+.mug-svg .f-ink{fill:var(--ink)}
+.mug-svg .f-surf{fill:var(--surface)}
+.mug-svg .f-surf2{fill:var(--surface-2)}
+.mug-svg .f-ground{fill:var(--ground)}
+.mug-svg .f-red{fill:var(--art-red)}
+.mug-svg .f-sun{fill:var(--art-sun)}
+.mug-svg .f-sky{fill:var(--art-sky)}
+.mug-svg .f-mint{fill:var(--art-mint)}
+.mug-svg .f-red-s{fill:var(--red-soft)}
+.mug-svg .f-sun-s{fill:var(--sun-soft)}
+.mug-svg .f-sky-s{fill:var(--sky-soft)}
+.mug-svg .f-coffee{fill:var(--coffee)}
+.mug-svg .s-ink{stroke:var(--ink)}
+.mug-svg .s-ink3{stroke:var(--ink-3)}
+.mug-svg .s-rule2{stroke:var(--rule-2)}
+.mug-svg .s-red{stroke:var(--art-red)}
+.mug-svg .s-sun{stroke:var(--art-sun)}
+.mug-svg .s-sky{stroke:var(--art-sky)}
+.mug-svg .s-mint{stroke:var(--art-mint)}
+.mug-svg .s-surf{stroke:var(--surface)}
+.mug-svg .stop-sky-a{stop-color:var(--sky-soft)}
+.mug-svg .stop-sky-b{stop-color:var(--sun-soft)}
+.mug-svg .stop-sky-c{stop-color:var(--red-soft)}
+.mug-svg .stop-a{stop-color:var(--surface-2)}
+.mug-svg .stop-b{stop-color:var(--surface)}
+.memory{opacity:0;transition:opacity .45s ease}
+.memory.is-on{opacity:1}
+.steam{animation:rise 5s ease-in-out infinite}
+.steam-b{animation-delay:.8s}
+.steam-c{animation-delay:1.7s}
+@keyframes rise{
+  0%{opacity:0;transform:translateY(7px)}
+  30%{opacity:.5}
+  70%{opacity:.26}
+  100%{opacity:0;transform:translateY(-13px)}
+}
+.chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:center}
+.chip{
+  font-family:var(--f-body);font-weight:700;font-size:.9375rem;
+  padding:12px 18px;border-radius:var(--r-sm);border:1.5px solid var(--rule-2);
+  background:var(--surface);color:var(--ink-2);cursor:pointer;
+  transition:background .15s ease,color .15s ease,border-color .15s ease,transform .15s ease;
+}
+.chip:hover{border-color:var(--ink-3);color:var(--ink);transform:translateY(-2px)}
+.chip[aria-pressed="true"]{background:var(--red-soft);border-color:var(--red);color:var(--red-ink)}
+.chip--more{border-style:dashed;color:var(--ink-3)}
+.stage-caption{font-size:.9375rem;color:var(--ink-2);text-align:center;max-width:42ch;min-height:3.4em}
+
+/* ── Ticker ─────────────────────────────────────────────── */
+.ticker{background:var(--surface-2);border-block:1px solid var(--rule)}
+.ticker-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;padding-block:26px}
+.ticker-cell{display:flex;flex-direction:column;gap:3px;align-items:center;text-align:center}
+.ticker-k{font-size:.9375rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.ticker-v{font-family:var(--f-display);font-weight:600;font-size:1.28rem;letter-spacing:-.012em}
+@media (max-width:760px){.ticker-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}}
+
+/* ── Catalog ──────────────────────────────────────────── */
+.cat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+@media (max-width:900px){.cat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.cat-grid{grid-template-columns:minmax(0,1fr)}}
+.cat{
+  background:var(--surface);border:2px solid var(--rule);border-radius:var(--r-lg);
+  padding:26px 24px 28px;display:flex;flex-direction:column;gap:11px;
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.cat:hover{transform:translateY(-5px);border-color:var(--ink-3);box-shadow:0 16px 30px -18px var(--shadow-2)}
+.cat-icon{
+  width:52px;height:52px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;
+  background:var(--surface-2);color:var(--ink-2);margin-bottom:4px;
+}
+.cat h3{font-size:1.3rem}
+.cat p{font-size:.97rem;color:var(--ink-2);line-height:1.6}
+
+/* ── Steps ──────────────────────────────────────────────── */
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(22px,3.5vw,38px)}
+@media (max-width:840px){.steps{grid-template-columns:minmax(0,1fr);gap:28px}}
+.step{display:flex;flex-direction:column;gap:11px;padding-top:20px;border-top:2px solid var(--rule-2)}
+.step-n{
+  width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:var(--f-display);font-weight:600;font-size:1.4rem;
+  background:var(--surface-2);color:var(--ink);border:2px solid var(--rule-2);margin-bottom:4px;
+}
+.step h3{font-size:1.38rem}
+.step p{font-size:.99rem;color:var(--ink-2)}
+
+/* ── Craft ──────────────────────────────────────────────── */
+.craft{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.88fr);gap:clamp(28px,4.5vw,58px);align-items:start}
+@media (max-width:900px){.craft{grid-template-columns:minmax(0,1fr)}}
+.craft-body{display:flex;flex-direction:column;gap:18px}
+.craft-body p{color:var(--ink-2)}
+.pull{
+  background:var(--surface-2);border-radius:var(--r-lg);padding:20px 24px;
+  font-family:var(--f-display);font-weight:500;font-size:1.22rem;line-height:1.42;color:var(--ink);
+}
+.spec{border:2px solid var(--rule);border-radius:var(--r-lg);background:var(--surface);overflow:hidden}
+.spec-head{
+  padding:16px 24px;background:var(--surface-2);color:var(--ink-2);
+  font-weight:700;font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;
+}
+.spec dl{margin:0;display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr)}
+.spec dt,.spec dd{margin:0;padding:13px 24px;border-top:2px solid var(--rule);font-size:.95rem}
+.spec dt:first-of-type,.spec dl>dt:first-child+dd{border-top:0}
+.spec dt{font-weight:700;font-size:.9375rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
+.spec dd{font-weight:600;font-variant-numeric:tabular-nums}
+@media (max-width:430px){
+  .spec dl{grid-template-columns:minmax(0,1fr)}
+  .spec dt{padding-bottom:0;border-top:2px solid var(--rule)}
+  .spec dd{padding-top:2px;border-top:0}
+}
+
+/* ── Occasions ──────────────────────────────────────────── */
+.occasions{display:flex;flex-wrap:wrap;gap:10px}
+.occ{
+  display:inline-flex;align-items:center;gap:9px;
+  background:var(--surface);border:1px solid var(--rule-2);border-radius:var(--r-sm);
+  padding:9px 18px;font-size:.96rem;font-weight:500;
+}
+
+
+/* ── FAQ ────────────────────────────────────────────────── */
+.faq{display:flex;flex-direction:column;gap:11px}
+.faq details{background:var(--surface);border:2px solid var(--rule);border-radius:var(--r-md);transition:border-color .15s ease}
+.faq details[open]{border-color:var(--field)}
+.faq summary{
+  list-style:none;cursor:pointer;padding:19px 56px 19px 22px;position:relative;
+  font-family:var(--f-display);font-weight:600;font-size:1.14rem;letter-spacing:-.008em;
+}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{
+  content:"+";position:absolute;right:19px;top:50%;transform:translateY(-50%);
+  width:28px;height:28px;border-radius:50%;background:var(--surface-2);color:var(--ink-3);
+  font-size:1.2rem;font-weight:700;line-height:27px;text-align:center;
+}
+.faq details[open] summary::after{content:"–";background:var(--red-soft);color:var(--red-ink)}
+.faq summary:hover{color:var(--red-ink)}
+.faq-a{padding:0 22px 22px;max-width:68ch;color:var(--ink-2);font-size:.99rem}
+.faq-a a{color:var(--red-ink);font-weight:700}
+
+/* ── Closer ─────────────────────────────────────────────── */
+.closer{background:var(--surface-2)}
+.closer-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.86fr);gap:clamp(28px,4.5vw,56px);align-items:center}
+@media (max-width:840px){.closer-grid{grid-template-columns:minmax(0,1fr)}}
+.closer h2{font-size:clamp(2rem,4.5vw,3rem)}
+.signup{display:flex;flex-direction:column;gap:12px}
+.signup label{font-weight:700;font-size:.95rem}
+.signup-row{display:flex;gap:11px;flex-wrap:wrap}
+.signup input{
+  flex:1 1 220px;min-width:0;font-family:var(--f-body);font-size:1rem;
+  padding:14px 19px;border-radius:var(--r-sm);border:1.5px solid var(--field);
+  background:var(--surface);color:var(--ink);
+}
+.signup input::placeholder{color:var(--ink-3)}
+.signup-fine{font-size:.9375rem;color:var(--ink-2)}
+.signup-done{
+  display:flex;gap:13px;align-items:flex-start;padding:20px 22px;border-radius:var(--r-lg);
+  background:var(--surface);border:2.5px solid var(--mint);
+}
+.signup-done .tick{
+  flex:none;width:28px;height:28px;border-radius:50%;background:var(--mint-soft);color:var(--mint-ink);
+  border:2px solid var(--mint);font-weight:700;line-height:24px;text-align:center;font-size:.95rem;
+}
+.signup-done b{display:block;font-family:var(--f-display);font-weight:600;font-size:1.12rem;margin-bottom:2px}
+.signup-done p{font-size:.94rem;color:var(--ink-2)}
+
+/* ── Shop ───────────────────────────────────────────────── */
+.single{
+  display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);
+  background:var(--surface);border:2px solid var(--rule);border-radius:var(--r-lg);overflow:hidden;
+}
+@media (max-width:780px){.single{grid-template-columns:minmax(0,1fr)}}
+.single-media{
+  position:relative;aspect-ratio:1/1;max-width:100%;background:var(--surface-2);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+}
+.single-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.single-media svg{width:78%;height:auto;max-width:100%}
+.single-body{padding:clamp(24px,3vw,38px);display:flex;flex-direction:column;gap:14px;justify-content:center}
+.single-body h3{font-size:clamp(1.4rem,2.4vw,1.85rem)}
+.single-blurb{font-size:1rem;color:var(--ink-2)}
+.single-price{display:flex;align-items:baseline;gap:9px;font-variant-numeric:tabular-nums}
+.single-price b{font-family:var(--f-display);font-weight:600;font-size:2.9rem;line-height:1;color:var(--red-ink);letter-spacing:-.03em}
+.single-price span{font-size:.9rem;font-weight:700;color:var(--ink-3)}
+.single-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
+.single-list li{font-size:.95rem;color:var(--ink-2);display:flex;gap:11px;line-height:1.5}
+.single-list li::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--ink-3);margin-top:.55em}
+.single-buy select,.line-qty select{
+  font:inherit;font-size:.9375rem;font-weight:700;color:var(--ink);
+  padding:13px 15px;border-radius:var(--r-sm);border:1.5px solid var(--field);
+  background:var(--surface);cursor:pointer;
+}
+.single-buy select:hover,.line-qty select:hover{border-color:var(--ink)}
+.line-qty select{padding:7px 11px;font-size:.87rem;font-weight:600}
+.single-buy{display:flex;gap:11px;align-items:center;flex-wrap:wrap;margin-top:4px}
+.single-buy .btn{flex:1 1 190px}
+.single-fine{font-size:.9375rem;color:var(--ink-3);line-height:1.6}
+.line-thumb .ph{font-family:var(--f-display);font-weight:600;font-size:1.3rem;color:var(--sky-ink);opacity:.55}
+.owner-row{margin-top:28px;display:flex;justify-content:center}
+.owner-link{
+  background:none;border:2px dashed var(--rule-2);border-radius:var(--r-sm);
+  padding:12px 22px;font:inherit;font-size:.9375rem;font-weight:500;color:var(--ink-3);cursor:pointer;
+  transition:border-color .15s ease,color .15s ease;
+}
+.owner-link:hover{border-color:var(--sky);color:var(--sky-ink)}
+.shop-msg{
+  border:2px dashed var(--rule-2);border-radius:var(--r-lg);padding:24px;
+  text-align:center;color:var(--ink-2);font-size:.96rem;
+}
+.shop-msg b{display:block;font-family:var(--f-display);font-size:1.1rem;color:var(--ink);margin-bottom:5px}
+
+/* ── Cart button ────────────────────────────────────────── */
+.cart-btn{
+  position:relative;flex:none;display:inline-flex;align-items:center;justify-content:center;
+  width:44px;height:44px;border-radius:50%;border:2px solid var(--rule-2);
+  background:var(--surface);color:var(--ink);cursor:pointer;transition:border-color .15s ease}
+.cart-btn:hover{border-color:var(--red)}
+.cart-count{
+  position:absolute;top:-4px;right:-4px;min-width:21px;height:21px;border-radius:999px;
+  background:var(--red);color:#FFFFFF;font-size:.7rem;font-weight:700;line-height:21px;
+  text-align:center;padding-inline:5px;
+}
+
+/* ── Dialogs (cart + connect) ───────────────────────────── */
+dialog{border:none;padding:0;background:transparent;max-width:none;max-height:none;color:var(--ink)}
+dialog::backdrop{background:rgba(74,60,53,.38)}
+.panel{
+  background:var(--surface);border:2px solid var(--rule-2);border-radius:var(--r-lg);
+  width:min(580px,calc(100vw - 28px));max-height:min(86vh,900px);display:flex;flex-direction:column;
+  box-shadow:0 30px 70px -34px rgba(74,60,53,.55);
+}
+.panel-head{
+  display:flex;align-items:center;gap:14px;padding:20px 22px;border-bottom:2px solid var(--rule);
+}
+.panel-head h3{font-size:1.24rem;margin-right:auto}
+.panel-x{
+  flex:none;width:36px;height:36px;border-radius:50%;border:2px solid var(--rule-2);background:var(--surface);
+  font-size:1.2rem;line-height:1;color:var(--ink-2);cursor:pointer}
+.panel-x:hover{border-color:var(--red);color:var(--red-ink)}
+.panel-body{padding:22px;overflow:auto;display:flex;flex-direction:column;gap:16px}
+.panel-foot{padding:18px 22px;border-top:2px solid var(--rule);display:flex;flex-direction:column;gap:12px}
+
+.line{display:flex;gap:14px;align-items:flex-start;padding-bottom:16px;border-bottom:2px solid var(--rule)}
+.line:last-child{border-bottom:0;padding-bottom:0}
+.line-thumb{flex:none;width:62px;height:62px;border-radius:var(--r-sm);background:var(--surface-2);overflow:hidden;display:flex;align-items:center;justify-content:center}
+.line-thumb img{width:100%;height:100%;object-fit:cover}
+.line-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.line-main b{font-family:var(--f-display);font-weight:600;font-size:1rem}
+.line-sub{font-size:.85rem;color:var(--ink-3)}
+.line-qty{display:flex;align-items:center;gap:10px}
+.line-price{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.line-rm{background:none;border:0;padding:0;font:inherit;font-size:.83rem;font-weight:600;color:var(--ink-3);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.line-rm:hover{color:var(--red-ink)}
+.cart-total{display:flex;justify-content:space-between;align-items:baseline;font-weight:700;font-size:1.1rem}
+.cart-total b{font-family:var(--f-display);font-size:1.5rem;color:var(--red-ink);font-variant-numeric:tabular-nums}
+.cart-empty{text-align:center;color:var(--ink-2);padding:24px 0}
+
+.mug-slot{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.mug-thumb{flex:0 0 140px;height:140px;border:2px solid var(--rule-2);border-radius:var(--r-md);
+  background:var(--surface-2);display:flex;align-items:center;justify-content:center;
+  overflow:hidden;font-size:.9rem;color:var(--ink-3);text-align:center;padding:8px}
+.mug-thumb img{width:100%;height:100%;object-fit:contain}
+.mug-slot-side{flex:1 1 200px;min-width:0;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.mug-slot input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.print-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(140px,100%),1fr));gap:12px}
+
+/* With a product photo in place the drawn mug and the printed panel's own
+   white ground step aside, and the artwork multiplies onto the real ceramic so
+   the photograph's shading and highlights read through it the way a pressed
+   print does. */
+.mug-svg.has-photo .mug-drawn{display:none}
+.mug-svg.has-photo .panel-art{mix-blend-mode:multiply}
+
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-weight:700;font-size:.9rem}
+.field input,.field textarea,.field select{
+  font:inherit;font-size:.97rem;padding:12px 15px;border-radius:var(--r-sm);
+  border:2px solid var(--field);background:var(--surface);color:var(--ink);width:100%;
+}
+.field select{appearance:none;-webkit-appearance:none;cursor:pointer;padding-right:38px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'><path d='M1 1.5 6 6.5l5-5' fill='none' stroke='%231F1D1B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat:no-repeat;background-position:right 14px center;background-size:12px 8px}
+.field input:focus-visible,.field textarea:focus-visible,.field select:focus-visible{border-color:var(--red-deep)}
+.field .hint{font-size:.9375rem;color:var(--ink-3);line-height:1.5}
+.field .hint a{color:var(--sky-ink);font-weight:700}
+.status{border-radius:var(--r-md);padding:14px 16px;font-size:.92rem;line-height:1.55}
+.status--ok{background:var(--mint-soft);color:var(--mint-ink);border:2px solid var(--mint)}
+.status--bad{background:var(--red-soft);color:var(--red-deep);border:2px solid var(--red)}
+.status--info{background:var(--sky-soft);color:var(--sky-ink);border:2px solid var(--sky)}
+.status b{display:block;margin-bottom:3px}
+.snippet{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.8rem;line-height:1.7;
+  background:var(--surface-2);border:2px solid var(--rule);border-radius:var(--r-sm);
+  padding:14px 16px;overflow-x:auto;white-space:pre;color:var(--ink);
+}
+.steps-list{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:7px;font-size:.92rem;color:var(--ink-2)}
+.steps-list code{font-family:ui-monospace,Menlo,monospace;font-size:.86em;background:var(--surface-2);padding:1px 5px;border-radius:4px}
+
+/* ── Admin panel ────────────────────────────────────────── */
+.admin-sec{
+  font-weight:700;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--red-ink);margin:10px 0 -2px;padding-top:14px;border-top:2px solid var(--rule);
+}
+.photo-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:520px){.photo-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.photo-slot{border:2px solid var(--rule);border-radius:var(--r-md);overflow:hidden;background:var(--surface-2);display:flex;flex-direction:column}
+.photo-thumb{position:relative;aspect-ratio:1/1;max-width:100%;background:var(--surface-2);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.photo-thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.photo-thumb span{font-size:.7rem;font-weight:700;color:var(--sky-ink);opacity:.7;text-align:center;padding:6px;line-height:1.3}
+.photo-slot .cap{padding:6px 6px 0;font-size:.68rem;font-weight:700;text-align:center;color:var(--ink-2)}
+.photo-slot .pick{display:block;padding:6px;font-size:.7rem;font-weight:700;text-align:center;color:var(--sky-ink);cursor:pointer}
+.photo-slot .pick:hover{text-decoration:underline}
+.photo-slot input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.photo-slot .drop{background:none;border:0;padding:0 0 7px;font:inherit;font-size:.68rem;font-weight:700;color:var(--ink-3);cursor:pointer}
+.photo-slot .drop:hover{color:var(--red-ink)}
+
+/* ── Footer ─────────────────────────────────────────────── */
+.site-footer{padding-block:44px 52px;border-top:2px solid var(--rule)}
+.foot-row{display:flex;flex-wrap:wrap;gap:30px;justify-content:space-between;align-items:flex-start}
+.foot-brand{max-width:36ch;display:flex;flex-direction:column;gap:10px}
+.foot-brand .brand-name{font-size:1.28rem}
+.foot-brand p{font-size:.95rem;color:var(--ink-2)}
+.foot-brand a{color:var(--red-ink);font-weight:700;text-decoration:none}
+.foot-brand a:hover{text-decoration:underline;text-underline-offset:3px}
+.foot-links{display:flex;gap:44px;flex-wrap:wrap}
+.foot-col{display:flex;flex-direction:column;gap:3px}
+.foot-col h4{margin:0 0 3px;font-weight:700;font-size:.9375rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.foot-col a{font-size:.96rem;color:var(--ink-2);text-decoration:none;padding-block:7px}
+.foot-col a:hover{color:var(--red-ink);text-decoration:underline;text-underline-offset:3px}
+.foot-base{
+  margin-top:36px;padding-top:22px;border-top:2px solid var(--rule);
+  display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;
+  font-size:.9375rem;color:var(--ink-3);
+}
+</style>
+
+<!-- ══ PROMO BAR ═══════════════════════════════════════════ -->
+<div class="promo">
+  <p>Every mug is proofed before we print &mdash; no surprises</p>
+</div>
+
+<!-- ══ HEADER ══════════════════════════════════════════════ -->
+<header class="site-header">
+  <div class="wrap header-row">
+    <a class="brand" href="#top">
+      <svg class="brand-mark" width="30" height="30" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+        <path d="M4 6.5h13v11a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4v-11Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+        <path d="M17 9.5h2.4a3.1 3.1 0 0 1 0 6.2H17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+        <circle cx="10.5" cy="12.5" r="2.2" fill="currentColor"/>
+      </svg>
+      <span class="brand-text">
+        <span class="brand-name">Memory Mug Co.</span>
+        <span class="brand-sub">By <span data-cfg="operatorName">H3 Customs</span></span>
+      </span>
+    </a>
+    <nav class="site-nav" aria-label="Main">
+      <a href="#mugs">What Goes On It</a>
+      <a href="#how">How It Works</a>
+      <a href="#craft">Why It Lasts</a>
+      <a href="#order">Order</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <button type="button" class="cart-btn" id="cart-btn" aria-label="Open your order">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M3 4h2.2l2.3 11.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.55L21 8H6.2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="10" cy="20" r="1.4" fill="currentColor"/><circle cx="18" cy="20" r="1.4" fill="currentColor"/>
+      </svg>
+      <span class="cart-count" id="cart-count" hidden>0</span>
+    </button>
+    <a class="btn btn--fill btn--sm" href="#start">Make my mug</a>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- ══ HERO ════════════════════════════════════════════════ -->
+<section class="wrap hero">
+  <div class="hero-head">
+    <p class="eyebrow">Custom photo mugs · By <span data-cfg="operatorName">H3 Customs</span></p>
+    <h1>Put your <em>favorite people</em> on a mug.</h1>
+    <p class="lede">
+      Turn a photo you already have into a gift they'll reach for every morning.
+    </p>
+  </div>
+
+  <div class="hero-grid" id="order">
+    <div class="stage">
+      <div class="mug-frame">
+        <svg class="mug-svg" viewBox="0 0 520 420" role="img" aria-labelledby="mug-title mug-desc">
+          <title id="mug-title">A ceramic mug printed with a family photo</title>
+          <desc id="mug-desc">A white mug showing a printed family picture, with a child's crayon drawing and a photo of a dog propped beside it. Use the buttons below to preview other styles.</desc>
+
+          <defs>
+            <linearGradient id="ceramic" x1="0" y1="0" x2="1" y2="0">
+              <stop class="stop-a" offset="0%"/>
+              <stop class="stop-b" offset="24%"/>
+              <stop class="stop-b" offset="78%"/>
+              <stop class="stop-a" offset="100%"/>
+            </linearGradient>
+            <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+              <stop class="stop-sky-a" offset="0%"/>
+              <stop class="stop-sky-b" offset="62%"/>
+              <stop class="stop-sky-c" offset="100%"/>
+            </linearGradient>
+            <clipPath id="panelClip"><rect x="178" y="146" width="140" height="172" rx="7"/></clipPath>
+            <clipPath id="snapA"><rect x="39" y="67" width="100" height="94"/></clipPath>
+            <clipPath id="snapB"><rect x="379" y="249" width="100" height="94"/></clipPath>
+          </defs>
+
+          <!-- ── The real mug ──
+               A photograph of the actual product, when the shop has set one.
+               It is the first thing drawn, so the propped snapshots and the
+               steam still sit in front of it, and its white backdrop simply
+               disappears into a white page. With no photo set this stays
+               hidden and the drawn mug below takes over. -->
+          <image class="mug-base" id="mug-photo" x="103" y="70" width="315" height="315"
+                 preserveAspectRatio="xMidYMid meet" hidden/>
+
+          <!-- ── Snapshot A: a kid's crayon drawing ── -->
+          <g transform="rotate(-9 89 122)">
+            <rect class="f-ink" x="32" y="61" width="118" height="128" rx="6" opacity=".09"/>
+            <rect class="f-surf s-rule2" x="30" y="58" width="118" height="128" rx="6" stroke-width="2"/>
+            <rect class="f-sun-s" x="39" y="67" width="100" height="94" rx="2"/>
+            <g id="snap-a" clip-path="url(#snapA)">
+              <circle class="f-sun" cx="57" cy="84" r="9"/>
+              <g class="s-sun" stroke-width="2.4" stroke-linecap="round">
+                <path d="M57 68v-5M42 84h-5M46 73l-4-4M68 73l4-4"/>
+              </g>
+              <path class="f-red" d="M74 112 98 90l24 22Z"/>
+              <rect class="f-red-s s-red" x="80" y="112" width="36" height="34" rx="2" stroke-width="2.6"/>
+              <rect class="f-sun" x="92" y="128" width="12" height="18" rx="2"/>
+              <g class="s-sky" stroke-width="2.6" stroke-linecap="round" fill="none">
+                <circle cx="57" cy="118" r="6"/>
+                <path d="M57 124v13M50 129h14M57 137l-5 9M57 137l5 9"/>
+              </g>
+              <path class="s-mint" d="M39 152c8-4 14 4 22 0s14 4 22 0 14 4 22 0 14 4 22 0" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+            </g>
+            <path class="s-ink3" d="M52 173h44" stroke-width="3" stroke-linecap="round" opacity=".4"/>
+            <rect class="f-sun" x="66" y="50" width="46" height="14" rx="3" opacity=".6" transform="rotate(-4 89 57)"/>
+          </g>
+
+          <!-- ── Steam ── -->
+          <g class="s-ink3" stroke-width="3" stroke-linecap="round" fill="none" opacity=".38">
+            <path class="steam" d="M222 96c-10-14 9-21 0-36-6-10 2-16 2-20"/>
+            <path class="steam steam-b" d="M252 90c-11-16 10-23 0-39-7-11 2-17 2-21"/>
+            <path class="steam steam-c" d="M282 96c-10-14 9-21 0-36-6-10 2-16 2-20"/>
+          </g>
+
+          <!-- ── The drawn mug ──
+               The stand-in. Hidden whole the moment a product photo is set. -->
+          <g class="mug-drawn">
+          <ellipse class="f-ink" cx="248" cy="350" rx="94" ry="11" opacity=".09"/>
+          <path class="s-rule2" d="M320 170c50 0 58 20 58 42s-10 44-58 44" fill="none" stroke-width="23" stroke-linecap="round"/>
+          <path d="M320 170c50 0 58 20 58 42s-10 44-58 44" fill="none" stroke="url(#ceramic)" stroke-width="17" stroke-linecap="round"/>
+          <path d="M164 126v182c0 20 16 36 36 36h96c20 0 36-16 36-36V126Z" fill="url(#ceramic)"/>
+          <path class="s-rule2" d="M164 126v182c0 20 16 36 36 36h96c20 0 36-16 36-36V126" fill="none" stroke-width="2"/>
+          <ellipse class="f-surf2 s-rule2" cx="248" cy="126" rx="84" ry="14" stroke-width="2"/>
+          <ellipse class="f-ink" cx="248" cy="126" rx="72" ry="10.5" opacity=".8"/>
+          <ellipse class="f-coffee" cx="248" cy="127.5" rx="67" ry="8.5"/>
+          </g>
+
+          <!-- ── Printed panel ──
+               The print runs nearly the full face of the mug, the way a real
+               dye-sublimated photo mug does: a thin white margin at the rim,
+               the sides and the base, and nothing else.
+
+               Every scene below is still DRAWN in the original 116x140 panel
+               space, and the one transform on the wrapper maps that space onto
+               whatever the panel is now. So to resize the print area you change
+               four things and nothing else: this rect, the `panelClip` rect in
+               <defs>, the outline rect after the wrapper, and the scale here
+               (sx = width/116, sy = height/140, tx = x - 190*sx, ty = y - 152*sy).
+               The scenes themselves never need touching. -->
+          <rect class="f-ground mug-drawn" id="panel-ground" x="178" y="146" width="140" height="172" rx="7"/>
+          <g class="panel-art" clip-path="url(#panelClip)">
+           <g id="panel-fit" transform="translate(-51.3103,-40.7429) scale(1.206897,1.228571)">
+
+            <!-- FAMILY — sunset, hills, the whole crew and the dog -->
+            <g class="memory is-on" data-key="family">
+              <rect x="190" y="152" width="116" height="140" fill="url(#sky)"/>
+              <circle class="f-sun" cx="281" cy="201" r="20" opacity=".9"/>
+              <g class="s-ink3" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".45">
+                <path d="M205 180c2-3 4-3 6 0M211 176c2-3 4-3 6 0"/>
+                <path d="M237 170c2-3 4-3 6 0M243 167c2-3 4-3 6 0"/>
+              </g>
+              <path class="f-mint" d="M190 238c16-14 30-6 46-13s30-12 46-4c10 5 24 11 24 11v60H190Z" opacity=".26"/>
+              <path class="f-mint" d="M190 256c22-11 36 3 56-3s36-9 52-1c4 2 8 4 8 4v36H190Z" opacity=".46"/>
+              <rect class="f-mint" x="190" y="272" width="116" height="20" opacity=".78"/>
+              <rect class="f-coffee" x="205" y="250" width="5" height="24" rx="2.5"/>
+              <circle class="f-mint" cx="207.5" cy="243" r="13"/>
+              <circle class="f-mint" cx="199" cy="250" r="8"/>
+              <circle class="f-mint" cx="216" cy="250" r="7.5"/>
+              <!-- Color keeps the four of them readable at this size; the hair does the characterizing. -->
+              <rect class="f-red" x="228" y="246" width="16" height="36" rx="8"/>
+              <circle class="f-ink" cx="236" cy="239" r="7.5"/>
+              <path class="f-ink" d="M243 236c4 1 6 6 4 10l-4-2c1-3 0-6-2-7Z"/>
+              <rect class="f-sky" x="249" y="242" width="17" height="40" rx="8.5"/>
+              <circle class="f-ink" cx="257.5" cy="234" r="8"/>
+              <rect class="f-sun" x="271" y="258" width="13" height="24" rx="6.5"/>
+              <circle class="f-ink" cx="277.5" cy="252" r="6"/>
+              <g class="f-ink">
+                <ellipse cx="294" cy="276" rx="8" ry="5"/>
+                <circle cx="300" cy="270" r="4.5"/>
+                <path d="M298 266c-1-4 1-6 2-5s2 3 1 5Z"/>
+                <path d="M287 273c-3-2-2-6 1-7l1 3c-1 1-1 3 0 4Z"/>
+              </g>
+              <rect class="f-red" x="296" y="273" width="9" height="3" rx="1.5"/>
+            </g>
+
+            <!-- KID'S ART — rainbow, wobbly house, the whole fridge-door look -->
+            <g class="memory" data-key="art">
+              <rect class="f-surf" x="190" y="152" width="116" height="140"/>
+              <g fill="none" stroke-width="4" stroke-linecap="round">
+                <path class="s-red"  d="M197 212a51 51 0 0 1 102 0"/>
+                <path class="s-sun"  d="M204 212a44 44 0 0 1 88 0"/>
+                <path class="s-mint" d="M211 212a37 37 0 0 1 74 0"/>
+                <path class="s-sky"  d="M218 212a30 30 0 0 1 60 0"/>
+              </g>
+              <circle class="f-sun" cx="199" cy="170" r="9"/>
+              <g class="s-sun" stroke-width="2.4" stroke-linecap="round">
+                <path d="M199 155v-4M183 170h-4M188 159l-3-3M210 159l3-3M188 181l-3 3"/>
+              </g>
+              <!-- house -->
+              <path class="f-red" d="M224 234 254 210l30 24Z"/>
+              <rect class="f-red-s s-red" x="231" y="234" width="46" height="40" rx="2" stroke-width="3"/>
+              <rect class="f-sun" x="247" y="252" width="14" height="22" rx="1"/>
+              <rect class="f-sky-s s-sky" x="235" y="240" width="12" height="11" rx="1" stroke-width="2"/>
+              <path class="s-ink3" d="M273 214c4-5-3-8 1-13" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".5"/>
+              <rect class="f-red" x="270" y="216" width="7" height="12" rx="1"/>
+              <!-- two stick figures holding hands -->
+              <g class="s-sky" stroke-width="2.6" fill="none" stroke-linecap="round">
+                <circle cx="205" cy="240" r="6"/>
+                <path d="M205 246v14M198 251h14M205 260l-5 12M205 260l5 12"/>
+              </g>
+              <g class="s-mint" stroke-width="2.6" fill="none" stroke-linecap="round">
+                <circle cx="222" cy="248" r="5"/>
+                <path d="M222 253v11M216 257h12M222 264l-4 9M222 264l4 9"/>
+              </g>
+              <path class="s-ink3" d="M211 252h6" stroke-width="2.4" stroke-linecap="round" opacity=".55"/>
+              <!-- flowers and grass -->
+              <g class="s-mint" stroke-width="2.4" fill="none" stroke-linecap="round"><path d="M292 276v-12M300 276v-9"/></g>
+              <circle class="f-red" cx="292" cy="261" r="4"/>
+              <circle class="f-sun" cx="300" cy="265" r="3.5"/>
+              <path class="s-mint" d="M190 278c9-6 16 5 25-1s16 5 25-1 16 5 25-1 16 5 25-1" stroke-width="4" fill="none" stroke-linecap="round"/>
+            </g>
+
+            <!-- THE DOG — a proper portrait, collar and all -->
+            <g class="memory" data-key="pet">
+              <rect class="f-sun-s" x="190" y="152" width="116" height="140"/>
+              <circle class="f-sky" cx="248" cy="214" r="47" opacity=".22"/>
+              <g class="f-ink">
+                <path d="M219 200c-7-15-5-30 3-30s15 13 15 27Z"/>
+                <path d="M277 200c7-15 5-30-3-30s-15 13-15 27Z"/>
+                <path d="M248 182c21 0 35 16 35 36s-14 34-35 34-35-15-35-34 14-36 35-36Z"/>
+              </g>
+              <path class="f-surf" d="M248 184c5 0 8 6 8 14s-3 14-8 14-8-6-8-14 3-14 8-14Z" opacity=".9"/>
+              <g class="f-surf">
+                <circle cx="235" cy="210" r="5.5"/>
+                <circle cx="261" cy="210" r="5.5"/>
+                <ellipse cx="248" cy="234" rx="16" ry="12"/>
+              </g>
+              <g class="f-ink">
+                <circle cx="236" cy="211" r="2.8"/>
+                <circle cx="260" cy="211" r="2.8"/>
+                <ellipse cx="248" cy="228" rx="6" ry="4.5"/>
+              </g>
+              <path class="s-ink" d="M248 232v5m0 0c-3 4-9 3-9-1m9 1c3 4 9 3 9-1" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+              <path class="f-red" d="M243 240h10c0 6-2 9-5 9s-5-3-5-9Z" opacity=".85"/>
+              <rect class="f-red" x="219" y="256" width="58" height="11" rx="3"/>
+              <circle class="f-sun" cx="248" cy="270" r="6"/>
+            </g>
+
+            <!-- HANDWRITING — a note off the fridge, ruled paper and all -->
+            <g class="memory" data-key="hand">
+              <rect class="f-surf" x="190" y="152" width="116" height="140"/>
+              <g class="s-sky" stroke-width="1" opacity=".4">
+                <path d="M196 198h104M196 224h104M196 250h104M196 276h104"/>
+              </g>
+              <path class="s-red" d="M212 152v140" stroke-width="1" opacity=".28"/>
+              <g class="f-ink" font-family="Caveat, cursive" text-anchor="start">
+                <text x="219" y="194" font-size="26" textLength="68" lengthAdjust="spacingAndGlyphs">Love you</text>
+                <text x="219" y="220" font-size="26" textLength="56" lengthAdjust="spacingAndGlyphs">always,</text>
+              </g>
+              <text class="f-red" x="232" y="248" font-family="Caveat, cursive" font-size="24" textLength="52" lengthAdjust="spacingAndGlyphs">— Mom</text>
+              <path class="f-red" d="M252 260c-5-7-14-2-14 4 0 6 9 10 14 14 5-4 14-8 14-14 0-6-9-11-14-4Z" opacity=".85"/>
+            </g>
+
+            <!-- RECIPE — the actual index card -->
+            <g class="memory" data-key="recipe">
+              <rect class="f-surf2" x="190" y="152" width="116" height="140"/>
+              <rect class="f-surf s-rule2" x="197" y="161" width="102" height="122" rx="3" stroke-width="1.5"/>
+              <path class="f-red" d="M197 164a3 3 0 0 1 3-3h96a3 3 0 0 1 3 3v14H197Z"/>
+              <text class="f-surf" x="248" y="175" font-family="Caveat, cursive" font-size="15" text-anchor="middle" textLength="46" lengthAdjust="spacingAndGlyphs">Grandma&#8217;s</text>
+              <text class="f-ink" x="248" y="200" font-family="Caveat, cursive" font-size="19" font-weight="600" text-anchor="middle" textLength="84" lengthAdjust="spacingAndGlyphs">Peach Cobbler</text>
+              <g class="s-sky" stroke-width="1" opacity=".45">
+                <path d="M204 212h88M204 228h88M204 244h88M204 260h88"/>
+              </g>
+              <g class="f-ink" font-family="Caveat, cursive" font-size="15" opacity=".82">
+                <text x="206" y="225" textLength="76" lengthAdjust="spacingAndGlyphs">6 peaches, sliced</text>
+                <text x="206" y="241" textLength="54" lengthAdjust="spacingAndGlyphs">1 cup sugar</text>
+                <text x="206" y="257" textLength="62" lengthAdjust="spacingAndGlyphs">1 stick butter</text>
+              </g>
+              <text class="f-red" x="206" y="275" font-family="Caveat, cursive" font-size="15" textLength="60" lengthAdjust="spacingAndGlyphs">Bake 45 min!</text>
+              <circle class="f-sun" cx="284" cy="268" r="9"/>
+              <path class="f-mint" d="M284 259c4-4 9-4 9-4s0 5-4 7Z"/>
+            </g>
+
+            <!-- THE CUSTOMER'S OWN PHOTO — filled in on this device only -->
+            <g class="memory" data-key="yours"></g>
+
+            <!-- THE CREW — a shop badge, for team and logo mugs -->
+            <g class="memory" data-key="team">
+              <rect class="f-ink" x="190" y="152" width="116" height="140"/>
+              <circle class="s-sun" cx="248" cy="216" r="41" fill="none" stroke-width="2.5"/>
+              <circle class="s-sun" cx="248" cy="216" r="35" fill="none" stroke-width="1" opacity=".45"/>
+              <g class="s-sun" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M234 198h18v15a9 9 0 0 1-9 9h0a9 9 0 0 1-9-9Z"/>
+                <path d="M252 202h4a5 5 0 0 1 0 10h-4"/>
+              </g>
+              <text class="f-sun" x="248" y="243" font-family="Fredoka, sans-serif" font-size="11" font-weight="600" text-anchor="middle" textLength="54" lengthAdjust="spacingAndGlyphs">THE CREW</text>
+              <path class="s-sun" d="M228 250h40" stroke-width="1.5" opacity=".5"/>
+              <text class="f-sun" x="248" y="264" font-family="Fredoka, sans-serif" font-size="9" text-anchor="middle" opacity=".75" textLength="42" lengthAdjust="spacingAndGlyphs">EST. 2019</text>
+            </g>
+           </g>
+          </g>
+          <rect class="s-rule2 mug-drawn" id="panel-edge" x="178" y="146" width="140" height="172" rx="7" fill="none" stroke-width="1.6" opacity=".8"/>
+
+          <!-- ── Snapshot B: the dog ── -->
+          <g transform="rotate(8 429 304)">
+            <rect class="f-ink" x="372" y="243" width="118" height="128" rx="6" opacity=".09"/>
+            <rect class="f-surf s-rule2" x="370" y="240" width="118" height="128" rx="6" stroke-width="2"/>
+            <rect class="f-sky-s" x="379" y="249" width="100" height="94" rx="2"/>
+            <g id="snap-b" clip-path="url(#snapB)">
+              <circle class="f-mint" cx="429" cy="308" r="40" opacity=".25"/>
+              <g class="f-ink">
+                <path d="M406 284c-3-13 1-22 6-21s11 9 10 19Z"/>
+                <path d="M452 284c3-13-1-22-6-21s-11 9-10 19Z"/>
+                <path d="M429 278c17 0 28 13 28 29s-11 28-28 28-28-12-28-28 11-29 28-29Z"/>
+              </g>
+              <g class="f-surf">
+                <circle cx="420" cy="303" r="3.5"/>
+                <circle cx="438" cy="303" r="3.5"/>
+                <ellipse cx="429" cy="317" rx="6" ry="4.5"/>
+              </g>
+              <path class="f-red" d="M401 330h56v7c0 2-2 4-4 4h-48c-2 0-4-2-4-4Z"/>
+            </g>
+            <path class="s-ink3" d="M392 355h44" stroke-width="3" stroke-linecap="round" opacity=".4"/>
+            <rect class="f-sky" x="406" y="232" width="46" height="14" rx="3" opacity=".55" transform="rotate(5 429 239)"/>
+          </g>
+        </svg>
+      </div>
+
+      <div class="chips" role="group" aria-label="Preview a mug style">
+        <button type="button" class="chip" id="chip-family" data-key="family" aria-pressed="true">Family</button>
+        <button type="button" class="chip" id="chip-art" data-key="art" aria-pressed="false">Kid's art</button>
+        <button type="button" class="chip" id="chip-pet" data-key="pet" aria-pressed="false">The dog</button>
+        <button type="button" class="chip chip--extra" id="chip-hand" data-key="hand" aria-pressed="false" hidden>Handwriting</button>
+        <button type="button" class="chip chip--extra" id="chip-recipe" data-key="recipe" aria-pressed="false" hidden>Recipe</button>
+        <button type="button" class="chip chip--extra" id="chip-team" data-key="team" aria-pressed="false" hidden>The crew</button>
+        <button type="button" class="chip" id="chip-yours" data-key="yours" aria-pressed="false" hidden>Your photo</button>
+        <button type="button" class="chip chip--more" id="more-ideas" aria-expanded="false" aria-controls="chip-hand chip-recipe chip-team">More ideas</button>
+      </div>
+      <p class="stage-caption" id="mug-caption" aria-live="polite">
+        The whole crew, wrapped the entire way around. Yes, the dog counts as family.
+      </p>
+      <p class="stage-caption" id="stage-fineprint" style="margin-top:-8px">Illustrated example — your mug carries your photo.</p>
+    </div>
+
+    <div style="min-width:0">
+      <div class="buy" id="shop-single"></div>
+      <div id="shop-notice" style="margin-top:16px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ TICKER ══════════════════════════════════════════════ -->
+<div class="ticker">
+  <div class="wrap">
+    <div class="ticker-row">
+      <div class="ticker-cell"><span class="ticker-k">Order as few as</span><span class="ticker-v">One mug</span></div>
+      <div class="ticker-cell"><span class="ticker-k">Proof lands in</span><span class="ticker-v">1 business day</span></div>
+      <div class="ticker-cell"><span class="ticker-k">On your counter in</span><span class="ticker-v">5–7 days</span></div>
+      <div class="ticker-cell"><span class="ticker-k">Pressed</span><span class="ticker-v">In our own shop</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CATALOG ═══════════════════════════════════════════ -->
+<section class="band wrap" id="mugs">
+  <div class="section-head">
+    <p class="eyebrow">The lineup</p>
+    <h2 class="h2">Six things people put on them</h2>
+    <p class="lede">
+      You don't need a design, a logo, or any idea what you're doing. You need a picture
+      you already have on your phone. That's genuinely the whole list of requirements.
+    </p>
+  </div>
+
+  <div class="cat-grid">
+    <article class="cat">
+      <span class="cat-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="8" cy="7" r="3" stroke="currentColor" stroke-width="2"/>
+          <circle cx="16.5" cy="8.5" r="2.5" stroke="currentColor" stroke-width="2"/>
+          <path d="M2.5 19v-2a5 5 0 0 1 5-5h1a5 5 0 0 1 5 5v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M15 13h1a5 5 0 0 1 5 5v1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <h3>The family photo</h3>
+      <p>The one where everybody is actually looking at the camera. Wrapped the whole way around, so it looks good from wherever you're sitting.</p>
+    </article>
+
+    <article class="cat">
+      <span class="cat-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M14.5 3.5 20.5 9.5 9 21H3v-6L14.5 3.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M12.5 5.5 18.5 11.5" stroke="currentColor" stroke-width="2"/>
+        </svg>
+      </span>
+      <h3>Your kid's masterpiece</h3>
+      <p>The crayon drawing that's been on the fridge since March. Grandparents completely lose it over these — fair warning.</p>
+    </article>
+
+    <article class="cat">
+      <span class="cat-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <ellipse cx="12" cy="17" rx="5.5" ry="4.5" stroke="currentColor" stroke-width="2"/>
+          <ellipse cx="5.5" cy="10.5" rx="2.5" ry="3.2" stroke="currentColor" stroke-width="2"/>
+          <ellipse cx="18.5" cy="10.5" rx="2.5" ry="3.2" stroke="currentColor" stroke-width="2"/>
+          <ellipse cx="12" cy="7" rx="2.5" ry="3.2" stroke="currentColor" stroke-width="2"/>
+        </svg>
+      </span>
+      <h3>The dog. Obviously.</h3>
+      <p>We knock the background out so it's just your dog's face, six inches tall, staring at you before coffee. Add the name underneath — everyone does.</p>
+    </article>
+
+    <article class="cat">
+      <span class="cat-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M2.5 18c3 0 4-9.5 7-9.5s2 7 4.5 7 2.5-4.5 2.5-4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M18 5.5 21 8.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <h3>Somebody's handwriting</h3>
+      <p>A birthday card, a note off the fridge, a signature. We keep the pen pressure and the shaky letters — that's the part that gets people.</p>
+    </article>
+
+    <article class="cat">
+      <span class="cat-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="4" y="2.5" width="16" height="19" rx="2" stroke="currentColor" stroke-width="2"/>
+          <path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <h3>The family recipe</h3>
+      <p>The cobbler, the gravy, the thing nobody else can get right. Printed big enough to actually read while it's sitting on the counter.</p>
+    </article>
+
+    <article class="cat">
+      <span class="cat-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 2.5 20.5 6v6.5c0 5.5-3.5 8.5-8.5 10.5C7 21 3.5 18 3.5 12.5V6L12 2.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          <path d="m8.5 12 2.5 2.5 4.5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <h3>Your logo or your crew</h3>
+      <p>Shop mugs, closing gifts, the whole team's names on the back. Send whatever logo file you've got and we'll clean it up for print.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ══ HOW IT WORKS ════════════════════════════════════════ -->
+<section class="band band--tint" id="how">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">How it works</p>
+      <h2 class="h2">Three steps, and one of them is just saying yes</h2>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <span class="step-n">1</span>
+        <h3 id="step1-h">Send the photo</h3>
+        <p id="step1-p">Text it, email it, or drag it in. No cropping, no resizing, no file types to worry about. If it's too small to print well, we'll tell you before you pay a dime.</p>
+      </div>
+      <div class="step">
+        <span class="step-n">2</span>
+        <h3>Say yes to the proof</h3>
+        <p>Within a day you get a picture of the actual mug. Want it bigger, moved over, a different photo entirely? Just say so — nothing gets printed until you're happy.</p>
+      </div>
+      <div class="step">
+        <span class="step-n">3</span>
+        <h3>It shows up</h3>
+        <p>We press it, pad it, box it, ship it. Five to seven days from "yes, that one" to a mug sitting on your counter.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CRAFT ═══════════════════════════════════════════════ -->
+<section class="band wrap" id="craft">
+  <div class="craft">
+    <div class="craft-body">
+      <p class="eyebrow">Why it lasts</p>
+      <h2 class="h2">Still looks like that a year from now</h2>
+      <p>
+        Most "custom" mugs are a sticker. A vinyl decal or a heat-transfer sheet pressed onto
+        the outside — you can catch the edge of the print with a fingernail. A few months of
+        hot water later, that edge lifts and your family slowly peels off in the sink.
+      </p>
+      <p>
+        We do it the other way. Dye sublimation on polymer-coated ceramic: under heat and
+        pressure the ink skips straight past liquid, turns to gas, and settles <em>inside</em>
+        the coating. When it cools, the picture is part of the surface. No edge to catch,
+        nothing to lift, nothing to fade.
+      </p>
+      <p class="pull">
+        Run your thumb across a finished one. You'll feel glaze, not a sticker.
+      </p>
+      <p>
+        <span data-cfg="operatorName">H3 Customs</span> has been running presses in-house for years — tumblers, apparel, signage,
+        one-off custom work. Same bench, same heat profiles, same color correction that keeps
+        everybody's face from going orange. Memory Mug Company is that shop pointed at the
+        thing people ask for most.
+      </p>
+    </div>
+
+    <div class="spec">
+      <div class="spec-head">The boring details</div>
+      <dl>
+        <dt>Base</dt><dd>AAA-grade white ceramic</dd>
+        <dt>Size</dt><dd>15 oz — one size</dd>
+        <dt>Process</dt><dd>Dye sublimation</dd>
+        <dt>Press</dt><dd>400°F · 60 seconds</dd>
+        <dt>Print area</dt><dd>Full wrap, edge to edge</dd>
+        <dt>Color</dt><dd>Hand-corrected per photo</dd>
+        <dt>Care</dt><dd>Dishwasher + microwave safe</dd>
+        <dt>Proof</dt><dd>Digital, 1 business day</dd>
+        <dt>Turnaround</dt><dd>5–7 business days</dd>
+        <dt>Minimum</dt><dd>One. Seriously, one.</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<!-- ══ OCCASIONS ═══════════════════════════════════════════ -->
+<section class="band">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">Made for</p>
+      <h2 class="h2">Why people actually order one</h2>
+      <p class="lede">
+        Nobody wakes up wanting a mug. They want to hand a specific person a specific
+        Tuesday morning. These are the ones that come through the shop most.
+      </p>
+    </div>
+    <div class="occasions">
+      <span class="occ">Mother's Day</span>
+      <span class="occ">Grandparents, always</span>
+      <span class="occ">Father's Day</span>
+      <span class="occ">The dog's birthday</span>
+      <span class="occ">Housewarmings</span>
+      <span class="occ">Teacher gifts</span>
+      <span class="occ">New baby</span>
+      <span class="occ">Retirement parties</span>
+      <span class="occ">Weddings &amp; showers</span>
+      <span class="occ">Long-distance grandkids</span>
+      <span class="occ">Office gift exchange</span>
+      <span class="occ">Just because it's funny</span>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FAQ ═════════════════════════════════════════════════ -->
+<section class="band band--alt" id="faq">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">Questions</p>
+      <h2 class="h2">What people ask before they order</h2>
+    </div>
+    <div class="faq">
+      <details open>
+        <summary>Will a photo off my phone actually look good?</summary>
+        <div class="faq-a">
+          Almost always, yes. Anything shot on a phone in roughly the last decade has plenty
+          of resolution for an 8.5-inch print. Where it gets dicey is screenshots, photos that
+          got squashed by a group text, and old scans. Send it anyway — a human looks at every
+          file and tells you straight if it won't hold up, before you're charged.
+        </div>
+      </details>
+      <details>
+        <summary>How do I get my kid's drawing on there?</summary>
+        <div class="faq-a">
+          Lay it flat on the floor or the table in good daylight, hold your phone directly
+          above it, take one picture. That's it. We clean up the shadows, straighten it out,
+          and keep every wobbly crayon line exactly where your kid put it.
+        </div>
+      </details>
+      <details>
+        <summary>Does it really survive the dishwasher?</summary>
+        <div class="faq-a">
+          Yes. Because the image is cured into the coating instead of stuck on top of it,
+          there's no edge for water to work under. Top rack, bottom rack, microwave — it
+          holds.
+        </div>
+      </details>
+      <details>
+        <summary id="faq-send-q">How do I get you the photo?</summary>
+        <div class="faq-a" id="faq-send-a">
+          Order the mug, then email the photo over and we'll take it from there. Straight off
+          your phone is fine — don't bother cropping or resizing it first.
+        </div>
+      </details>
+      <details>
+        <summary>Can you take the background out?</summary>
+        <div class="faq-a">
+          Yep, and it's free. Very common with pets and with the one good photo of somebody
+          that happens to have a stranger's elbow in it. We can also drop in a solid color,
+          add a name, or combine two photos side by side. Just ask on the proof.
+        </div>
+      </details>
+      <details>
+        <summary>I need a pile of these by a specific date.</summary>
+        <div class="faq-a">
+          Tell us the date in your very first message and we'll tell you honestly whether we
+          can hit it. Rush is often possible — ask before you order and we'll
+          tell you honestly whether the date is doable.
+        </div>
+      </details>
+      <details>
+        <summary>What if I don't like the proof?</summary>
+        <div class="faq-a">
+          Then we change it. Crop, text, placement, a totally different photo — we'll keep adjusting it until
+          you're happy. Nothing gets pressed until you say so.
+        </div>
+      </details>
+      <details>
+        <summary>Do you make anything besides mugs?</summary>
+        <div class="faq-a">
+          Mugs are the whole focus here — but the shop behind this does plenty more. <span data-cfg="operatorName">H3 Customs</span>
+          runs custom tumblers in 20 oz and 30 oz, apparel, signage, and one-off fabrication.
+          If you need something that isn't a mug, head over to
+          <a href="https://h3customs.com" data-cfg-href="operatorUrl"><span data-cfg="operatorDomain">h3customs.com</span></a> and we'll take care of you.
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CLOSER ══════════════════════════════════════════════ -->
+<section class="band closer" id="start">
+  <div class="wrap closer-grid">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <p class="eyebrow">Make my mug</p>
+      <h2>You've already got the photo. That's the hard part done.</h2>
+      <p class="lede">
+        Send it over and we'll come back with a proof within one business day. No account to
+        make, no checkout until you've seen exactly what you're getting.
+      </p>
+    </div>
+
+    <div>
+      <form class="signup" id="start-form" novalidate>
+        <label for="start-email">Where should we send the proof?</label>
+        <div class="signup-row">
+          <input id="start-email" name="email" type="email" autocomplete="email" placeholder="you@email.com" required>
+          <button class="btn btn--fill" type="submit">Send my photo</button>
+        </div>
+        <p class="signup-fine">
+          We'll write back from the shop and you can attach the photo right to that email.
+          No list, no newsletter, no handing your address to anybody.
+        </p>
+      </form>
+
+      <div class="signup-done" id="start-done" hidden>
+        <span class="tick" aria-hidden="true">✓</span>
+        <div>
+          <b>Got it!</b>
+          <p id="start-done-msg">Reply to the email we just sent and attach your photo — we'll have a proof back to you within one business day.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ══ FOOTER ══════════════════════════════════════════════ -->
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="foot-row">
+      <div class="foot-brand">
+        <span class="brand-name">Memory Mug Company</span>
+        <p>
+          Custom photo mugs, proofed and pressed by hand. A shop of
+          <a href="https://h3customs.com" data-cfg-href="operatorUrl"><span data-cfg="operatorName">H3 Customs</span></a> — tumblers, apparel, signage
+          and custom work since day one.
+        </p>
+      </div>
+      <div class="foot-links">
+        <div class="foot-col">
+          <h4>Shop</h4>
+          <a href="#mugs">What goes on it</a>
+          <a href="#order">The mug &amp; price</a>
+          <a href="#start">Start an order</a>
+        </div>
+        <div class="foot-col">
+          <h4>Details</h4>
+          <a href="#how">How it works</a>
+          <a href="#craft">Why it lasts</a>
+          <a href="#faq">FAQ</a>
+        </div>
+        <div class="foot-col">
+          <h4>Reach us</h4>
+          <a href="mailto:hello@memorymugcompany.com" data-cfg-mail="supportEmail"><span data-cfg="supportEmail">hello@memorymugcompany.com</span></a>
+          <a href="https://h3customs.com" data-cfg-href="operatorUrl"><span data-cfg="operatorDomain">h3customs.com</span></a>
+        </div>
+      </div>
+    </div>
+    <div class="owner-row" style="margin:30px 0 0">
+      <button type="button" class="owner-link" id="owner-link">Shop owner? Open admin</button>
+    </div>
+    <div class="foot-base">
+      <span>© 2026 Memory Mug Company · <span data-cfg="operatorName">H3 Customs</span></span>
+      <span>Dishwasher safe · Pressed in-house</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ══ CART ════════════════════════════════════════════════ -->
+<dialog id="cart-dlg" aria-labelledby="cart-dlg-title">
+  <div class="panel">
+    <div class="panel-head">
+      <h3 id="cart-dlg-title">Your order</h3>
+      <button type="button" class="panel-x" data-close aria-label="Close cart">&times;</button>
+    </div>
+    <div class="panel-body" id="cart-lines"></div>
+    <div class="panel-foot" id="cart-foot" hidden>
+      <div class="field" id="cart-note-field">
+        <label for="cart-note">Anything we should know about the photo?</label>
+        <textarea id="cart-note" rows="3"
+          placeholder="e.g. The beach one of all four of us — please take the background out"></textarea>
+        <span class="hint">Optional. This rides along with the order, and we'll email you for the photo itself.</span>
+      </div>
+      <!-- A Shopify product URL carries no order note, so on the upload flow this
+           box is hidden rather than silently throwing away what was typed in it. -->
+      <p class="hint" id="cart-note-alt" hidden>
+        You'll attach your photo on the next page, and there's a box there for anything
+        we should know about it.
+      </p>
+      <p class="nudge" id="cart-nudge" hidden></p>
+      <div class="cart-total"><span>Subtotal</span><b id="cart-total">$0.00</b></div>
+      <p class="signup-fine">Shipping and tax are calculated on the Shopify page.</p>
+      <div id="checkout-status"></div>
+      <button type="button" class="btn btn--fill" id="checkout-btn">Continue to payment</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- ══ ADMIN GATE ══════════════════════════════════════════ -->
+<dialog id="gate-dlg" aria-labelledby="gate-title">
+  <div class="panel" style="width:min(420px,calc(100vw - 28px))">
+    <div class="panel-head">
+      <h3 id="gate-title">Shop admin</h3>
+      <button type="button" class="panel-x" data-close aria-label="Close">&times;</button>
+    </div>
+    <div class="panel-body">
+      <div class="field">
+        <label for="gate-input">Passphrase</label>
+        <input id="gate-input" type="password" autocomplete="current-password" placeholder="Enter the shop passphrase">
+      </div>
+      <div id="gate-status"></div>
+      <p class="hint">
+        <strong>This keeps the panel out of a customer's way — it is not security.</strong>
+        The passphrase sits in this page's source, so anyone determined can read it.
+        Never put anything sensitive behind it.
+      </p>
+    </div>
+    <div class="panel-foot">
+      <button type="button" class="btn btn--fill" id="gate-go">Unlock</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- ══ ADMIN ═══════════════════════════════════════════════ -->
+<dialog id="connect-dlg" aria-labelledby="admin-title">
+  <div class="panel">
+    <div class="panel-head">
+      <h3 id="admin-title">Shop admin</h3>
+      <button type="button" class="panel-x" data-close aria-label="Close">&times;</button>
+    </div>
+    <div class="panel-body">
+
+      <div class="status status--info">
+        <b>Changes show here right away — but only in this browser.</b>
+        When they look right, use <strong>Download updated site</strong> at the bottom and
+        re-upload that file to your host. That is what makes them live for customers.
+      </div>
+
+      <p class="admin-sec">The mug</p>
+      <div class="field">
+        <label for="a-title">Name</label>
+        <input id="a-title" type="text" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="a-price">Price, in dollars</label>
+        <input id="a-price" type="number" min="0" step="0.01" inputmode="decimal" autocomplete="off">
+        <span class="hint">Shopify still charges its own price — keep the two the same or customers see one number and pay another.</span>
+      </div>
+      <div class="field">
+        <label for="a-blurb">Short description</label>
+        <textarea id="a-blurb" rows="2"></textarea>
+      </div>
+      <div class="field">
+        <label for="a-includes">What's included</label>
+        <textarea id="a-includes" rows="5"></textarea>
+        <span class="hint">One per line.</span>
+      </div>
+      <div class="field">
+        <label for="a-freeship">Free shipping over, in dollars</label>
+        <input id="a-freeship" type="number" min="0" step="1" inputmode="numeric" autocomplete="off">
+        <span class="hint">Drives the "add one more" prompt. Set 0 to switch the prompt off. Keep it the same as the shipping note and your Shopify setting.</span>
+      </div>
+
+      <div class="field">
+        <label for="a-ship">Shipping note</label>
+        <textarea id="a-ship" rows="2"></textarea>
+      </div>
+
+      <p class="admin-sec">The mug itself</p>
+      <p class="hint" style="margin-top:-6px">
+        A photograph of the blank mug, shot straight on against white. Set one and every
+        preview on the page shows the real product with the artwork pressed onto it,
+        instead of the drawing.
+      </p>
+      <div class="mug-slot">
+        <div class="mug-thumb" id="mug-thumb"></div>
+        <div class="mug-slot-side">
+          <label class="pick" for="pf-mug" id="pf-mug-label">Add the mug photo</label>
+          <input type="file" id="pf-mug" accept="image/*">
+          <button type="button" class="drop" id="pf-mug-drop" hidden>Remove</button>
+          <p class="hint">Shrunk to 900px on the way in, so the page stays quick.</p>
+        </div>
+      </div>
+
+      <div id="print-area-box" hidden>
+        <p class="hint" style="margin-bottom:10px">
+          <strong>Where the print goes.</strong> Nudge these until the artwork sits on the
+          face of the mug in the preview behind this panel. Every mug photo is framed
+          differently, so there is no right answer but the one that looks right.
+        </p>
+        <div class="print-grid">
+          <div class="field"><label for="pa-x">From the left %</label>
+            <input id="pa-x" type="number" min="0" max="95" step="0.5" inputmode="decimal"></div>
+          <div class="field"><label for="pa-y">From the top %</label>
+            <input id="pa-y" type="number" min="0" max="95" step="0.5" inputmode="decimal"></div>
+          <div class="field"><label for="pa-w">Width %</label>
+            <input id="pa-w" type="number" min="5" max="100" step="0.5" inputmode="decimal"></div>
+          <div class="field"><label for="pa-h">Height %</label>
+            <input id="pa-h" type="number" min="5" max="100" step="0.5" inputmode="decimal"></div>
+        </div>
+        <button type="button" class="line-rm" id="pa-reset" style="margin-top:10px">Back to the standard 15 oz placement</button>
+      </div>
+
+      <p class="admin-sec">Example photos</p>
+      <p class="hint" style="margin-top:-6px">
+        Photos of real finished mugs. Each replaces a drawing; clear one and the drawing comes back.
+        Big files are shrunk to 900px automatically so the page stays quick.
+      </p>
+      <div class="photo-grid" id="photo-grid"></div>
+
+      <p class="admin-sec">Shopify</p>
+      <div class="field">
+        <label for="cfg-domain">Store address</label>
+        <input id="cfg-domain" type="text" inputmode="url" autocomplete="off" spellcheck="false"
+               placeholder="eighth-street-customs.myshopify.com">
+        <span class="hint">The permanent <code>.myshopify.com</code> address.</span>
+      </div>
+      <div id="variant-fields"></div>
+      <details>
+        <summary style="cursor:pointer;font-weight:700;font-size:.93rem">Where do I find a variant ID?</summary>
+        <ol class="steps-list" style="margin-top:12px">
+          <li>In Shopify admin, open <strong>Products</strong> and click the product.</li>
+          <li>Under <strong>Variants</strong>, click the one you want.</li>
+          <li>The browser address ends <code>/variants/44012345678901</code> — that number.</li>
+          <li>Make sure it is published to the <strong>Online Store</strong> channel, or the cart link comes up empty.</li>
+        </ol>
+      </details>
+
+      <p class="admin-sec">Customer artwork</p>
+      <div class="field">
+        <label for="cfg-flow">How does the photo reach you?</label>
+        <select id="cfg-flow">
+          <option value="email">Emailed after checkout &mdash; no app needed</option>
+          <option value="uploadery">Uploaded with the order &mdash; Uploadery</option>
+        </select>
+        <span class="hint">
+          Every line on the page about sending photos follows this setting, and so does
+          the checkout button. Switch it and look at the page behind this panel.
+        </span>
+      </div>
+      <div class="field">
+        <label for="cfg-handle">Mug product handle</label>
+        <input id="cfg-handle" type="text" inputmode="url" autocomplete="off" spellcheck="false"
+               placeholder="the-memory-mug">
+        <span class="hint">
+          Only used by the Uploadery option. The last part of the product&rsquo;s storefront
+          URL &mdash; paste the whole URL if that&rsquo;s easier.
+        </span>
+      </div>
+      <details>
+        <summary style="cursor:pointer;font-weight:700;font-size:.93rem">Setting up Uploadery</summary>
+        <p class="hint" style="margin-top:12px">
+          Uploadery is a paid Shopify app from ShopPad. It adds a real file field to a
+          product page and saves the uploaded file onto the order, where you&rsquo;ll find it
+          on the order itself in Shopify admin.
+        </p>
+        <ol class="steps-list" style="margin-top:12px">
+          <li>Install <strong>Uploadery</strong> from the Shopify App Store.</li>
+          <li>In Uploadery, make an upload set with one <strong>file</strong> field &mdash; call it
+              something like &ldquo;Your photo&rdquo; &mdash; and assign that set to the mug product.</li>
+          <li>Open the mug on your storefront and copy the handle out of the address:
+              <code>/products/<strong>the-memory-mug</strong></code>.</li>
+          <li>Paste it above, switch the setting to <strong>Uploaded with the order</strong>,
+              and apply.</li>
+          <li>Place one test order and check the file shows on it in Shopify admin before
+              you send anyone here.</li>
+        </ol>
+        <p class="hint" style="margin-top:12px">
+          <strong>What changes.</strong> Orders hand over to the mug&rsquo;s product page instead of
+          straight to the cart, so the customer gets one extra click. A product URL carries
+          no order note, so this site&rsquo;s note box hides itself and points at Uploadery&rsquo;s
+          own fields instead. Some themes ignore the quantity in the link, so the page tells
+          anyone ordering more than one to check it on the way through.
+        </p>
+        <p class="hint" style="margin-top:12px">
+          Leave this on <strong>Emailed after checkout</strong> until the test order works. A
+          missing or misspelled handle falls back to email on its own rather than sending
+          anyone to a dead page.
+        </p>
+      </details>
+
+      <p class="admin-sec">Shop details</p>
+      <div class="field">
+        <label for="cfg-operator">Shop name shown on the site</label>
+        <input id="cfg-operator" type="text" autocomplete="off" placeholder="Eighth Street Customs">
+      </div>
+      <div class="field">
+        <label for="cfg-support">Support email</label>
+        <input id="cfg-support" type="email" autocomplete="off" spellcheck="false"
+               placeholder="orders@eighthstreetcustoms.com">
+        <span class="hint">Where customers send their photo. Must be a real, monitored inbox before launch.</span>
+      </div>
+
+      <div class="field">
+        <label for="cfg-url">Shop website</label>
+        <input id="cfg-url" type="text" inputmode="url" autocomplete="off" spellcheck="false"
+               placeholder="https://eighthstreetcustoms.com">
+      </div>
+
+      <div id="connect-status"></div>
+    </div>
+
+    <div class="panel-foot">
+      <button type="button" class="btn btn--line" id="preview-btn">Build a test cart link</button>
+      <button type="button" class="btn btn--line" id="save-btn">Apply to this browser</button>
+      <button type="button" class="btn btn--fill" id="publish-btn">Download updated site</button>
+      <div id="publish-status"></div>
+      <button type="button" class="line-rm" id="clear-btn" style="align-self:center">Undo everything and go back to the built-in defaults</button>
+    </div>
+  </div>
+</dialog>
+
+
+<script>
+(function () {
+  /* ── Mug style preview ─────────────────────────────── */
+  var CAPTIONS = {
+    family: "The whole crew, wrapped the entire way around. Yes, the dog counts as family.",
+    art:    "The crayon drawing off the fridge \u2014 rainbow, wonky house and all, exactly as drawn.",
+    pet:    "Background knocked out so it\u2019s just the dog. Collar, tag and everything.",
+    hand:   "Her actual handwriting, lifted off the note. Same pen pressure, same shaky letters.",
+    recipe: "The index card as she wrote it, big enough to read from across the counter.",
+    team:   "Your logo or your crew badge, printed sharp on the white base.",
+    yours:  "Your photo, roughly as it will sit on the mug. We send a real proof before printing."
+  };
+
+  var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
+  var scenes = Array.prototype.slice.call(document.querySelectorAll('.memory'));
+  var caption = document.getElementById('mug-caption');
+  var order = ['family', 'art', 'pet', 'hand', 'recipe', 'team'];
+  var timer = null;
+
+  function show(key) {
+    scenes.forEach(function (s) {
+      s.classList.toggle('is-on', s.getAttribute('data-key') === key);
+    });
+    chips.forEach(function (c) {
+      c.setAttribute('aria-pressed', String(c.getAttribute('data-key') === key));
+    });
+    if (caption && CAPTIONS[key]) caption.textContent = CAPTIONS[key];
+  }
+
+  function stopCycle() {
+    if (timer) { clearInterval(timer); timer = null; }
+  }
+
+  chips.forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      stopCycle();
+      show(chip.getAttribute('data-key'));
+    });
+  });
+
+  /* No auto-rotation: the designs change only when someone picks one.
+     Moving the product while a buyer is reading it costs more than it shows. */
+
+  /* ── Start form ────────────────────────────────────── */
+  var form = document.getElementById('start-form');
+  var done = document.getElementById('start-done');
+  var doneMsg = document.getElementById('start-done-msg');
+  var email = document.getElementById('start-email');
+
+  if (form && done && email) {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var value = email.value.trim();
+      if (!value || value.indexOf('@') < 1 || value.indexOf('.', value.indexOf('@')) < 0) {
+        email.focus();
+        email.setAttribute('aria-invalid', 'true');
+        return;
+      }
+      email.removeAttribute('aria-invalid');
+      if (doneMsg) {
+        doneMsg.textContent =
+          'Reply to the email heading to ' + value +
+          ' and attach your photo — we’ll have a proof back to you within one business day.';
+      }
+      form.hidden = true;
+      done.hidden = false;
+      done.setAttribute('tabindex', '-1');
+      done.focus();
+    });
+  }
+})();
+</script>
+
+<script>
+/* ═════════════════════════════════════════════════════════════════════════
+   ORDER HANDOFF TO SHOPIFY, AND THE SHOP ADMIN
+   This page builds the order; Shopify takes the money. The handoff is a
+   plain cart-permalink URL, so there is no API token and nothing expires.
+
+   Everything the admin panel can change lives between the ADMIN-CONFIG
+   markers below. The panel edits a copy in the browser, then writes these
+   markers back out as a fresh copy of this file to re-upload. That is why
+   the markers must stay exactly as they are.
+   ═════════════════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  /* ADMIN-CONFIG-START */
+  var SITE_CONFIG = {
+    operatorName:   'H3 Customs',
+    operatorUrl:    'https://h3customs.com',
+    operatorDomain: 'h3customs.com',
+
+    /* Opens the admin panel. NOT security — it is in this file, in plain sight,
+       and anyone can read it. It only keeps the panel out of a customer's way. */
+    adminKey: 'mugs2026',
+
+    /* Where customers email their photo. MUST be a real, monitored address
+       before launch — this default goes nowhere. */
+    supportEmail: 'hello@memorymugcompany.com',
+
+    /* The Shopify store that takes payment and fulfills the orders. */
+    shopifyDomain: '',
+
+    /* How the customer's artwork actually reaches the shop.
+
+       'email'     — they email the file after checkout. Works with a bare
+                     Shopify store and no apps at all. The order hands over
+                     through a cart permalink.
+       'uploadery' — Uploadery (by ShopPad) puts a real file field on the
+                     Shopify PRODUCT page, and saves the uploaded file's URL
+                     onto the order as a line-item property. A cart permalink
+                     skips the product page, so this flow hands over to the
+                     product page instead and the customer attaches the file
+                     there. Needs `productHandle` set, and the Uploadery field
+                     assigned to that product.
+
+       Anything else, or a missing handle, falls back to 'email' on its own —
+       a half-configured upload never silently loses somebody's photo. */
+    artworkFlow: 'email',
+
+    /* The mug's Shopify product handle: the last part of its storefront URL,
+       e.g. 'the-memory-mug' from /products/the-memory-mug. Only read when
+       artworkFlow is 'uploadery'. Pasting the whole URL works too. */
+    productHandle: '',
+
+    /* The free-shipping threshold, as a number. The nudge is computed from this,
+       so change it here and the copy and the math stay in step. 0 turns it off. */
+    freeShipOver: 0,
+
+    shipNote: 'Shipping is calculated at checkout. '  +
+              'Ordering for a wedding, a team or a classroom? Get in touch and we’ll quote it.',
+
+    /* The one thing we sell. `variantId` is the numeric Shopify variant ID.
+       `price` is only what the page DISPLAYS; Shopify charges its own. */
+    products: [
+      { key:'mug', title:'The Memory Mug', price:28, variantId:'', image:'',
+        blurb:'White ceramic, 15 oz. Your photo wrapped the whole way around, cured into the glaze.',
+        includes:[
+          'A digital proof before anything is printed',
+          'Color correction by hand, every time',
+          'Background removal if you want it — no charge',
+          'Dishwasher and microwave safe, for good',
+          'Ships in 5–7 days'
+        ] }
+    ]
+  };
+
+  /* A photograph of the blank mug itself, as a URL or a data: URI. Set it and
+     the drawn mug steps aside: every preview on the page then shows the real
+     product with the artwork pressed onto it. Blank keeps the drawing.
+     Easiest route is the admin panel, which shrinks and embeds it for you. */
+  var MUG_PHOTO = '';
+
+  /* Which slice of that photograph is printable, as fractions of the picture:
+     left, top, width, height. Defaults suit a straight-on 15 oz mug with the
+     handle to the right. The admin panel nudges these with a live preview \u2014
+     every mug photo is framed differently, so they are data, not constants. */
+  var PRINT_AREA = { x: 0.228, y: 0.219, w: 0.415, h: 0.589 };
+
+  /* Photos of real finished mugs. A URL or a data: URI; blank leaves the drawing. */
+  var EXAMPLE_PHOTOS = {
+    family: '', art: '', pet: '', hand: '', recipe: '', team: '', snapA: '', snapB: ''
+  };
+  /* ADMIN-CONFIG-END */
+
+  /* ══ Panel geometry ══
+     Every scene on the mug is DRAWN in one fixed box, and a single transform
+     maps that box onto wherever the print actually goes \u2014 a slightly bigger
+     panel on the drawn mug, or a measured slice of a product photograph. So
+     the print area can move without a single scene being touched. */
+  var ART_BOX     = [190, 152, 116, 140];   /* the box the scenes are drawn in */
+  var DRAWN_PRINT = [178, 146, 140, 172];   /* the print on the drawn mug      */
+  var PHOTO_FRAME = [103,  70, 315, 315];   /* where the photograph is placed  */
+
+  /* Where each photo sits, in SVG user units: [x, y, width, height]. */
+  var PHOTO_BOX = {
+    family:[190,152,116,140], art:[190,152,116,140], pet:[190,152,116,140],
+    hand:[190,152,116,140], recipe:[190,152,116,140], team:[190,152,116,140],
+    snapA:[39,67,100,94], snapB:[379,249,100,94]
+  };
+  var PHOTO_LABEL = {
+    family:'Family', art:"Kid's art", pet:'The dog', hand:'Handwriting',
+    recipe:'Recipe', team:'The crew', snapA:'Propped left', snapB:'Propped right'
+  };
+
+  var LS_CFG = 'mmc.config.v3', LS_CART = 'mmc.cart.v3', LS_NOTE = 'mmc.note.v3';
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* ── Storage. Never throws: private windows and blocked site data are normal. ── */
+  function lsGet(k) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
+  function lsDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
+
+  /** Saved edits win over the built-in defaults, so the admin previews before committing. */
+  function cfg() {
+    var saved = lsGet(LS_CFG) || {};
+    var out = {};
+    ['operatorName','operatorUrl','operatorDomain','shopifyDomain','shipNote','adminKey',
+     'supportEmail','freeShipOver','artworkFlow','productHandle'].forEach(function (k) {
+      out[k] = saved[k] || SITE_CONFIG[k];
+    });
+    var over = saved.product || {};
+    out.products = SITE_CONFIG.products.map(function (p) {
+      return {
+        key: p.key,
+        title:    over.title    || p.title,
+        blurb:    over.blurb    || p.blurb,
+        price:    (over.price != null && over.price !== '') ? Number(over.price) : p.price,
+        includes: (over.includes && over.includes.length) ? over.includes : p.includes,
+        image:    p.image || '',
+        variantId: (saved.variants && saved.variants[p.key]) || p.variantId || ''
+      };
+    });
+    return out;
+  }
+  /** The mug photograph in force: a saved one wins over the built-in default. */
+  function mugPhoto() {
+    var saved = lsGet(LS_CFG) || {};
+    return saved.mugPhoto != null ? saved.mugPhoto : MUG_PHOTO;
+  }
+
+  /** The printable slice of it, clamped so a stray number cannot empty the panel. */
+  function printArea() {
+    var a = (lsGet(LS_CFG) || {}).printArea || PRINT_AREA, out = {};
+    ['x','y','w','h'].forEach(function (k) {
+      var v = Number(a[k]);
+      out[k] = isFinite(v) ? v : PRINT_AREA[k];
+    });
+    out.w = Math.max(0.05, Math.min(1, out.w));
+    out.h = Math.max(0.05, Math.min(1, out.h));
+    out.x = Math.max(0, Math.min(1 - out.w, out.x));
+    out.y = Math.max(0, Math.min(1 - out.h, out.y));
+    return out;
+  }
+
+  /** Where the print goes right now, in SVG user units. */
+  function printBox() {
+    if (!mugPhoto()) return DRAWN_PRINT.slice();
+    var a = printArea(), f = PHOTO_FRAME;
+    return [f[0] + a.x * f[2], f[1] + a.y * f[3], a.w * f[2], a.h * f[3]];
+  }
+
+  /**
+   * Points the whole mug preview at the current print box: the clip, the white
+   * ground, the outline, and the transform that carries the artwork there.
+   *
+   * This is the only place those four agree with each other, which is the point
+   * \u2014 before it existed the same four numbers were written out by hand in four
+   * bits of markup, and moving the print meant getting all four right.
+   */
+  function layoutPanel() {
+    var svg = document.querySelector('.hero .mug-svg');
+    if (!svg) return;
+    var src = mugPhoto(), b = printBox();
+
+    var base = svg.querySelector('.mug-base');
+    if (base) {
+      if (src) {
+        base.setAttribute('href', src);
+        base.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', src);
+        base.removeAttribute('hidden');
+      } else {
+        base.setAttribute('hidden', '');
+      }
+    }
+    svg.classList.toggle('has-photo', !!src);
+
+    [svg.querySelector('#panel-ground'), svg.querySelector('#panel-edge')].forEach(function (r) {
+      if (!r) return;
+      r.setAttribute('x', b[0]); r.setAttribute('y', b[1]);
+      r.setAttribute('width', b[2]); r.setAttribute('height', b[3]);
+      r.setAttribute('rx', src ? 2 : 7);
+    });
+    var clip = svg.querySelector('#panelClip rect') ||
+               document.querySelector('#panelClip rect');
+    if (clip) {
+      clip.setAttribute('x', b[0]); clip.setAttribute('y', b[1]);
+      clip.setAttribute('width', b[2]); clip.setAttribute('height', b[3]);
+      clip.setAttribute('rx', src ? 2 : 7);
+    }
+    /* The small print has to match what is actually on screen. */
+    var fine = $('stage-fineprint');
+    if (fine) fine.textContent = src
+      ? 'Our 15 oz mug. The artwork on it is an example \u2014 yours carries your photo.'
+      : 'Illustrated example \u2014 your mug carries your photo.';
+
+    var fit = svg.querySelector('#panel-fit');
+    if (fit) {
+      var sx = b[2] / ART_BOX[2], sy = b[3] / ART_BOX[3];
+      fit.setAttribute('transform',
+        'translate(' + (b[0] - ART_BOX[0] * sx).toFixed(4) + ',' +
+                       (b[1] - ART_BOX[1] * sy).toFixed(4) + ') ' +
+        'scale(' + sx.toFixed(6) + ',' + sy.toFixed(6) + ')');
+    }
+  }
+
+  function photos() {
+    var saved = (lsGet(LS_CFG) || {}).photos || {}, out = {};
+    Object.keys(EXAMPLE_PHOTOS).forEach(function (k) { out[k] = saved[k] || EXAMPLE_PHOTOS[k]; });
+    return out;
+  }
+  function host(c) { return String((c || cfg()).shopifyDomain).replace(/^https?:\/\//, '').replace(/\/+$/, ''); }
+  function ready() {
+    var c = cfg();
+    return !!host(c) && c.products.some(function (p) { return p.variantId; });
+  }
+
+  /**
+   * Accepts a bare handle or any URL containing one, and returns the handle.
+   * Shopify handles are lowercase letters, digits and hyphens; anything that
+   * is not one comes back empty, which switches the upload flow back off.
+   */
+  function productHandle(raw) {
+    var v = String(raw || '').trim();
+    var m = v.match(/\/products\/([^/?#]+)/);
+    if (m) v = m[1];
+    v = v.split(/[?#]/)[0].replace(/^\/+|\/+$/g, '');
+    return /^[a-z0-9][a-z0-9-]*$/i.test(v) ? v.toLowerCase() : '';
+  }
+
+  /**
+   * True when the order will be handed to the Shopify PRODUCT page, where an
+   * Uploadery field can take the customer's file.
+   *
+   * Every sentence on this page about how the artwork gets to the shop is
+   * driven from this one predicate, and so is the link itself — so the copy
+   * and the handover can never drift apart. A missing handle or a missing
+   * store makes it false, and the page goes back to promising email.
+   */
+  function uploadFlow(c) {
+    c = c || cfg();
+    return c.artworkFlow === 'uploadery' && !!productHandle(c.productHandle) && !!host(c);
+  }
+
+  /** Accepts a raw number or a Storefront GID; anything else comes back empty. */
+  function variantId(raw) {
+    var v = String(raw || '').trim();
+    var gid = v.match(/ProductVariant\/(\d+)/);
+    if (gid) return gid[1];
+    return /^\d{6,20}$/.test(v) ? v : '';
+  }
+
+  /**
+   * How many more units clear the free-shipping line, or null when it
+   * is already clear, switched off, or too far away to be worth saying.
+   */
+  function shipGap(subtotal, unit) {
+    var over = Number(cfg().freeShipOver) || 0;
+    if (!over || !unit) return null;
+    if (subtotal > over) return { free: true };
+    var more = Math.floor((over - subtotal) / unit) + 1;
+    return more <= 2 ? { more: more } : null;
+  }
+
+  function nudgeInto(node, subtotal, unit) {
+    if (!node) return;
+    var gap = shipGap(subtotal, unit);
+    node.innerHTML = '';
+    node.hidden = !gap;
+    if (!gap) return;
+    node.className = 'nudge' + (gap.free ? ' nudge--free' : '');
+    node.textContent = gap.free
+      ? 'Shipping is free on this order.'
+      : (gap.more === 1 ? 'Add one more and shipping is free.'
+                        : 'Add ' + gap.more + ' more and shipping is free.');
+  }
+
+  function money(n) {
+    try { return new Intl.NumberFormat(undefined, { style:'currency', currency:'USD' }).format(Number(n) || 0); }
+    catch (e) { return '$' + (Number(n) || 0).toFixed(2); }
+  }
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function statusBox(target, tone, title, body) {
+    if (!target) return;
+    target.innerHTML = '';
+    if (!tone) return;
+    var box = el('div', 'status status--' + tone);
+    box.appendChild(el('b', null, title));
+    if (body) box.appendChild(document.createTextNode(body));
+    target.appendChild(box);
+  }
+
+  /** Lays each supplied photo over its drawing, inside the same clip. Re-runnable. */
+  function mountPhotos() {
+    var SVG = 'http://www.w3.org/2000/svg', XLINK = 'http://www.w3.org/1999/xlink', live = photos();
+    layoutPanel();
+    /* :not(.mug-base) — the mug photograph is the backdrop, not an overlay. */
+    Array.prototype.forEach.call(document.querySelectorAll('.mug-svg image:not(.mug-base)'),
+      function (n) { n.remove(); });
+    Object.keys(live).forEach(function (key) {
+      var src = live[key];
+      if (!src) return;
+      var target = key === 'snapA' ? $('snap-a')
+                 : key === 'snapB' ? $('snap-b')
+                 : document.querySelector('.memory[data-key="' + key + '"]');
+      var box = PHOTO_BOX[key];
+      if (!target || !box) return;
+      var img = document.createElementNS(SVG, 'image');
+      img.setAttribute('x', box[0]); img.setAttribute('y', box[1]);
+      img.setAttribute('width', box[2]); img.setAttribute('height', box[3]);
+      img.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+      img.setAttribute('href', src);
+      img.setAttributeNS(XLINK, 'xlink:href', src);
+      img.addEventListener('error', function () { img.remove(); });
+      target.appendChild(img);
+    });
+  }
+  /* ══ Shop ══ */
+
+  /* A drawn mug stands in until a real product photo is set in the config. */
+  var MUG_ART =
+    '<svg class="mug-svg" viewBox="0 0 240 200" aria-hidden="true">' +
+    '<ellipse class="f-ink" cx="108" cy="172" rx="52" ry="7" opacity=".1"/>' +
+    '<path class="s-rule2" d="M154 80c26 0 31 11 31 22s-6 23-31 23" fill="none" stroke-width="13" stroke-linecap="round"/>' +
+    '<path class="f-surf s-rule2" d="M62 58v84c0 10 8 18 18 18h56c10 0 18-8 18-18V58Z" stroke-width="2"/>' +
+    '<ellipse class="f-surf2 s-rule2" cx="108" cy="58" rx="46" ry="8" stroke-width="2"/>' +
+    '<ellipse class="f-ink" cx="108" cy="58" rx="38" ry="5.5" opacity=".8"/>' +
+    '<ellipse class="f-coffee" cx="108" cy="59" rx="35" ry="4.5"/>' +
+    '<rect class="f-sky-s s-rule2" x="80" y="76" width="56" height="66" rx="3" stroke-width="1.5"/>' +
+    '<circle class="f-sun" cx="126" cy="87" r="5.5"/>' +
+    '<rect class="f-mint" x="80" y="126" width="56" height="16" opacity=".5"/>' +
+    '<rect class="f-red" x="88" y="110" width="9" height="22" rx="4.5"/>' +
+    '<rect class="f-sky" x="100" y="107" width="9" height="25" rx="4.5"/>' +
+    '<rect class="f-sun" x="112" y="114" width="8" height="18" rx="4"/>' +
+    '<circle class="f-ink" cx="92.5" cy="105" r="4.5"/>' +
+    '<circle class="f-ink" cx="104.5" cy="102" r="4.5"/>' +
+    '<circle class="f-ink" cx="116" cy="109" r="4"/>' +
+    '</svg>';
+
+  function renderShop() {
+    var box = $('shop-single'), notice = $('shop-notice'), c = cfg();
+    if (!box) return;
+    var p = c.products[0];
+    box.innerHTML = '';
+
+    box.appendChild(el('h2', null, p.title));
+
+    var facts = el('p', 'buy-facts');
+    ['15 oz', 'White ceramic', 'Your photo'].forEach(function (f, i) {
+      if (i) facts.appendChild(el('i', null, '·'));
+      facts.appendChild(document.createTextNode(f));
+    });
+    box.appendChild(facts);
+
+    var price = el('p', 'single-price');
+    price.appendChild(el('b', null, money(p.price)));
+    price.appendChild(el('span', null, 'each'));
+    box.appendChild(price);
+
+    if (p.includes.length) {
+      var ul = el('ul', 'single-list');
+      p.includes.forEach(function (line) { ul.appendChild(el('li', null, line)); });
+      box.appendChild(ul);
+    }
+
+    box.appendChild(buildProofPicker());
+
+    var buy = el('div', 'single-buy');
+    var qty = document.createElement('select');
+    qty.setAttribute('aria-label', 'How many mugs');
+    for (var q = 1; q <= 24; q++) {
+      var o = document.createElement('option');
+      o.value = String(q);
+      o.textContent = q === 1 ? '1 mug' : q + ' mugs';
+      qty.appendChild(o);
+    }
+    buy.appendChild(qty);
+    var btn = el('button', 'btn btn--fill', 'Add to order');
+    btn.type = 'button';
+    btn.onclick = function () { add(p, Number(qty.value)); openCart(); };
+    buy.appendChild(btn);
+    box.appendChild(buy);
+
+    var nudge = el('p', 'nudge');
+    nudge.id = 'buy-nudge';
+    box.appendChild(nudge);
+    var refresh = function () { nudgeInto(nudge, Number(qty.value) * p.price, p.price); };
+    qty.addEventListener('change', refresh);
+    refresh();
+
+    /* Said before payment, not after, so nobody discovers how the photo gets to
+       us only once they have already paid. */
+    box.appendChild(el('p', 'buy-process', uploadFlow(c)
+      ? 'Checkout happens on Shopify, where you attach your photo to the order. '
+        + 'We send a proof back before anything is printed.'
+      : 'After checkout, email your photo with your order number to ' + (c.supportEmail || '')
+        + ' and we\u2019ll put it on the mug. We write to you as soon as the order lands, '
+        + 'so you can just reply to that.'));
+
+    box.appendChild(el('p', 'single-fine', c.shipNote || ''));
+
+    notice.innerHTML = '';
+    if (!ready()) {
+      var n = el('div', 'shop-msg');
+      n.appendChild(el('b', null, 'Not linked to a Shopify store yet'));
+      n.appendChild(document.createTextNode(
+        'You can still build an order — it needs a store connected before it can hand over for payment.'));
+      notice.appendChild(n);
+    }
+  }
+
+  /* ══ The customer's own photo ══
+     A file picker is NOT an upload. The image is read in this browser and
+     drawn on the mug so they can see roughly how it sits; it never leaves
+     the device, and a Shopify cart permalink cannot carry a file. So the
+     wording promises a preview and nothing more, and the filename rides
+     along on the order so the emailed photo can be matched to it. */
+  var ownPhoto = null;   /* { dataUri, name } — in memory only, never stored */
+
+  function paintOwnPhoto(dataUri) {
+    var SVG = 'http://www.w3.org/2000/svg', XLINK = 'http://www.w3.org/1999/xlink';
+    var g = document.querySelector('.memory[data-key="yours"]');
+    if (!g) return;
+    g.innerHTML = '';
+    if (!dataUri) return;
+    var img = document.createElementNS(SVG, 'image');
+    img.setAttribute('x', 190); img.setAttribute('y', 152);
+    img.setAttribute('width', 116); img.setAttribute('height', 140);
+    img.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+    img.setAttribute('href', dataUri);
+    img.setAttributeNS(XLINK, 'xlink:href', dataUri);
+    g.appendChild(img);
+  }
+
+  function buildProofPicker() {
+    var wrap = el('div', 'proof');
+    wrap.appendChild(el('p', 'proof-head', 'See your photo on the mug'));
+
+    var row = el('div', 'proof-row');
+    var input = document.createElement('input');
+    input.type = 'file'; input.id = 'own-photo'; input.accept = 'image/*';
+    var pick = el('label', 'proof-pick', 'Choose a photo');
+    pick.setAttribute('for', 'own-photo');
+    row.appendChild(pick);
+    row.appendChild(input);
+    var name = el('span', 'proof-name');
+    row.appendChild(name);
+    wrap.appendChild(row);
+
+    var note = el('p', 'proof-note');
+    wrap.appendChild(note);
+
+    var addDrop = function () {
+      if (row.querySelector('.proof-drop')) return;
+      var drop = el('button', 'proof-drop', 'Remove');
+      drop.type = 'button';
+      drop.onclick = function () {
+        ownPhoto = null; input.value = '';
+        paintOwnPhoto(null);
+        var chip = $('chip-yours');
+        if (chip) { chip.hidden = true; chip.setAttribute('aria-pressed','false'); }
+        var back = $('chip-family');
+        if (back) back.click();
+        name.textContent = ''; drop.remove(); setNote();
+      };
+      row.appendChild(drop);
+    };
+
+    /* Two honest versions of the same sentence. Neither claims the file has
+       gone anywhere, because at this point it has not: on both flows the picker
+       only paints the image onto the mug in this browser. What differs is where
+       it goes next \u2014 the Shopify product page, or an email. */
+    var setNote = function () {
+      var up = uploadFlow();
+      note.innerHTML = '';
+      note.appendChild(el('b', null,
+        ownPhoto ? 'This is a preview, not a proof. '
+                 : up ? 'Your photo uploads at checkout. ' : 'Preview on this device. '));
+      note.appendChild(document.createTextNode(ownPhoto
+        ? (up ? 'Nothing has been sent yet \u2014 it is still only in this browser. You attach this same file on the next page, and we send a real proof before anything is printed.'
+              : 'Your photo has not been sent \u2014 it stays in this browser. Email it after checkout and we\u2019ll send you a real proof before anything is printed.')
+        : (up ? 'Pick it here to see it on the mug, then attach the same file on the Shopify page and it lands straight on your order.'
+              : 'Your photo stays on your device. After checkout you email it over, and we send a real proof before we print.')));
+    };
+
+    input.onchange = function () {
+      var f = input.files && input.files[0];
+      if (!f) return;
+      readImage(f, function (dataUri, problem) {
+        if (problem) { name.textContent = problem; return; }
+        ownPhoto = { dataUri: dataUri, name: f.name };
+        paintOwnPhoto(dataUri);
+        var chip = $('chip-yours');
+        if (chip) { chip.hidden = false; chip.click(); }
+        name.textContent = f.name;
+        addDrop();
+        setNote();
+      });
+    };
+    if (ownPhoto) { name.textContent = ownPhoto.name; addDrop(); }
+    setNote();
+    return wrap;
+  }
+
+  /* ══ Order (cart) ══ */
+  var cart = lsGet(LS_CART) || [];
+
+  function save() { lsSet(LS_CART, cart); renderCart(); }
+  function count() { return cart.reduce(function (n, l) { return n + l.qty; }, 0); }
+
+  function add(p, qty) {
+    qty = Math.max(1, Math.min(99, Number(qty) || 1));
+    var line = null;
+    cart.forEach(function (l) { if (l.key === p.key) line = l; });
+    if (line) line.qty = Math.min(99, line.qty + qty);
+    else cart.push({ key:p.key, title:p.title, price:p.price, image:p.image || '', qty:qty });
+    save();
+  }
+
+  function renderCart() {
+    var badge = $('cart-count');
+    if (badge) { var n = count(); badge.textContent = String(n); badge.hidden = n === 0; }
+
+    var lines = $('cart-lines'), foot = $('cart-foot');
+    if (!lines) return;
+    lines.innerHTML = '';
+
+    if (!cart.length) {
+      lines.appendChild(el('p', 'cart-empty', 'Nothing in your order yet.'));
+      if (foot) foot.hidden = true;
+      return;
+    }
+    if (foot) foot.hidden = false;
+
+    cart.forEach(function (l, idx) {
+      var row = el('div', 'line');
+
+      var thumb = el('div', 'line-thumb');
+      thumb.appendChild(el('span', 'ph', (l.title || '?').charAt(0).toUpperCase()));
+      if (l.image) {
+        var img = new Image(); img.src = l.image; img.alt = '';
+        img.onerror = function () { img.remove(); };
+        thumb.appendChild(img);
+      }
+      row.appendChild(thumb);
+
+      var main = el('div', 'line-main');
+      main.appendChild(el('b', null, l.title));
+
+      var qtyRow = el('div', 'line-qty');
+      var sel = document.createElement('select');
+      sel.setAttribute('aria-label', 'Quantity for ' + l.title);
+      for (var q = 1; q <= 50; q++) {
+        var o = document.createElement('option');
+        o.value = String(q); o.textContent = String(q);
+        sel.appendChild(o);
+      }
+      sel.value = String(Math.min(l.qty, 50));
+      sel.onchange = function () { l.qty = Number(sel.value); save(); };
+      qtyRow.appendChild(sel);
+
+      var rm = el('button', 'line-rm', 'Remove');
+      rm.type = 'button';
+      rm.onclick = function () { cart.splice(idx, 1); save(); };
+      qtyRow.appendChild(rm);
+      main.appendChild(qtyRow);
+      row.appendChild(main);
+
+      row.appendChild(el('span', 'line-price', money(l.price * l.qty)));
+      lines.appendChild(row);
+    });
+
+    var total = cart.reduce(function (s, l) { return s + l.price * l.qty; }, 0);
+    $('cart-total').textContent = money(total);
+    nudgeInto($('cart-nudge'), total, cart.length ? cart[0].price : 0);
+  }
+
+  function openCart() { var d = $('cart-dlg'); if (d && !d.open) d.showModal(); }
+
+  /**
+   * Builds the link that hands the order to Shopify. Two shapes, picked by
+   * `uploadFlow()`:
+   *
+   *   cart permalink   https://store.myshopify.com/cart/44012345:2?note=...
+   *     Opens Shopify's cart with the lines already in it. Carries a note and
+   *     cart attributes, but cannot carry a file — so the photo comes by email.
+   *
+   *   product page     https://store.myshopify.com/products/the-memory-mug?variant=44012345&quantity=2
+   *     Slower by one click, but it is the only page an Uploadery field lives
+   *     on, so it is the only way the customer's file can ride the order.
+   *     Product URLs take no note or attributes, which is why the note box is
+   *     hidden in this mode rather than quietly dropped.
+   *
+   * Either way the customer pays on Shopify. Nothing here ever touches a card.
+   */
+  function handoffUrl() {
+    var c = cfg(), byKey = {};
+    c.products.forEach(function (p) { byKey[p.key] = p; });
+
+    if (uploadFlow(c)) {
+      /* One product page can only carry one product. With a single SKU this is
+         every order; if the shop ever adds a second, say so instead of quietly
+         dropping a line. */
+      if (cart.length > 1) {
+        return { error: 'multi', missing: cart.slice(1).map(function (l) { return l.title; }) };
+      }
+      var line = cart[0];
+      if (!line) return { error: 'none', missing: [] };
+      var vid = variantId(byKey[line.key] && byKey[line.key].variantId);
+      if (!vid) return { error: 'none', missing: [line.title] };
+      return {
+        url: 'https://' + host(c) + '/products/' + productHandle(c.productHandle) +
+             '?variant=' + vid + '&quantity=' + line.qty,
+        viaProduct: true,
+        qty: line.qty
+      };
+    }
+
+    var parts = [], missing = [];
+    cart.forEach(function (l) {
+      var id = variantId(byKey[l.key] && byKey[l.key].variantId);
+      if (id) parts.push(id + ':' + l.qty);
+      else missing.push(l.title);
+    });
+    if (!parts.length) return { error:'none', missing:missing };
+    if (missing.length) return { error:'partial', missing:missing };
+
+    var qs = [];
+    var note = ($('cart-note') && $('cart-note').value.trim()) || '';
+    if (note) qs.push('note=' + encodeURIComponent(note));
+    qs.push('attributes[Ordered via]=' + encodeURIComponent('memorymugcompany.com'));
+    if (ownPhoto && ownPhoto.name) {
+      qs.push('attributes[Photo to expect]=' + encodeURIComponent(ownPhoto.name));
+    }
+    return { url: 'https://' + host(c) + '/cart/' + parts.join(',') + '?' + qs.join('&') };
+  }
+
+  function goToShopify() {
+    var box = $('checkout-status');
+
+    if (!host()) {
+      statusBox(box, 'info', 'No Shopify store linked yet.',
+        'Once one is linked, this button hands the order straight over to Shopify to pay. ' +
+        'In the meantime, send it through the order form further down the page.');
+      return;
+    }
+    var built = handoffUrl();
+    if (built.error === 'none') {
+      statusBox(box, 'bad', 'These items have no Shopify product linked yet.',
+        'The shop owner needs to add their variant IDs in the connect panel.');
+      return;
+    }
+    if (built.error === 'partial') {
+      statusBox(box, 'bad', 'One item is not linked to Shopify yet: ' + built.missing.join(', ') + '.',
+        'Remove it, or ask the shop to finish linking it, then try again.');
+      return;
+    }
+    if (built.error === 'multi') {
+      statusBox(box, 'bad', 'Photo uploads work one product at a time.',
+        'Order ' + built.missing.join(' and ') + ' separately, so each one keeps its own photo.');
+      return;
+    }
+
+    var note = ($('cart-note') && $('cart-note').value.trim()) || '';
+    lsSet(LS_NOTE, note);
+
+    if (built.viaProduct) {
+      /* Shopify themes differ on whether they read ?quantity=, so say it out
+         loud rather than let somebody pay for one mug when they wanted four. */
+      statusBox(box, 'ok', 'Taking you to the mug page to add your photo…',
+        'Attach your photo there, then add it to the cart and pay.' +
+        (built.qty > 1 ? ' Check the quantity reads ' + built.qty + ' before you do.' : ''));
+    } else {
+      statusBox(box, 'ok', 'Taking you to Shopify to pay…', 'Your order is already in the cart there.');
+    }
+    /* Break out of a frame where the browser allows it; otherwise use this window. */
+    setTimeout(function () {
+      try { window.top.location.href = built.url; } catch (e) { window.location.href = built.url; }
+    }, 350);
+  }
+
+  /* ══ Operator name / links, driven from config ══ */
+  function applyConfig() {
+    var c = cfg();
+    Array.prototype.forEach.call(document.querySelectorAll('[data-cfg]'), function (node) {
+      var v = c[node.getAttribute('data-cfg')];
+      if (v) node.textContent = v;
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-cfg-href]'), function (node) {
+      var v = c[node.getAttribute('data-cfg-href')];
+      if (v) node.setAttribute('href', v);
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-cfg-mail]'), function (node) {
+      var v = c[node.getAttribute('data-cfg-mail')];
+      if (v) node.setAttribute('href', 'mailto:' + v);
+    });
+    applyArtworkCopy(c);
+  }
+
+  /**
+   * Rewrites every fixed sentence that depends on HOW the artwork reaches the
+   * shop. Driven by the same uploadFlow() the link itself uses, and called from
+   * applyConfig(), so flipping the setting in admin can never leave half the
+   * page promising email and the other half promising upload.
+   *
+   * The parts rebuilt from scratch anyway \u2014 the proof picker and the order
+   * panel \u2014 read uploadFlow() directly and are not touched here.
+   */
+  function applyArtworkCopy(c) {
+    var up = uploadFlow(c || cfg());
+    var set = function (id, text) { var n = $(id); if (n) n.textContent = text; };
+
+    set('step1-h', up ? 'Upload the photo' : 'Send the photo');
+    set('step1-p', up
+      ? 'Drop it in when you order, right on the mug page. No cropping, no resizing, no '
+        + 'file types to worry about. If it\u2019s too small to print well, we\u2019ll tell you '
+        + 'before we print anything.'
+      : 'Text it, email it, or drag it in. No cropping, no resizing, no file types to worry '
+        + 'about. If it\u2019s too small to print well, we\u2019ll tell you before you pay a dime.');
+
+    set('faq-send-q', up ? 'How do I send you the photo?' : 'How do I get you the photo?');
+    set('faq-send-a', up
+      ? 'You attach it to the order itself. Pick the mug, upload your photo on that page, and '
+        + 'it arrives with the order \u2014 nothing to email, nothing to chase. Straight off your '
+        + 'phone is fine.'
+      : 'Order the mug, then email the photo over and we\u2019ll take it from there. Straight off '
+        + 'your phone is fine \u2014 don\u2019t bother cropping or resizing it first.');
+
+    var noteField = $('cart-note-field'), noteAlt = $('cart-note-alt');
+    if (noteField) noteField.hidden = up;
+    if (noteAlt) noteAlt.hidden = !up;
+
+    set('checkout-btn', up ? 'Add your photo and check out' : 'Continue to payment');
+  }
+
+  /* ══ Connect panel ══ */
+  function buildVariantFields() {
+    var box = $('variant-fields');
+    if (!box) return;
+    box.innerHTML = '';
+    cfg().products.forEach(function (p) {
+      var f = el('div', 'field');
+      var lab = el('label', null, p.title + ' — ' + money(p.price));
+      lab.setAttribute('for', 'v-' + p.key);
+      var inp = document.createElement('input');
+      inp.type = 'text'; inp.id = 'v-' + p.key; inp.className = 'variant-input';
+      inp.setAttribute('data-key', p.key);
+      inp.setAttribute('inputmode', 'numeric');
+      inp.autocomplete = 'off'; inp.spellcheck = false;
+      inp.placeholder = 'Shopify variant ID, e.g. 44012345678901';
+      inp.value = p.variantId || '';
+      f.appendChild(lab); f.appendChild(inp);
+      box.appendChild(f);
+    });
+  }
+
+
+  /* ══ Admin: photos ══ */
+
+  /** Shrinks to 900px and re-encodes, so a 6 MB phone photo doesn't bloat the page. */
+  function readImage(file, cb) {
+    if (!/^image\//.test(file.type)) return cb(null, 'That is not an image file.');
+    var fr = new FileReader();
+    fr.onerror = function () { cb(null, 'The file could not be read.'); };
+    fr.onload = function () {
+      var im = new Image();
+      im.onerror = function () { cb(null, 'That image could not be decoded.'); };
+      im.onload = function () {
+        var max = 900, scale = Math.min(1, max / Math.max(im.width, im.height));
+        var c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(im.width * scale));
+        c.height = Math.max(1, Math.round(im.height * scale));
+        var ctx = c.getContext('2d');
+        /* JPEG has no alpha, so a cut-out PNG would come back with black
+           corners. White matches both the page and the mug. */
+        ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(im, 0, 0, c.width, c.height);
+        var uri;
+        try { uri = c.toDataURL('image/jpeg', 0.82); }
+        catch (e) { cb(null, 'That image could not be converted.'); return; }
+        cb(uri);
+      };
+      im.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  }
+
+  /** Merges one patch into the saved config, or says why it could not. */
+  function saveBits(patch) {
+    var saved = lsGet(LS_CFG) || {};
+    Object.keys(patch).forEach(function (k) { saved[k] = patch[k]; });
+    if (lsSet(LS_CFG, saved)) { statusBox($('connect-status'), null); return true; }
+    statusBox($('connect-status'), 'bad', 'This browser ran out of room.',
+      'A mug photo is the biggest thing stored here. Try a smaller one, or remove an '
+      + 'example photo. Everything else was kept.');
+    return false;
+  }
+
+  /** The mug-photo slot, and the nudgers that only matter once one is set. */
+  function renderMugSlot() {
+    var thumb = $('mug-thumb');
+    if (!thumb) return;
+    var src = mugPhoto();
+
+    thumb.innerHTML = '';
+    if (src) {
+      var img = new Image();
+      img.src = src; img.alt = '';
+      img.onerror = function () { img.remove(); thumb.appendChild(el('span', null, 'That image did not load')); };
+      thumb.appendChild(img);
+    } else {
+      thumb.appendChild(el('span', null, 'Drawn mug'));
+    }
+    $('pf-mug-label').textContent = src ? 'Replace the photo' : 'Add the mug photo';
+    $('pf-mug-drop').hidden = !src;
+    $('print-area-box').hidden = !src;
+
+    /* Never overwrite the box somebody is mid-way through typing into. */
+    var a = printArea();
+    [['pa-x','x'], ['pa-y','y'], ['pa-w','w'], ['pa-h','h']].forEach(function (pair) {
+      var n = $(pair[0]);
+      if (n && document.activeElement !== n) n.value = Number((a[pair[1]] * 100).toFixed(1));
+    });
+  }
+
+  /** Reads the four boxes back as fractions. printArea() does the clamping. */
+  function readPrintArea() {
+    var out = {}, a = printArea();
+    [['pa-x','x'], ['pa-y','y'], ['pa-w','w'], ['pa-h','h']].forEach(function (pair) {
+      var v = parseFloat(($(pair[0]) || {}).value);
+      out[pair[1]] = isFinite(v) ? v / 100 : a[pair[1]];
+    });
+    return out;
+  }
+
+  function wireMugSlot() {
+    var input = $('pf-mug');
+    if (!input) return;
+
+    input.onchange = function () {
+      var f = input.files && input.files[0];
+      if (!f) return;
+      readImage(f, function (dataUri, problem) {
+        input.value = '';
+        if (problem) { statusBox($('connect-status'), 'bad', 'Could not use that photo.', problem); return; }
+        if (!saveBits({ mugPhoto: dataUri })) return;
+        layoutPanel(); mountPhotos(); renderMugSlot();
+        statusBox($('connect-status'), 'ok', 'The real mug is in.',
+          'Take a look at the preview behind this panel, and nudge the print area until the '
+          + 'artwork sits where you press it.');
+      });
+    };
+
+    $('pf-mug-drop').onclick = function () {
+      if (!saveBits({ mugPhoto: '' })) return;
+      layoutPanel(); mountPhotos(); renderMugSlot();
+    };
+
+    ['pa-x', 'pa-y', 'pa-w', 'pa-h'].forEach(function (id) {
+      var n = $(id);
+      if (n) n.addEventListener('input', function () {
+        if (saveBits({ printArea: readPrintArea() })) layoutPanel();
+      });
+    });
+
+    $('pa-reset').onclick = function () {
+      if (!saveBits({ printArea: PRINT_AREA })) return;
+      layoutPanel(); renderMugSlot();
+    };
+  }
+
+  function renderPhotoGrid() {
+    var grid = $('photo-grid');
+    if (!grid) return;
+    var live = photos();
+    grid.innerHTML = '';
+
+    Object.keys(EXAMPLE_PHOTOS).forEach(function (key) {
+      var slot = el('div', 'photo-slot');
+      slot.appendChild(el('p', 'cap', PHOTO_LABEL[key] || key));
+
+      var thumb = el('div', 'photo-thumb');
+      if (live[key]) {
+        var img = new Image();
+        img.src = live[key]; img.alt = '';
+        img.onerror = function () { img.remove(); };
+        thumb.appendChild(img);
+      } else {
+        thumb.appendChild(el('span', null, 'Drawing'));
+      }
+      slot.appendChild(thumb);
+
+      var id = 'pf-' + key;
+      var pick = el('label', 'pick', live[key] ? 'Replace' : 'Add photo');
+      pick.setAttribute('for', id);
+      var input = document.createElement('input');
+      input.type = 'file'; input.id = id; input.accept = 'image/*';
+      input.onchange = function () {
+        var f = input.files && input.files[0];
+        if (!f) return;
+        readImage(f, function (dataUri, problem) {
+          if (problem) { statusBox($('connect-status'), 'bad', 'Could not use that photo.', problem); return; }
+          var saved = lsGet(LS_CFG) || {};
+          saved.photos = saved.photos || {};
+          saved.photos[key] = dataUri;
+          if (!lsSet(LS_CFG, saved)) {
+            statusBox($('connect-status'), 'bad', 'This browser ran out of room for the photos.',
+              'Remove one, or use smaller images. Everything else was kept.');
+            return;
+          }
+          statusBox($('connect-status'), null);
+          mountPhotos(); renderPhotoGrid();
+        });
+      };
+      slot.appendChild(pick);
+      slot.appendChild(input);
+
+      if (live[key]) {
+        var drop = el('button', 'drop', 'Remove');
+        drop.type = 'button';
+        drop.onclick = function () {
+          var saved = lsGet(LS_CFG) || {};
+          if (saved.photos) { delete saved.photos[key]; lsSet(LS_CFG, saved); }
+          mountPhotos(); renderPhotoGrid();
+        };
+        slot.appendChild(drop);
+      }
+      grid.appendChild(slot);
+    });
+  }
+
+  /* ══ Admin: reading and applying the form ══ */
+  function readForm() {
+    var variants = {};
+    Array.prototype.forEach.call(document.querySelectorAll('.variant-input'), function (i) {
+      var v = i.value.trim();
+      if (v) variants[i.getAttribute('data-key')] = v;
+    });
+    var url = $('cfg-url').value.trim();
+    var saved = lsGet(LS_CFG) || {};
+    return {
+      shopifyDomain:  $('cfg-domain').value.trim().replace(/^https?:\/\//, '').replace(/\/+$/, ''),
+      operatorName:   $('cfg-operator').value.trim(),
+      operatorUrl:    url,
+      operatorDomain: url.replace(/^https?:\/\//, '').replace(/\/+$/, ''),
+      shipNote:       $('a-ship').value.trim(),
+      supportEmail:   $('cfg-support').value.trim(),
+      artworkFlow:    $('cfg-flow').value,
+      productHandle:  productHandle($('cfg-handle').value),
+      freeShipOver:   $('a-freeship').value.trim(),
+      variants:       variants,
+      photos:         saved.photos || {},
+      product: {
+        title:    $('a-title').value.trim(),
+        price:    $('a-price').value.trim(),
+        blurb:    $('a-blurb').value.trim(),
+        includes: $('a-includes').value.split('\n').map(function (l) { return l.trim(); })
+                    .filter(function (l) { return l; })
+      }
+    };
+  }
+
+  function checkForm(v, box) {
+    if (v.product.price !== '' && !(Number(v.product.price) >= 0)) {
+      statusBox(box, 'bad', 'That price is not a number.', 'Enter it in dollars, like 24 or 24.50.');
+      return false;
+    }
+    var keys = Object.keys(v.variants);
+    var bad = keys.filter(function (k) { return !variantId(v.variants[k]); });
+    if (bad.length) {
+      statusBox(box, 'bad', 'Those variant IDs do not look right.',
+        'A variant ID is the long number at the end of the variant URL in Shopify admin — digits only.');
+      return false;
+    }
+    if (v.shopifyDomain && !keys.length) {
+      statusBox(box, 'bad', 'The store is set, but no variant ID is.',
+        'Without one there is nothing to put in the Shopify cart.');
+      return false;
+    }
+    /* Caught here rather than at the customer: without a handle the upload flow
+       quietly reverts to email, and the page would say one thing while doing
+       another. Better to refuse the save and say why. */
+    if (v.artworkFlow === 'uploadery') {
+      var raw = $('cfg-handle').value.trim();
+      if (!raw) {
+        statusBox(box, 'bad', 'Uploads need the mug\u2019s product handle.',
+          'It is the last part of the product\u2019s storefront URL, like the-memory-mug. '
+          + 'Until it is set, the page goes back to asking for the photo by email.');
+        return false;
+      }
+      if (!v.productHandle) {
+        statusBox(box, 'bad', 'That does not look like a product handle.',
+          'Shopify handles are lowercase words joined by hyphens \u2014 the-memory-mug. '
+          + 'Pasting the whole product URL works too.');
+        return false;
+      }
+      if (!v.shopifyDomain) {
+        statusBox(box, 'bad', 'Uploads need the store address as well.',
+          'The handle says which product; the store address says whose shop it is on.');
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function applyEdits() {
+    var box = $('connect-status'), v = readForm();
+    if (!checkForm(v, box)) return false;
+    if (!lsSet(LS_CFG, v)) {
+      statusBox(box, 'bad', 'This browser would not save the changes.',
+        'Site data may be blocked. Download the updated site instead — that path does not need storage.');
+      return false;
+    }
+    applyConfig(); buildVariantFields(); renderShop(); renderCart(); mountPhotos(); renderPhotoGrid(); renderMugSlot();
+    /* readForm() normalizes a pasted URL down to a handle; show that, so the
+       owner sees what was stored rather than what they pasted. */
+    if ($('cfg-handle') && v.productHandle) $('cfg-handle').value = v.productHandle;
+    statusBox(box, 'ok', 'Applied to this browser.',
+      'Take a look at the page behind this panel. When it is right, download the updated site.');
+    return true;
+  }
+
+  function clearAll() {
+    lsDel(LS_CFG);
+    fillForm(); applyConfig(); buildVariantFields(); renderShop(); renderCart(); mountPhotos(); renderPhotoGrid(); renderMugSlot();
+    statusBox($('connect-status'), 'info', 'Back to the built-in defaults.', 'Nothing was kept.');
+  }
+
+  /* ══ Admin: writing a fresh copy of this file ══ */
+
+  /** Rebuilds the marked config region from what is on screen now. */
+  function configSource() {
+    var v = readForm(), base = SITE_CONFIG;
+    var site = {
+      operatorName:   v.operatorName || base.operatorName,
+      operatorUrl:    v.operatorUrl || base.operatorUrl,
+      operatorDomain: v.operatorDomain || base.operatorDomain,
+      adminKey:       base.adminKey,
+      shopifyDomain:  v.shopifyDomain || base.shopifyDomain,
+      supportEmail:   v.supportEmail || base.supportEmail,
+      artworkFlow:    v.artworkFlow === 'uploadery' ? 'uploadery' : 'email',
+      productHandle:  v.productHandle || '',
+      freeShipOver:   v.freeShipOver !== '' ? Number(v.freeShipOver) : base.freeShipOver,
+      shipNote:       v.shipNote || base.shipNote,
+      products: base.products.map(function (p) {
+        return {
+          key: p.key,
+          title:    v.product.title || p.title,
+          price:    v.product.price !== '' ? Number(v.product.price) : p.price,
+          variantId: variantId(v.variants[p.key]) || p.variantId || '',
+          image:    p.image || '',
+          blurb:    v.product.blurb || p.blurb,
+          includes: v.product.includes.length ? v.product.includes : p.includes
+        };
+      })
+    };
+    var pics = {};
+    Object.keys(EXAMPLE_PHOTOS).forEach(function (k) { pics[k] = (v.photos && v.photos[k]) || EXAMPLE_PHOTOS[k]; });
+
+    var indent = function (o) { return JSON.stringify(o, null, 2).split('\n').join('\n  '); };
+    return '  /* ADMIN-CONFIG-START */\n' +
+           '  /* Written by the shop admin. Edit here or in the panel — either works. */\n' +
+           '  var SITE_CONFIG = ' + indent(site) + ';\n\n' +
+           '  var MUG_PHOTO = ' + JSON.stringify(mugPhoto()) + ';\n\n' +
+           '  var PRINT_AREA = ' + JSON.stringify(printArea()) + ';\n\n' +
+           '  var EXAMPLE_PHOTOS = ' + indent(pics) + ';\n  ';
+  }
+
+  function offerSave(name, text) {
+    var done = function () {
+      statusBox($('publish-status'), 'ok', 'Downloaded.',
+        'Re-upload that file to your host, replacing the old one, and the changes are live for everyone.');
+    };
+    var viaBlob = function () {
+      try {
+        var url = URL.createObjectURL(new Blob([text], { type: 'text/html' }));
+        var a = document.createElement('a');
+        a.href = url; a.download = name;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
+        done();
+      } catch (e) {
+        statusBox($('publish-status'), 'bad', 'This browser blocked the download.',
+          'Open the page on your own hosting and try again there.');
+      }
+    };
+    /* claude.ai previews block a page from starting its own download, but offer
+       a save of their own; on ordinary hosting that is absent and a blob works. */
+    var c = window.claude;
+    if (c && typeof c.use === 'function') {
+      Promise.resolve(c.use('downloads')).then(function (dl) {
+        if (dl && typeof dl.save === 'function') return dl.save({ filename: name, data: text }).then(done);
+        viaBlob();
+      }).catch(viaBlob);
+    } else {
+      viaBlob();
+    }
+  }
+
+  function publish() {
+    var box = $('publish-status');
+    if (!checkForm(readForm(), $('connect-status'))) return;
+    statusBox(box, 'info', 'Building the file…', '');
+    fetch(location.href, { cache: 'no-store' }).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.text();
+    }).then(function (src) {
+      var a = src.indexOf('  /* ADMIN-CONFIG-START */');
+      var b = src.indexOf('/* ADMIN-CONFIG-END */');
+      if (a < 0 || b < 0) throw new Error('markers');
+      offerSave('index.html', src.slice(0, a) + configSource() + src.slice(b));
+    }).catch(function (e) {
+      statusBox(box, 'bad', 'Could not rebuild the file here.',
+        (e && e.message === 'markers'
+          ? 'The ADMIN-CONFIG markers are missing from the page source.'
+          : 'The page could not read its own source (' + (e && e.message) + '). ' +
+            'This works on ordinary hosting; some previews block it.') +
+        ' Your changes are still applied in this browser.');
+    });
+  }
+
+  /* ══ Admin gate. A convenience lock, not security — the key is in this file. ══ */
+  var SS_OPEN = 'mmc.admin.open';
+  function unlocked() { try { return sessionStorage.getItem(SS_OPEN) === '1'; } catch (e) { return false; } }
+  function markUnlocked() { try { sessionStorage.setItem(SS_OPEN, '1'); } catch (e) {} }
+
+  function openAdmin() {
+    fillForm(); buildVariantFields(); renderPhotoGrid();
+    var d = $('connect-dlg');
+    if (d && !d.open) d.showModal();
+  }
+  function askForKey() {
+    if (unlocked()) return openAdmin();
+    var g = $('gate-dlg');
+    statusBox($('gate-status'), null);
+    $('gate-input').value = '';
+    if (g && !g.open) g.showModal();
+    setTimeout(function () { $('gate-input').focus(); }, 50);
+  }
+  function tryKey() {
+    var entered = $('gate-input').value;
+    if (entered && entered === cfg().adminKey) {
+      markUnlocked();
+      $('gate-dlg').close();
+      openAdmin();
+    } else {
+      statusBox($('gate-status'), 'bad', 'That passphrase does not match.', 'Check the shop notes for it.');
+    }
+  }
+
+  function fillForm() {
+    var c = cfg(), p = c.products[0];
+    $('cfg-domain').value   = c.shopifyDomain || '';
+    $('cfg-operator').value = c.operatorName || '';
+    $('cfg-url').value      = c.operatorUrl || '';
+    $('cfg-support').value  = c.supportEmail || '';
+    $('cfg-flow').value     = c.artworkFlow === 'uploadery' ? 'uploadery' : 'email';
+    $('cfg-handle').value   = c.productHandle || '';
+    $('a-title').value      = p.title || '';
+    $('a-price').value      = p.price != null ? p.price : '';
+    $('a-blurb').value      = p.blurb || '';
+    $('a-includes').value   = (p.includes || []).join('\n');
+    $('a-ship').value       = c.shipNote || '';
+    $('a-freeship').value   = c.freeShipOver != null ? c.freeShipOver : '';
+  }
+
+  /** Builds a one-item cart link so the owner can confirm it opens their cart. */
+  function previewLink() {
+    var box = $('connect-status'), v = readForm();
+    if (!checkForm(v, box)) return;
+    var keys = Object.keys(v.variants);
+    if (!v.shopifyDomain || !keys.length) {
+      statusBox(box, 'bad', 'Set the store address and a variant ID first.', '');
+      return;
+    }
+    var url = 'https://' + v.shopifyDomain + '/cart/' + variantId(v.variants[keys[0]]) + ':1';
+    box.innerHTML = '';
+    var s = el('div', 'status status--info');
+    s.appendChild(el('b', null, 'Open this to check it works:'));
+    var a = document.createElement('a');
+    a.href = url; a.target = '_blank'; a.rel = 'noopener';
+    a.textContent = url;
+    a.style.cssText = 'word-break:break-all;font-weight:700;color:inherit';
+    s.appendChild(a);
+    s.appendChild(el('span', null,
+      ' It should open your Shopify cart with that mug in it. An empty cart means the variant ID is wrong, ' +
+      'or the product is not published to the Online Store channel.'));
+    box.appendChild(s);
+  }
+
+  /* ══ Wiring ══ */
+  function start() {
+    mountPhotos();
+    renderMugSlot();
+    wireMugSlot();
+    applyConfig();
+    buildVariantFields();
+    renderShop();
+    renderCart();
+
+    var note = lsGet(LS_NOTE);
+    if (note && $('cart-note')) $('cart-note').value = note;
+
+    var dialogs = [$('cart-dlg'), $('connect-dlg'), $('gate-dlg')];
+    $('cart-btn').onclick = openCart;
+    $('checkout-btn').onclick = goToShopify;
+    $('owner-link').onclick = askForKey;
+    $('gate-go').onclick = tryKey;
+    $('gate-input').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); tryKey(); }
+    });
+    $('preview-btn').onclick = previewLink;
+    $('save-btn').onclick = applyEdits;
+    $('publish-btn').onclick = publish;
+    $('clear-btn').onclick = clearAll;
+
+    /* Three examples up front; the rest on request, so the hero stays legible. */
+    var more = $('more-ideas');
+    if (more) more.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.chip--extra'), function (c) { c.hidden = false; });
+      more.setAttribute('aria-expanded', 'true');
+      more.hidden = true;
+      var first = document.querySelector('.chip--extra');
+      if (first) first.focus();
+    };
+
+    dialogs.forEach(function (d) {
+      d.addEventListener('click', function (e) { if (e.target === d) d.close(); });
+      Array.prototype.forEach.call(d.querySelectorAll('[data-close]'), function (b) {
+        b.onclick = function () { d.close(); };
+      });
+    });
+
+    /* #admin lets the shop owner be sent one link straight to the panel. */
+    if (location.hash === '#admin' || /[?&]admin\b/.test(location.search)) askForKey();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
+})();
+</script>
+</body></html>

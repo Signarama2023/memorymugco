@@ -1,0 +1,5 @@
+node_modules/
+.DS_Store
+*.log
+# Screenshots and scratch output from checking the site
+/shots/

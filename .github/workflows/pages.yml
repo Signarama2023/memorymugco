@@ -1,0 +1,42 @@
+# Publishes index.html to GitHub Pages on every push to main.
+#
+# One-time setup, which only a repository admin can do and which no workflow
+# can do for you: Settings -> Pages -> Build and deployment -> Source ->
+# "GitHub Actions". Until that is set this workflow runs and then fails at the
+# deploy step, which is the expected way round: the site is never published
+# from a setting nobody chose.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let a run finish rather than cancelling it; a half-deployed site is worse
+# than a slightly stale one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - name: Upload the site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # The whole repository root. index.html is the site; the extras
+          # alongside it are small and harmless to serve.
+          path: .
+      - id: deployment
+        uses: actions/deploy-pages@v4

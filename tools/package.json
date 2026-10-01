@@ -1,0 +1,12 @@
+{
+  "name": "memory-mug-company-tools",
+  "private": true,
+  "type": "module",
+  "description": "Optional checks for the site. The site itself has no dependencies.",
+  "scripts": {
+    "check": "node audit.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.1"
+  }
+}
