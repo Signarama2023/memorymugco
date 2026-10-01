@@ -292,13 +292,17 @@ section{scroll-margin-top:92px}
 @media (max-width:560px){.cat-grid{grid-template-columns:minmax(0,1fr)}}
 .cat{
   background:var(--surface);border:1px solid var(--rule-2);border-radius:var(--r-lg);
-  padding:22px 20px 24px;display:flex;flex-direction:column;gap:10px;
+  padding:22px 20px 24px;display:flex;flex-direction:column;gap:10px;overflow:hidden;
   transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
 }
 .cat:hover{transform:translateY(-3px);border-color:var(--ink);box-shadow:0 16px 30px -18px var(--shadow-2)}
 .cat-icon{
   width:44px;height:44px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;
   background:var(--red-soft);color:var(--red-ink);margin-bottom:2px;
+}
+.cat-photo{
+  width:calc(100% + 40px);max-width:none;margin:-22px -20px 6px;aspect-ratio:5/4;object-fit:cover;
+  object-position:center 22%;display:block;
 }
 .cat h3{font-size:1.3rem}
 .cat p{font-size:.97rem;color:var(--ink-2);line-height:1.6}
@@ -957,6 +961,8 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   </div>
 </div>
 
+<!-- Example photos (family, dog, polaroid dog, crew) are local files under
+     assets/examples/. Credits are in assets/examples/CREDITS.md, not on the page. -->
 <!-- ══ CATALOG ═══════════════════════════════════════════ -->
 <section class="band wrap" id="mugs">
   <div class="section-head">
@@ -970,14 +976,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
   <div class="cat-grid">
     <article class="cat">
-      <span class="cat-icon">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <circle cx="8" cy="7" r="3" stroke="currentColor" stroke-width="2"/>
-          <circle cx="16.5" cy="8.5" r="2.5" stroke="currentColor" stroke-width="2"/>
-          <path d="M2.5 19v-2a5 5 0 0 1 5-5h1a5 5 0 0 1 5 5v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          <path d="M15 13h1a5 5 0 0 1 5 5v1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-      </span>
+      <img class="cat-photo" src="assets/examples/family.jpg" alt="Example family photograph" width="1000" height="1200">
       <h3>The family photo</h3>
       <p>The one where everybody is actually looking at the camera. Wrapped the whole way around, so it looks good from wherever you're sitting.</p>
     </article>
@@ -994,14 +993,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     </article>
 
     <article class="cat">
-      <span class="cat-icon">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <ellipse cx="12" cy="17" rx="5.5" ry="4.5" stroke="currentColor" stroke-width="2"/>
-          <ellipse cx="5.5" cy="10.5" rx="2.5" ry="3.2" stroke="currentColor" stroke-width="2"/>
-          <ellipse cx="18.5" cy="10.5" rx="2.5" ry="3.2" stroke="currentColor" stroke-width="2"/>
-          <ellipse cx="12" cy="7" rx="2.5" ry="3.2" stroke="currentColor" stroke-width="2"/>
-        </svg>
-      </span>
+      <img class="cat-photo" src="assets/examples/dog.jpg" alt="Example photograph of a dog" width="1000" height="1200">
       <h3>The dog. Obviously.</h3>
       <p>We knock the background out so it's just your dog's face, six inches tall, staring at you before coffee. Add the name underneath — everyone does.</p>
     </article>
@@ -1029,12 +1021,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     </article>
 
     <article class="cat">
-      <span class="cat-icon">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M12 2.5 20.5 6v6.5c0 5.5-3.5 8.5-8.5 10.5C7 21 3.5 18 3.5 12.5V6L12 2.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-          <path d="m8.5 12 2.5 2.5 4.5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </span>
+      <img class="cat-photo" src="assets/examples/crew.jpg" alt="Example photograph of a group of people" width="1000" height="1200">
       <h3>Your logo or your crew</h3>
       <p>Shop mugs, closing gifts, the whole team's names on the back. Send whatever logo file you've got and we'll clean it up for print.</p>
     </article>
@@ -1705,9 +1692,17 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
      preview, which is why they are data and not constants. */
   var PRINT_AREA = { x: 0.242, y: 0.252, w: 0.404, h: 0.53 };
 
-  /* Photos of real finished mugs. A URL or a data: URI; blank leaves the drawing. */
+  /* Photos of real finished mugs. A URL or a data: URI; blank leaves the drawing.
+     Credits for the files below live in assets/examples/CREDITS.md, not on the page. */
   var EXAMPLE_PHOTOS = {
-    family: '', art: '', pet: '', hand: '', recipe: '', team: '', snapA: '', snapB: ''
+    family: 'assets/examples/family.jpg',
+    art: '',
+    pet: 'assets/examples/dog.jpg',
+    hand: '',
+    recipe: '',
+    team: 'assets/examples/crew.jpg',
+    snapA: '',
+    snapB: 'assets/examples/dog-polaroid.jpg'
   };
   /* ADMIN-CONFIG-END */
 
