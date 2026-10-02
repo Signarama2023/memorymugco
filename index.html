@@ -147,8 +147,7 @@ section{scroll-margin-top:92px}
 
 /* ── Hero ───────────────────────────────────────────────── */
 .hero{padding-block:clamp(12px,2vw,22px) clamp(28px,4vw,48px)}
-.hero-aside{display:flex;flex-direction:column;gap:16px;min-width:0;padding-top:6px}
-.hero-head{margin:0;display:flex;flex-direction:column;gap:12px;text-align:left;min-width:0}
+.hero-head{margin:0 0 clamp(14px,2vw,22px);display:flex;flex-direction:column;gap:12px;text-align:left;min-width:0;max-width:40rem}
 .buy{
   background:var(--surface);border:1px solid var(--rule-2);border-radius:var(--r-lg);
   padding:clamp(16px,2vw,22px);display:flex;flex-direction:column;gap:10px;align-self:stretch;min-width:0;
@@ -203,14 +202,10 @@ section{scroll-margin-top:92px}
   font-size:.9375rem;color:var(--ink-2);line-height:1.55;
   background:var(--surface-2);border-radius:var(--r-md);padding:12px 14px;
 }
-.hero-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:clamp(18px,3vw,40px);align-items:start}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:clamp(18px,3vw,40px);align-items:stretch}
 @media (max-width:920px){
-  .hero-grid{grid-template-columns:minmax(0,1fr);gap:16px}
-  .hero-aside{display:contents}
-  .hero-head{order:0}
-  .stage{order:1}
-  .buy{order:2}
-  #shop-notice{order:3}
+  .hero-grid{grid-template-columns:minmax(0,1fr);gap:10px}
+  .hero-head{margin-bottom:8px}
 }
 .hero h1{font-size:clamp(2.65rem,4.4vw,4.05rem);line-height:.98;letter-spacing:-.03em;font-weight:500}
 .hero h1 em{font-style:italic;font-weight:500;color:var(--red-ink)}
@@ -225,7 +220,12 @@ section{scroll-margin-top:92px}
 .hero-note span::before{content:"";width:7px;height:7px;border-radius:50%;flex:none;background:var(--red)}
 
 /* ── Mug stage ──────────────────────────────────────────── */
-.stage{display:flex;flex-direction:column;gap:12px;align-items:center;min-width:0}
+.stage{display:flex;flex-direction:column;justify-content:space-between;gap:12px;align-items:center;min-width:0;min-height:100%}
+.stage-foot{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
+@media (max-width:920px){
+  .stage{justify-content:flex-start;min-height:0;gap:8px}
+  .stage-foot{gap:6px}
+}
 .mug-frame{width:100%;max-width:620px;aspect-ratio:512/372}
 .mug-frame svg{display:block;width:100%;height:100%;filter:drop-shadow(0 18px 22px rgba(48,28,18,.16))}
 /* SVG presentation attributes can't read custom properties, so paint via CSS. */
@@ -314,10 +314,21 @@ section{scroll-margin-top:92px}
   width:44px;height:44px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;
   background:var(--red-soft);color:var(--red-ink);margin-bottom:2px;
 }
-.cat-photo{
-  width:calc(100% + 40px);max-width:none;margin:-22px -20px 6px;aspect-ratio:5/4;object-fit:cover;
-  object-position:center 22%;display:block;
+/* One frame for every lineup photo. The box sets the size; the picture
+   covers it, so nothing stretches or sits in a letterbox. */
+.cat-frame{
+  width:calc(100% + 40px);max-width:none;margin:-22px -20px 6px;aspect-ratio:4/3;
+  overflow:hidden;flex:none;
 }
+.cat-photo{
+  width:100%;height:100%;max-width:none;object-fit:cover;object-position:center;display:block;
+}
+.cat-photo--family{object-position:center 34%}
+.cat-photo--art{object-position:center 42%}
+.cat-photo--dog{object-position:center 46%}
+.cat-photo--hand{object-position:center 38%}
+.cat-photo--recipe{object-position:center 32%}
+.cat-photo--crew{object-position:center 42%}
 .cat h3{font-size:1.3rem}
 .cat p{font-size:.97rem;color:var(--ink-2);line-height:1.6}
 
@@ -630,6 +641,13 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
 <!-- ══ HERO ════════════════════════════════════════════════ -->
 <section class="wrap hero">
+  <div class="hero-head">
+    <p class="eyebrow">Custom photo mugs · By <span data-cfg="operatorName">H3 Customs</span></p>
+    <h1>Put your <em>favorite people</em> on a mug.</h1>
+    <p class="lede">
+      Turn a photo you already have into a gift they'll reach for every morning.
+    </p>
+  </div>
   <div class="hero-grid" id="order">
     <div class="stage">
       <div class="mug-frame">
@@ -933,6 +951,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         </svg>
       </div>
 
+      <div class="stage-foot">
       <div class="chips" role="group" aria-label="Preview a mug style">
         <button type="button" class="chip" id="chip-family" data-key="family" aria-pressed="true">Family</button>
         <button type="button" class="chip" id="chip-art" data-key="art" aria-pressed="false">Kid's art</button>
@@ -947,20 +966,12 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         The whole crew, wrapped the entire way around. Yes, the dog counts as family.
       </p>
       <p class="stage-caption" id="stage-fineprint" style="margin-top:-8px">Illustrated example — your mug carries your photo.</p>
+      </div>
     </div>
 
-    <div class="hero-aside">
-      <div class="hero-head">
-        <p class="eyebrow">Custom photo mugs · By <span data-cfg="operatorName">H3 Customs</span></p>
-        <h1>Put your <em>favorite people</em> on a mug.</h1>
-        <p class="lede">
-          Turn a photo you already have into a gift they'll reach for every morning.
-        </p>
-      </div>
-      <div class="buy" id="shop-single"></div>
-      <div id="shop-notice"></div>
-    </div>
+    <div class="buy" id="shop-single"></div>
   </div>
+  <div id="shop-notice"></div>
 </section>
 
 <!-- ══ TICKER ══════════════════════════════════════════════ -->
@@ -990,37 +1001,37 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
   <div class="cat-grid">
     <article class="cat">
-      <img class="cat-photo" src="assets/examples/family.jpg" alt="Example family photograph" width="1000" height="1200">
+      <div class="cat-frame"><img class="cat-photo cat-photo--family" src="assets/examples/family.jpg" alt="Example family photograph" width="800" height="600"></div>
       <h3>The family photo</h3>
       <p>The one where everybody is actually looking at the camera. Wrapped the whole way around, so it looks good from wherever you're sitting.</p>
     </article>
 
     <article class="cat">
-      <img class="cat-photo" src="assets/examples/art.jpg" alt="Example photograph of a child drawing" width="1000" height="1200">
+      <div class="cat-frame"><img class="cat-photo cat-photo--art" src="assets/examples/art.jpg" alt="Example photograph of a child drawing" width="800" height="600"></div>
       <h3>Your kid's masterpiece</h3>
       <p>The crayon drawing that's been on the fridge since March. Grandparents completely lose it over these — fair warning.</p>
     </article>
 
     <article class="cat">
-      <img class="cat-photo" src="assets/examples/dog.jpg" alt="Example photograph of a dog" width="1000" height="1200">
+      <div class="cat-frame"><img class="cat-photo cat-photo--dog" src="assets/examples/dog.jpg" alt="Example photograph of a dog" width="800" height="600"></div>
       <h3>The dog. Obviously.</h3>
       <p>We knock the background out so it's just your dog's face, six inches tall, staring at you before coffee. Add the name underneath — everyone does.</p>
     </article>
 
     <article class="cat">
-      <img class="cat-photo" src="assets/examples/handwriting.jpg" alt="Example photograph of handwriting" width="1000" height="1200">
+      <div class="cat-frame"><img class="cat-photo cat-photo--hand" src="assets/examples/handwriting.jpg" alt="Example photograph of handwriting" width="800" height="600"></div>
       <h3>Somebody's handwriting</h3>
       <p>A birthday card, a note off the fridge, a signature. We keep the pen pressure and the shaky letters — that's the part that gets people.</p>
     </article>
 
     <article class="cat">
-      <img class="cat-photo" src="assets/examples/recipe.jpg" alt="Example photograph of a handwritten recipe" width="1000" height="1200">
+      <div class="cat-frame"><img class="cat-photo cat-photo--recipe" src="assets/examples/recipe.jpg" alt="Example photograph of a handwritten recipe" width="800" height="600"></div>
       <h3>The family recipe</h3>
       <p>The cobbler, the gravy, the thing nobody else can get right. Printed big enough to actually read while it's sitting on the counter.</p>
     </article>
 
     <article class="cat">
-      <img class="cat-photo" src="assets/examples/crew.jpg" alt="Example photograph of a group of people" width="1000" height="1200">
+      <div class="cat-frame"><img class="cat-photo cat-photo--crew" src="assets/examples/crew.jpg" alt="Example photograph of a group of people" width="800" height="600"></div>
       <h3>Your logo or your crew</h3>
       <p>Shop mugs, closing gifts, the whole team's names on the back. Send whatever logo file you've got and we'll clean it up for print.</p>
     </article>
