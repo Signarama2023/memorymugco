@@ -1507,7 +1507,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         <p class="admin-sec">Background</p>
         <div class="proof-zoom">
           <label for="bg-admin-size">Size</label>
-          <input id="bg-admin-size" type="range" min="22" max="170" step="2" value="32">
+          <input id="bg-admin-size" type="range" min="22" max="42" step="2" value="28">
         </div>
         <div class="proof-zoom">
           <span class="proof-k" id="bg-admin-pos-label">Position</span>
@@ -1816,7 +1816,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   /* How the background template sits on the ceramic: motif size in the wrap's
      own units, and a shift as a fraction of that wrap. The admin panel moves
      these; the download writes them back here. */
-  var WRAP_FIT = { size: 32, x: 0, y: 0 };
+  var WRAP_FIT = { size: 28, x: 0, y: 0 };
 
   /* Photos of real finished mugs. A URL or a data: URI; blank leaves the drawing.
      Credits for the files below live in assets/examples/CREDITS.md, not on the page. */
@@ -2241,12 +2241,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
      $8 ride along as a cart attribute on the cart-permalink path. A product
      URL cannot carry that attribute. */
   var BG_EXTRA = 8;
-  /* Cell size in the wrap's own units. Smaller packs more motifs across the
-     ceramic. The default is a small pattern; a larger size makes fewer,
-     bigger motifs. */
+  /* Cell size in the wrap's own units. The range stays a repeating pattern:
+     smaller packs more motifs, and the largest size is still several across. */
   var PATTERN_MIN = 22;
-  var PATTERN_MAX = 170;
-  var patternSize = 32;
+  var PATTERN_MAX = 42;
+  var patternSize = 28;
   var patternX = 0;
   var patternY = 0;
   var lastBgId = 'tree';
@@ -2300,7 +2299,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     var size = Number(saved.size != null ? saved.size : base.size);
     var x = Number(saved.x != null ? saved.x : base.x);
     var y = Number(saved.y != null ? saved.y : base.y);
-    if (!isFinite(size)) size = 32;
+    if (!isFinite(size)) size = 28;
     if (!isFinite(x)) x = 0;
     if (!isFinite(y)) y = 0;
     return {
@@ -2354,9 +2353,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     ground.setAttribute('height', H.toFixed(3));
     ground.setAttribute('fill', 'none');
     if (!bg) return;
-    var cols = Math.max(1, Math.min(8, Math.round(W / patternSize)));
+    var cols = Math.max(4, Math.min(8, Math.round(W / patternSize)));
     var cellW = W / cols;
-    var rows = Math.max(1, Math.min(10, Math.round(H / cellW)));
+    var rows = Math.max(4, Math.min(10, Math.round(H / cellW)));
     var cellH = H / rows;
     var m = Math.min(cellW, cellH) * 0.9;
     var scale = m / 100;
