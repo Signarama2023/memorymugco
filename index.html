@@ -186,6 +186,8 @@ section{scroll-margin-top:92px}
   background:var(--surface);color:var(--ink);
 }
 .proof-nudge button:hover{border-color:var(--ink)}
+.proof-nudge button[aria-pressed="true"]{border-color:var(--red);color:var(--red-ink);background:var(--red-soft)}
+.bg-admin-preview.is-tracing{cursor:crosshair}
 .proof-nudge button:focus-visible{outline:2px solid var(--red-deep);outline-offset:2px}
 
 /* The mug is a control only while the customer's own photo is on it: that is
@@ -818,7 +820,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
           <svg class="mug-wrap" id="mug-wrap" x="166" y="142" width="153" height="195"
                viewBox="0 0 153 195" preserveAspectRatio="none" hidden>
             <defs>
-              <clipPath id="wrapClip"><rect id="wrap-clip-rect" x="0" y="0" width="153" height="195" rx="6"/></clipPath>
+              <clipPath id="wrapClip"><polygon id="wrap-clip-shape" points="0,0 153,0 153,195 0,195"/></clipPath>
             </defs>
             <g clip-path="url(#wrapClip)">
               <rect id="wrap-ground" x="0" y="0" width="153" height="195" fill="none"/>
@@ -1527,6 +1529,15 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
             <button type="button" id="bg-nudge-center">Center</button>
           </div>
         </div>
+        <div class="proof-zoom">
+          <span class="proof-k" id="outline-label">Outline</span>
+          <div class="proof-nudge" role="group" aria-labelledby="outline-label">
+            <button type="button" id="outline-trace" aria-pressed="false">Trace</button>
+            <button type="button" id="outline-undo">Undo</button>
+            <button type="button" id="outline-reset">Reset</button>
+          </div>
+        </div>
+        <p class="hint" id="outline-hint">Click around the ceramic. The pattern stays inside the line, off the handle.</p>
         <div class="bg-admin-preview">
           <svg viewBox="4 22 512 372" aria-hidden="true">
             <image id="admin-mug-photo" x="103" y="70" width="315" height="315" preserveAspectRatio="xMidYMid meet"/>
@@ -1534,13 +1545,15 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
                  space sits off the viewBox and hides the whole template. -->
             <svg id="admin-wrap" x="166" y="142" width="153" height="195" viewBox="0 0 153 195" preserveAspectRatio="none">
               <defs>
-                <clipPath id="adminWrapClip"><rect id="admin-wrap-clip" x="0" y="0" width="153" height="195" rx="6"/></clipPath>
+                <clipPath id="adminWrapClip"><polygon id="admin-wrap-clip" points="0,0 153,0 153,195 0,195"/></clipPath>
               </defs>
               <g clip-path="url(#adminWrapClip)">
                 <rect id="admin-wrap-ground" x="0" y="0" width="153" height="195" fill="none"/>
                 <g id="admin-wrap-motif"></g>
               </g>
             </svg>
+            <polygon id="admin-outline" fill="none" stroke="#C12F1A" stroke-width="1.75" stroke-linejoin="round" points=""/>
+            <g id="admin-outline-dots"></g>
           </svg>
         </div>
       </div>
@@ -1825,6 +1838,16 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
      own units, and a shift as a fraction of that wrap. The admin panel moves
      these; the download writes them back here. */
   var WRAP_FIT = { size: 28, x: 0, y: 0 };
+
+  /* Ceramic outline, as fractions of the mug photograph. The pattern is
+     clipped to this shape, so it stays off the handle and the white around
+     the mug. The admin panel traces a new one; the download writes it back. */
+  var WRAP_OUTLINE = [
+    [0.236, 0.236], [0.330, 0.224], [0.444, 0.220], [0.558, 0.224], [0.652, 0.236],
+    [0.676, 0.258], [0.670, 0.400], [0.660, 0.560], [0.648, 0.710],
+    [0.628, 0.790], [0.575, 0.828], [0.444, 0.840], [0.313, 0.828],
+    [0.260, 0.790], [0.240, 0.710], [0.228, 0.560], [0.218, 0.400], [0.212, 0.258]
+  ];
 
   /* Photos of real finished mugs. A URL or a data: URI; blank leaves the drawing.
      Credits for the files below live in assets/examples/CREDITS.md, not on the page. */
@@ -2256,6 +2279,8 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   var patternSize = 28;
   var patternX = 0;
   var patternY = 0;
+  var outlinePts = [];
+  var tracing = false;
   var lastBgId = 'tree';
   var SVGNS = 'http://www.w3.org/2000/svg';
   function svgEl(name, attrs) {
@@ -2316,12 +2341,61 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       y: Math.max(-0.45, Math.min(0.45, y))
     };
   }
+  function cloneOutline(pts) {
+    return pts.map(function (p) { return [Number(p[0]), Number(p[1])]; });
+  }
+  function sanitizeOutline(pts) {
+    if (!pts || pts.length < 3) return null;
+    var out = [];
+    for (var i = 0; i < pts.length; i++) {
+      var x = Number(pts[i][0]), y = Number(pts[i][1]);
+      if (!isFinite(x) || !isFinite(y)) return null;
+      out.push([Math.max(0, Math.min(1, x)), Math.max(0, Math.min(1, y))]);
+    }
+    return out;
+  }
+  function loadOutline() {
+    var saved = sanitizeOutline((lsGet(LS_CFG) || {}).wrapOutline);
+    return saved || cloneOutline(WRAP_OUTLINE);
+  }
   (function bootWrap() {
     var f = wrapFit();
     patternSize = f.size;
     patternX = f.x;
     patternY = f.y;
+    outlinePts = loadOutline();
   })();
+
+  /** The traced ceramic, in SVG user units, plus the same points in the wrap's own viewBox. */
+  function outlineFrame() {
+    var pts = outlinePts && outlinePts.length >= 3 ? outlinePts : WRAP_OUTLINE;
+    if (!mugPhoto()) {
+      var d = DRAWN_BODY;
+      return {
+        x: d[0], y: d[1], w: d[2], h: d[3],
+        local: [[1, 1], [d[2] - 1, 1], [d[2] - 1, d[3] - 1], [1, d[3] - 1]]
+      };
+    }
+    var f = PHOTO_FRAME;
+    var abs = pts.map(function (p) {
+      return [f[0] + p[0] * f[2], f[1] + p[1] * f[3]];
+    });
+    var minX = abs[0][0], maxX = abs[0][0], minY = abs[0][1], maxY = abs[0][1];
+    abs.forEach(function (p) {
+      if (p[0] < minX) minX = p[0];
+      if (p[0] > maxX) maxX = p[0];
+      if (p[1] < minY) minY = p[1];
+      if (p[1] > maxY) maxY = p[1];
+    });
+    var pad = 0.6;
+    var x0 = minX - pad, y0 = minY - pad;
+    return {
+      x: x0, y: y0,
+      w: (maxX - minX) + pad * 2,
+      h: (maxY - minY) + pad * 2,
+      local: abs.map(function (p) { return [p[0] - x0, p[1] - y0]; })
+    };
+  }
 
   /** How wide one repeat is, as a percent of the ceramic. */
   function patternPct() {
@@ -2344,19 +2418,13 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   function paintWrapHost(host, ground, motif, clip, bg) {
     if (!host || !ground || !motif) return;
     while (motif.firstChild) motif.removeChild(motif.firstChild);
-    var body = bodyBox();
-    var W = body[2], H = body[3];
-    host.setAttribute('x', body[0].toFixed(3));
-    host.setAttribute('y', body[1].toFixed(3));
+    var frame = outlineFrame();
+    var W = frame.w, H = frame.h;
+    host.setAttribute('x', frame.x.toFixed(3));
+    host.setAttribute('y', frame.y.toFixed(3));
     host.setAttribute('width', W.toFixed(3));
     host.setAttribute('height', H.toFixed(3));
     host.setAttribute('viewBox', '0 0 ' + W.toFixed(3) + ' ' + H.toFixed(3));
-    if (clip) {
-      clip.setAttribute('x', body[0].toFixed(3));
-      clip.setAttribute('y', body[1].toFixed(3));
-      clip.setAttribute('width', W.toFixed(3));
-      clip.setAttribute('height', H.toFixed(3));
-    }
     ground.setAttribute('width', W.toFixed(3));
     ground.setAttribute('height', H.toFixed(3));
     ground.setAttribute('fill', 'none');
@@ -2382,15 +2450,36 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     }
   }
 
-  /* Both clips sit inside their wrap svg. Parent-mug coordinates miss that
-     viewBox and hide the template. */
-  function fitWrapClip(clip) {
-    if (!clip) return;
-    var b = bodyBox();
-    clip.setAttribute('x', '0');
-    clip.setAttribute('y', '0');
-    clip.setAttribute('width', b[2].toFixed(3));
-    clip.setAttribute('height', b[3].toFixed(3));
+  /* The clip polygon is in the wrap svg's own viewBox. Parent-mug
+     coordinates sit off that viewBox and hide the whole template. */
+  function applyOutlineClip(poly) {
+    if (!poly) return;
+    var frame = outlineFrame();
+    poly.setAttribute('points', frame.local.map(function (p) {
+      return p[0].toFixed(2) + ',' + p[1].toFixed(2);
+    }).join(' '));
+  }
+
+  function paintOutlineGuide() {
+    var line = document.querySelector('#admin-outline');
+    var dots = document.querySelector('#admin-outline-dots');
+    if (!line || !dots) return;
+    var f = PHOTO_FRAME;
+    var pts = outlinePts && outlinePts.length ? outlinePts : WRAP_OUTLINE;
+    line.setAttribute('points', pts.map(function (p) {
+      return (f[0] + p[0] * f[2]).toFixed(2) + ',' + (f[1] + p[1] * f[3]).toFixed(2);
+    }).join(' '));
+    while (dots.firstChild) dots.removeChild(dots.firstChild);
+    pts.forEach(function (p) {
+      dots.appendChild(svgEl('circle', {
+        cx: (f[0] + p[0] * f[2]).toFixed(2),
+        cy: (f[1] + p[1] * f[3]).toFixed(2),
+        r: '5.5',
+        fill: '#C12F1A',
+        stroke: '#FFFFFF',
+        'stroke-width': '1.6'
+      }));
+    });
   }
 
   function paintWrap() {
@@ -2409,8 +2498,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       null,
       previewBg
     );
-    fitWrapClip(document.querySelector('#wrap-clip-rect'));
-    fitWrapClip(document.querySelector('#admin-wrap-clip'));
+    applyOutlineClip(document.querySelector('#wrap-clip-shape'));
+    applyOutlineClip(document.querySelector('#admin-wrap-clip'));
+    paintOutlineGuide();
     var photo = document.querySelector('#admin-mug-photo');
     if (photo) {
       var src = mugPhoto();
@@ -2426,6 +2516,10 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
   function rememberWrapFit() {
     saveBits({ wrapFit: { size: patternSize, x: patternX, y: patternY } });
+  }
+
+  function rememberOutline() {
+    saveBits({ wrapOutline: outlinePts.map(function (p) { return [p[0], p[1]]; }) });
   }
 
   function setPatternSize(n) {
@@ -2444,6 +2538,10 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   function syncWrapAdmin() {
     var size = $('bg-admin-size');
     if (size && document.activeElement !== size) size.value = String(patternSize);
+    var traceBtn = $('outline-trace');
+    if (traceBtn) traceBtn.setAttribute('aria-pressed', tracing ? 'true' : 'false');
+    var preview = document.querySelector('.bg-admin-preview');
+    if (preview) preview.classList.toggle('is-tracing', !!tracing);
   }
 
   /** Shows the wrap and the photo-on-top only while the customer's mug is the scene. */
@@ -3319,6 +3417,93 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     if (up) up.onclick = function () { nudge(0, -step); };
     if (down) down.onclick = function () { nudge(0, step); };
     if (center) center.onclick = function () { setWrapOffset(0, 0); };
+
+    var preview = document.querySelector('.bg-admin-preview');
+    var traceBtn = $('outline-trace');
+    var outlineDrag = -1;
+    function eventToFrac(ev) {
+      var svg = preview && preview.querySelector('svg');
+      if (!svg || !svg.createSVGPoint || !svg.getScreenCTM()) return null;
+      var pt = svg.createSVGPoint();
+      pt.x = ev.clientX;
+      pt.y = ev.clientY;
+      var p = pt.matrixTransform(svg.getScreenCTM().inverse());
+      var f = PHOTO_FRAME;
+      return [(p.x - f[0]) / f[2], (p.y - f[1]) / f[3]];
+    }
+    function nearestDot(ev) {
+      var dots = document.querySelectorAll('#admin-outline-dots circle');
+      var best = -1, bestD = 16;
+      for (var i = 0; i < dots.length; i++) {
+        var b = dots[i].getBoundingClientRect();
+        var dx = ev.clientX - (b.left + b.width / 2);
+        var dy = ev.clientY - (b.top + b.height / 2);
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < bestD) { bestD = dist; best = i; }
+      }
+      return best;
+    }
+    if (traceBtn && preview) {
+      traceBtn.onclick = function () {
+        tracing = !tracing;
+        traceBtn.setAttribute('aria-pressed', tracing ? 'true' : 'false');
+        preview.classList.toggle('is-tracing', tracing);
+      };
+    }
+    var undoBtn = $('outline-undo');
+    if (undoBtn) undoBtn.onclick = function () {
+      if (outlinePts.length <= 3) return;
+      outlinePts = outlinePts.slice(0, -1);
+      rememberOutline();
+      paintWrap();
+    };
+    var resetBtn = $('outline-reset');
+    if (resetBtn) resetBtn.onclick = function () {
+      tracing = false;
+      if (traceBtn) traceBtn.setAttribute('aria-pressed', 'false');
+      if (preview) preview.classList.remove('is-tracing');
+      outlinePts = cloneOutline(WRAP_OUTLINE);
+      rememberOutline();
+      paintWrap();
+    };
+    if (preview) {
+      preview.addEventListener('pointerdown', function (ev) {
+        if (ev.button !== 0) return;
+        var hit = nearestDot(ev);
+        if (hit >= 0) {
+          outlineDrag = hit;
+          preview.setPointerCapture(ev.pointerId);
+          ev.preventDefault();
+          return;
+        }
+        if (!tracing) return;
+        var p = eventToFrac(ev);
+        if (!p) return;
+        outlinePts = outlinePts.concat([[
+          Math.max(0, Math.min(1, p[0])),
+          Math.max(0, Math.min(1, p[1]))
+        ]]);
+        rememberOutline();
+        paintWrap();
+      });
+      preview.addEventListener('pointermove', function (ev) {
+        if (outlineDrag < 0) return;
+        var p = eventToFrac(ev);
+        if (!p) return;
+        outlinePts[outlineDrag] = [
+          Math.max(0, Math.min(1, p[0])),
+          Math.max(0, Math.min(1, p[1]))
+        ];
+        paintWrap();
+      });
+      var endDrag = function () {
+        if (outlineDrag < 0) return;
+        outlineDrag = -1;
+        rememberOutline();
+      };
+      preview.addEventListener('pointerup', endDrag);
+      preview.addEventListener('pointercancel', endDrag);
+    }
     syncWrapAdmin();
   }
 
@@ -3404,6 +3589,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       variants:       variants,
       photos:         saved.photos || {},
       wrapFit:        { size: patternSize, x: patternX, y: patternY },
+      wrapOutline:    outlinePts.map(function (p) { return [p[0], p[1]]; }),
       product: {
         title:    $('a-title').value.trim(),
         price:    $('a-price').value.trim(),
@@ -3480,6 +3666,8 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     patternSize = f.size;
     patternX = f.x;
     patternY = f.y;
+    outlinePts = cloneOutline(WRAP_OUTLINE);
+    tracing = false;
     fillForm(); applyConfig(); buildVariantFields(); renderShop(); renderCart(); mountPhotos(); renderPhotoGrid(); renderMugSlot();
     syncWrapAdmin();
     statusBox($('connect-status'), 'info', 'Back to the built-in defaults.', 'Nothing was kept.');
@@ -3523,6 +3711,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
            '  var MUG_PHOTO = ' + JSON.stringify(mugPhoto()) + ';\n\n' +
            '  var PRINT_AREA = ' + JSON.stringify(printArea()) + ';\n\n' +
            '  var WRAP_FIT = ' + JSON.stringify({ size: patternSize, x: patternX, y: patternY }) + ';\n\n' +
+           '  var WRAP_OUTLINE = ' + JSON.stringify(outlinePts) + ';\n\n' +
            '  var EXAMPLE_PHOTOS = ' + indent(pics) + ';\n  ';
   }
 

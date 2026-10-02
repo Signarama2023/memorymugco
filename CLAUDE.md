@@ -74,10 +74,11 @@ finger on the mug could not scroll the page.
   corners. `readImage()` lays down white first.
 - `mountPhotos()` sweeps `image` elements out of the SVG. It excludes `.mug-base`,
   which is the product photograph, not an overlay.
-- `#mug-wrap` and `#admin-wrap` are nested svgs. Each clip has to live in that
-  svg's own viewBox, starting at 0,0. A clip rect written in the parent mug's
+- `#mug-wrap` and `#admin-wrap` are nested svgs. Each clip is a polygon in that
+  svg's own viewBox, starting near 0,0. A clip written in the parent mug's
   coordinates sits off that viewBox and hides the whole template, even though
   the motif is still in the DOM. `getBoundingClientRect` still reports a size.
+  The outline itself is stored as fractions of the mug photograph (`WRAP_OUTLINE`).
 - The config region is rewritten wholesale by the admin download. Anything that must
   survive a rebuild has to be emitted by `configSource()` as well as read by `cfg()`.
 
