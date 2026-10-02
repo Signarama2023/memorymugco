@@ -813,7 +813,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
               <clipPath id="wrapClip"><rect id="wrap-clip-rect" x="0" y="0" width="153" height="195" rx="6"/></clipPath>
             </defs>
             <g clip-path="url(#wrapClip)">
-              <rect id="wrap-ground" x="0" y="0" width="153" height="195" fill="#F3EFE6"/>
+              <rect id="wrap-ground" x="0" y="0" width="153" height="195" fill="none"/>
               <g id="wrap-motif"></g>
             </g>
           </svg>
@@ -1529,7 +1529,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
                 <clipPath id="adminWrapClip"><rect id="admin-wrap-clip" x="0" y="0" width="153" height="195" rx="6"/></clipPath>
               </defs>
               <g clip-path="url(#adminWrapClip)">
-                <rect id="admin-wrap-ground" x="0" y="0" width="153" height="195" fill="#F3EFE6"/>
+                <rect id="admin-wrap-ground" x="0" y="0" width="153" height="195" fill="none"/>
                 <g id="admin-wrap-motif"></g>
               </g>
             </svg>
@@ -2235,8 +2235,8 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
      and height. */
   var ownPhoto = null;
 
-  /* Premade wraps. Each one is a small pattern fitted across the ceramic,
-     edge to edge. $8 is added only after the customer adds a background.
+  /* Premade wraps. Each one is a small pattern of motifs on the ceramic,
+     with no fill behind them. $8 is added only after the customer adds a background.
      Shopify still charges the mug's own variant; the name, the size, and the
      $8 ride along as a cart attribute on the cart-permalink path. A product
      URL cannot carry that attribute. */
@@ -2285,10 +2285,10 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     g.appendChild(svgEl('circle', { cx: '32', cy: '45', r: '1.7', fill: '#2A211C' }));
   }
   var BACKGROUNDS = [
-    { id: 'tree', name: 'Tree', group: 'Christmas', ground: '#F3EFE6', draw: drawTree },
-    { id: 'balloon', name: 'Balloon', group: 'Birthday', ground: '#F6F1EA', draw: drawBalloon },
-    { id: 'rings', name: 'Rings', group: 'Wedding', ground: '#F7F3EC', draw: drawRings },
-    { id: 'duck', name: 'Duck', group: 'New baby', ground: '#F4F0E8', draw: drawDuck }
+    { id: 'tree', name: 'Tree', group: 'Christmas', draw: drawTree },
+    { id: 'balloon', name: 'Balloon', group: 'Birthday', draw: drawBalloon },
+    { id: 'rings', name: 'Rings', group: 'Wedding', draw: drawRings },
+    { id: 'duck', name: 'Duck', group: 'New baby', draw: drawDuck }
   ];
   var chosenBg = null;
   var refreshPrice = function () {};
@@ -2352,8 +2352,8 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     }
     ground.setAttribute('width', W.toFixed(3));
     ground.setAttribute('height', H.toFixed(3));
+    ground.setAttribute('fill', 'none');
     if (!bg) return;
-    ground.setAttribute('fill', bg.ground);
     var cols = Math.max(1, Math.min(8, Math.round(W / patternSize)));
     var cellW = W / cols;
     var rows = Math.max(1, Math.min(10, Math.round(H / cellW)));
@@ -2742,7 +2742,6 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       b.setAttribute('data-bg', id);
       b.setAttribute('aria-pressed', 'false');
       var sw = svgEl('svg', { viewBox: '0 0 100 100', 'aria-hidden': 'true' });
-      sw.appendChild(svgEl('rect', { width: '100', height: '100', fill: bg.ground }));
       var g = svgEl('g');
       bg.draw(g);
       sw.appendChild(g);
