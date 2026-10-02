@@ -197,6 +197,24 @@ section{scroll-margin-top:92px}
 
 .proof-note{font-size:.9375rem;color:var(--ink-2);line-height:1.55}
 .proof-note b{color:var(--ink)}
+.bg-row{display:flex;gap:8px;flex-wrap:wrap}
+.bg-pick{
+  flex:1 1 68px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;
+  font-family:var(--f-body);font-weight:700;font-size:.8125rem;line-height:1.2;color:var(--ink);
+  background:var(--surface);border:2px solid var(--rule-2);border-radius:var(--r-sm);
+  padding:4px 4px 7px;cursor:pointer;
+}
+.bg-pick img,.bg-none{
+  width:100%;height:48px;border-radius:3px;display:block;object-fit:cover;
+}
+.bg-none{
+  display:flex;align-items:center;justify-content:center;
+  background:var(--surface-2);color:var(--ink-3);font-size:.75rem;
+}
+.bg-pick:hover{border-color:var(--ink)}
+.bg-pick:focus-visible{outline:2px solid var(--red-deep);outline-offset:2px}
+.bg-pick.is-on{border-color:var(--red);background:var(--red-soft);color:var(--red-deep)}
+.price-extra{margin:0;font-size:.9375rem;font-weight:700;color:var(--ink);line-height:1.4}
 .nudge{
   font-size:.9375rem;font-weight:500;color:var(--ink-2);
   background:var(--surface-2);border:1px solid var(--rule-2);border-radius:var(--r-sm);
@@ -675,6 +693,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
               <stop class="stop-sky-c" offset="100%"/>
             </linearGradient>
             <clipPath id="panelClip"><rect x="178" y="146" width="140" height="172" rx="7"/></clipPath>
+            <clipPath id="wrapClip"><rect id="wrap-clip-rect" x="166" y="142" width="153" height="195" rx="6"/></clipPath>
             <clipPath id="snapA"><rect x="39" y="67" width="100" height="94"/></clipPath>
             <clipPath id="snapB"><rect x="379" y="249" width="100" height="94"/></clipPath>
             <linearGradient id="famSky" x1="0" y1="0" x2="0" y2="1">
@@ -768,6 +787,10 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
                (sx = width/116, sy = height/140, tx = x - 190*sx, ty = y - 152*sy).
                The scenes themselves never need touching. -->
           <rect class="f-ground mug-drawn" id="panel-ground" x="178" y="146" width="140" height="172" rx="7"/>
+          <!-- A premade wrap, edge to edge on the ceramic. The customer's photo
+               is drawn later, on top of this, in the print. -->
+          <image class="mug-wrap" id="mug-wrap" x="166" y="142" width="153" height="195"
+                 preserveAspectRatio="xMidYMid slice" clip-path="url(#wrapClip)" hidden/>
           <g class="panel-art" clip-path="url(#panelClip)">
            <g id="panel-fit" transform="translate(-51.3103,-40.7429) scale(1.206897,1.228571)">
 
@@ -929,6 +952,12 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
               <text fill="#F6E7D4" x="248" y="258" font-family="DM Sans, sans-serif" font-size="9" text-anchor="middle" textLength="42" lengthAdjust="spacingAndGlyphs">EST. 2019</text>
             </g>
            </g>
+          </g>
+          <!-- The customer's photo, opaque, when a wrap is behind it. Same
+               clip and the same transform as the scenes, so position, zoom
+               and margins land where they always have. -->
+          <g id="photo-over" clip-path="url(#panelClip)" hidden>
+            <g id="photo-over-fit"></g>
           </g>
           <rect class="s-rule2 mug-drawn" id="panel-edge" x="178" y="146" width="140" height="172" rx="7" fill="none" stroke-width="1.6" opacity=".8"/>
 
@@ -1745,7 +1774,14 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
      the print area can move without a single scene being touched. */
   var ART_BOX     = [190, 152, 116, 140];   /* the box the scenes are drawn in */
   var DRAWN_PRINT = [178, 146, 140, 172];   /* the print on the drawn mug      */
+  var DRAWN_BODY  = [164, 126, 168, 218];   /* the drawn mug's ceramic, no handle */
   var PHOTO_FRAME = [103,  70, 315, 315];   /* where the photograph is placed  */
+  /* The ceramic body of the 1100px mug photograph: left, top, right, bottom.
+     A wrap covers this edge to edge. The handle is to the right of it, and
+     the print the photo sits on is inset from it. Swap the photograph and
+     this box is wrong until it is remeasured, same as PRINT_AREA. */
+  var BODY_PX = [221, 250, 756, 930];
+  var MUG_SRC = 1100;
 
   /* Where each photo sits, in SVG user units: [x, y, width, height]. */
   var PHOTO_BOX = {
@@ -1817,6 +1853,13 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     return [f[0] + a.x * f[2], f[1] + a.y * f[3], a.w * f[2], a.h * f[3]];
   }
 
+  /** The whole ceramic, edge to edge, in SVG user units. The handle is left out. */
+  function bodyBox() {
+    if (!mugPhoto()) return DRAWN_BODY.slice();
+    var f = PHOTO_FRAME, s = f[2] / MUG_SRC, b = BODY_PX;
+    return [f[0] + b[0] * s, f[1] + b[1] * s, (b[2] - b[0]) * s, (b[3] - b[1]) * s];
+  }
+
   /**
    * Points the whole mug preview at the current print box: the clip, the white
    * ground, the outline, and the transform that carries the artwork there.
@@ -1862,13 +1905,25 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       : 'Illustrated example \u2014 your mug carries your photo.';
 
     var fit = svg.querySelector('#panel-fit');
-    if (fit) {
-      var sx = b[2] / ART_BOX[2], sy = b[3] / ART_BOX[3];
-      fit.setAttribute('transform',
-        'translate(' + (b[0] - ART_BOX[0] * sx).toFixed(4) + ',' +
-                       (b[1] - ART_BOX[1] * sy).toFixed(4) + ') ' +
-        'scale(' + sx.toFixed(6) + ',' + sy.toFixed(6) + ')');
-    }
+    var sx = b[2] / ART_BOX[2], sy = b[3] / ART_BOX[3];
+    var tf = 'translate(' + (b[0] - ART_BOX[0] * sx).toFixed(4) + ',' +
+                           (b[1] - ART_BOX[1] * sy).toFixed(4) + ') ' +
+             'scale(' + sx.toFixed(6) + ',' + sy.toFixed(6) + ')';
+    if (fit) fit.setAttribute('transform', tf);
+    /* The photo on top of a wrap uses the same mapping as the scenes. */
+    var overFit = svg.querySelector('#photo-over-fit');
+    if (overFit) overFit.setAttribute('transform', tf);
+
+    var body = bodyBox();
+    var wrapClip = svg.querySelector('#wrap-clip-rect');
+    var wrap = svg.querySelector('#mug-wrap');
+    [wrapClip, wrap].forEach(function (r) {
+      if (!r) return;
+      r.setAttribute('x', body[0].toFixed(3));
+      r.setAttribute('y', body[1].toFixed(3));
+      r.setAttribute('width', body[2].toFixed(3));
+      r.setAttribute('height', body[3].toFixed(3));
+    });
   }
 
   function photos() {
@@ -1966,8 +2021,10 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   function mountPhotos() {
     var SVG = 'http://www.w3.org/2000/svg', XLINK = 'http://www.w3.org/1999/xlink', live = photos();
     layoutPanel();
-    /* :not(.mug-base) — the mug photograph is the backdrop, not an overlay. */
-    Array.prototype.forEach.call(document.querySelectorAll('.mug-svg image:not(.mug-base)'),
+    /* .mug-base is the product photograph. .mug-wrap is a premade background
+       on the ceramic, not one of the example overlays. */
+    Array.prototype.forEach.call(
+      document.querySelectorAll('.mug-svg image:not(.mug-base):not(.mug-wrap)'),
       function (n) { n.remove(); });
     Object.keys(live).forEach(function (key) {
       var src = live[key];
@@ -1991,6 +2048,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       var src = live[img.getAttribute('data-photo')];
       if (src) img.src = src;
     });
+    paintCustomerArt();
   }
   /* ══ Shop ══ */
 
@@ -2030,9 +2088,14 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     box.appendChild(facts);
 
     var price = el('p', 'single-price');
-    price.appendChild(el('b', null, money(p.price)));
+    var priceB = el('b', null, money(unitPrice(p)));
+    priceB.id = 'mug-price';
+    price.appendChild(priceB);
     price.appendChild(el('span', null, 'each'));
     box.appendChild(price);
+    var extra = el('p', 'price-extra');
+    extra.id = 'price-extra';
+    box.appendChild(extra);
 
     /* The photo control sits with the price, above the longer list, so it is
        on the first screen instead of running off the bottom of the card. */
@@ -2063,9 +2126,17 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     var nudge = el('p', 'nudge');
     nudge.id = 'buy-nudge';
     box.appendChild(nudge);
-    var refresh = function () { nudgeInto(nudge, Number(qty.value) * p.price, p.price); };
-    qty.addEventListener('change', refresh);
-    refresh();
+    refreshPrice = function () {
+      var unit = unitPrice(p);
+      if (priceB) priceB.textContent = money(unit);
+      if (extra) {
+        extra.hidden = !chosenBg;
+        extra.textContent = chosenBg ? chosenBg.name + ', $' + BG_EXTRA : '';
+      }
+      nudgeInto(nudge, Number(qty.value) * unit, unit);
+    };
+    qty.addEventListener('change', refreshPrice);
+    refreshPrice();
 
     /* Said before payment, not after, so nobody discovers how the photo gets to
        us only once they have already paid. */
@@ -2100,6 +2171,98 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
      and height. */
   var ownPhoto = null;
 
+  /* Premade wraps. $8 is added to the price this page shows and to the order
+     built here. Shopify still charges the mug's own variant; the name and the
+     $8 ride along as a cart attribute on the cart-permalink path. A product
+     URL cannot carry that attribute. */
+  var BG_EXTRA = 8;
+  var BACKGROUNDS = [
+    { id: 'trees', name: 'Trees', src: 'assets/backgrounds/trees.jpg' },
+    { id: 'snow', name: 'Snow', src: 'assets/backgrounds/snow.jpg' },
+    { id: 'ornaments', name: 'Ornaments', src: 'assets/backgrounds/ornaments.jpg' }
+  ];
+  var chosenBg = null;
+  var refreshPrice = function () {};
+
+  function unitPrice(p) {
+    var base = p ? Number(p.price) || 0 : 0;
+    return base + (chosenBg ? BG_EXTRA : 0);
+  }
+
+  function paintWrap() {
+    var img = document.querySelector('#mug-wrap');
+    if (!img) return;
+    if (!chosenBg) {
+      img.removeAttribute('href');
+      img.removeAttributeNS('http://www.w3.org/1999/xlink', 'href');
+      return;
+    }
+    img.setAttribute('href', chosenBg.src);
+    img.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', chosenBg.src);
+  }
+
+  /** Shows the wrap and the photo-on-top only while the customer's mug is the scene. */
+  function syncSceneChrome() {
+    var on = document.querySelector('.memory.is-on');
+    var yours = !!(on && on.getAttribute('data-key') === 'yours');
+    var wrap = document.querySelector('#mug-wrap');
+    if (wrap) {
+      if (chosenBg && yours) wrap.removeAttribute('hidden');
+      else wrap.setAttribute('hidden', '');
+    }
+    var over = $('photo-over');
+    if (over) {
+      if (chosenBg && yours && ownPhoto) over.removeAttribute('hidden');
+      else over.setAttribute('hidden', '');
+    }
+    var cap = $('mug-caption');
+    if (cap && yours && chosenBg) {
+      cap.textContent = ownPhoto
+        ? 'Your photo on ' + chosenBg.name + '. Move it, zoom it, or leave a margin.'
+        : chosenBg.name + ' wraps the whole mug. Your photo sits on top.';
+    }
+    var row = $('bg-row');
+    if (row) {
+      Array.prototype.forEach.call(row.querySelectorAll('.bg-pick'), function (b) {
+        var onThis = (b.getAttribute('data-bg') || '') === (chosenBg ? chosenBg.id : '');
+        b.classList.toggle('is-on', onThis);
+        b.setAttribute('aria-pressed', onThis ? 'true' : 'false');
+      });
+    }
+  }
+
+  function showCustomerMug() {
+    var chip = $('chip-yours');
+    if (chip) { chip.hidden = false; chip.click(); }
+    syncSceneChrome();
+  }
+
+  function chooseBg(id) {
+    chosenBg = null;
+    BACKGROUNDS.forEach(function (b) { if (b.id === id) chosenBg = b; });
+    paintWrap();
+    paintOwnPhoto(ownPhoto ? ownPhoto.dataUri : null);
+    if (chosenBg) showCustomerMug();
+    else if (!ownPhoto) {
+      var chip = $('chip-yours');
+      if (chip) { chip.hidden = true; chip.setAttribute('aria-pressed', 'false'); }
+      var back = $('chip-family');
+      if (back) back.click();
+    } else {
+      /* Back on the plain photo. Clicking the chip lets its own caption return. */
+      var yours = $('chip-yours');
+      if (yours) yours.click();
+    }
+    syncSceneChrome();
+    refreshPrice();
+  }
+
+  function paintCustomerArt() {
+    paintWrap();
+    if (ownPhoto) paintOwnPhoto(ownPhoto.dataUri);
+    syncSceneChrome();
+  }
+
   /**
    * Works out the rectangle the photo is drawn into, in the space the scenes
    * are drawn in, clamping the offset back into range as it goes.
@@ -2133,8 +2296,10 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   function paintOwnPhoto(dataUri) {
     var SVG = 'http://www.w3.org/2000/svg', XLINK = 'http://www.w3.org/1999/xlink';
     var g = document.querySelector('.memory[data-key="yours"]');
+    var over = document.querySelector('#photo-over-fit');
     if (!g) return;
     g.innerHTML = '';
+    if (over) over.innerHTML = '';
     var frame = document.querySelector('.hero .mug-frame');
     if (frame) {
       frame.classList.toggle('has-mine', !!dataUri);
@@ -2149,7 +2314,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         frame.removeAttribute('aria-label');
       }
     }
-    if (!dataUri) { syncPhotoControls(); return; }
+    if (!dataUri) { syncPhotoControls(); syncSceneChrome(); return; }
 
     var r = photoRect();
     var img = document.createElementNS(SVG, 'image');
@@ -2162,12 +2327,15 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       img.setAttribute('width', ART_BOX[2]); img.setAttribute('height', ART_BOX[3]);
     }
     /* The box is already the photo's own aspect; slice absorbs the rounding
-       rather than letterboxing it. */
+       rather than letterboxing it. With a wrap behind it, the photo is drawn
+       in the overlay so it sits on top of the design instead of multiplying
+       into it. */
     img.setAttribute('preserveAspectRatio', 'xMidYMid slice');
     img.setAttribute('href', dataUri);
     img.setAttributeNS(XLINK, 'xlink:href', dataUri);
-    g.appendChild(img);
+    (chosenBg && over ? over : g).appendChild(img);
     syncPhotoControls();
+    syncSceneChrome();
   }
 
   /**
@@ -2302,6 +2470,36 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     row.appendChild(name);
     wrap.appendChild(row);
 
+    wrap.appendChild(el('p', 'proof-head', 'Christmas background'));
+    var bgRow = el('div', 'bg-row');
+    bgRow.id = 'bg-row';
+    bgRow.setAttribute('role', 'group');
+    bgRow.setAttribute('aria-label', 'Christmas background');
+    function bgButton(id, label, src) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'bg-pick';
+      b.setAttribute('data-bg', id);
+      b.setAttribute('aria-pressed', 'false');
+      if (src) {
+        var im = document.createElement('img');
+        im.src = src; im.alt = '';
+        b.appendChild(im);
+      } else {
+        b.appendChild(el('span', 'bg-none', ''));
+      }
+      b.appendChild(document.createTextNode(label));
+      b.onclick = function () { chooseBg(id); };
+      return b;
+    }
+    bgRow.appendChild(bgButton('', 'None', ''));
+    BACKGROUNDS.forEach(function (bg) {
+      bgRow.appendChild(bgButton(bg.id, bg.name, bg.src));
+    });
+    wrap.appendChild(bgRow);
+    wrap.appendChild(el('p', 'proof-note',
+      'Wraps the whole mug, edge to edge. Your photo sits on top. Add one for $8, or leave it off.'));
+
     /* Only useful once there is a photo, so it starts hidden and
        syncPhotoControls() decides from the state, not from the caller. */
     var tools = el('div', 'proof-tools');
@@ -2358,10 +2556,14 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       drop.onclick = function () {
         ownPhoto = null; input.value = '';
         paintOwnPhoto(null);
-        var chip = $('chip-yours');
-        if (chip) { chip.hidden = true; chip.setAttribute('aria-pressed','false'); }
-        var back = $('chip-family');
-        if (back) back.click();
+        if (!chosenBg) {
+          var chip = $('chip-yours');
+          if (chip) { chip.hidden = true; chip.setAttribute('aria-pressed','false'); }
+          var back = $('chip-family');
+          if (back) back.click();
+        } else {
+          syncSceneChrome();
+        }
         name.textContent = ''; drop.remove(); setNote();
       };
       row.appendChild(drop);
@@ -2403,6 +2605,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     if (ownPhoto) { name.textContent = ownPhoto.name; addDrop(); }
     setNote();
     syncPhotoControls();
+    syncSceneChrome();
     return wrap;
   }
 
@@ -2414,10 +2617,17 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
   function add(p, qty) {
     qty = Math.max(1, Math.min(99, Number(qty) || 1));
+    var price = unitPrice(p);
+    var background = chosenBg ? chosenBg.name : '';
     var line = null;
     cart.forEach(function (l) { if (l.key === p.key) line = l; });
-    if (line) line.qty = Math.min(99, line.qty + qty);
-    else cart.push({ key:p.key, title:p.title, price:p.price, image:p.image || '', qty:qty });
+    if (line) {
+      line.qty = Math.min(99, line.qty + qty);
+      line.price = price;
+      line.background = background;
+    } else {
+      cart.push({ key:p.key, title:p.title, price:price, image:p.image || '', qty:qty, background:background });
+    }
     save();
   }
 
@@ -2450,6 +2660,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
       var main = el('div', 'line-main');
       main.appendChild(el('b', null, l.title));
+      if (l.background) main.appendChild(el('span', 'line-sub', l.background + ', $' + BG_EXTRA));
 
       var qtyRow = el('div', 'line-qty');
       var sel = document.createElement('select');
@@ -2540,6 +2751,13 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     if (ownPhoto && ownPhoto.name) {
       qs.push('attributes[Photo to expect]=' + encodeURIComponent(ownPhoto.name));
     }
+    /* The page price includes the $8. Shopify charges the variant, so the
+       background rides along here for the shop to add on their side. */
+    cart.forEach(function (l) {
+      if (l.background) {
+        qs.push('attributes[Background]=' + encodeURIComponent(l.background + ', $' + BG_EXTRA));
+      }
+    });
     var place = placementNote();
     if (place) qs.push('attributes[Photo placement]=' + encodeURIComponent(place));
     return { url: 'https://' + host(c) + '/cart/' + parts.join(',') + '?' + qs.join('&') };
@@ -3106,6 +3324,12 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     renderMugSlot();
     wireMugSlot();
     wirePhotoDrag();
+    Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+      chip.addEventListener('click', function () {
+        if (!chip.getAttribute('data-key')) return;
+        syncSceneChrome();
+      });
+    });
     applyConfig();
     buildVariantFields();
     renderShop();
