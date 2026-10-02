@@ -1507,7 +1507,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         <p class="admin-sec">Background</p>
         <div class="proof-zoom">
           <label for="bg-admin-size">Size</label>
-          <input id="bg-admin-size" type="range" min="22" max="170" step="2" value="32">
+          <input id="bg-admin-size" type="range" min="70" max="150" step="2" value="100">
         </div>
         <div class="proof-zoom">
           <span class="proof-k" id="bg-admin-pos-label">Position</span>
@@ -1816,7 +1816,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   /* How the background template sits on the ceramic: motif size in the wrap's
      own units, and a shift as a fraction of that wrap. The admin panel moves
      these; the download writes them back here. */
-  var WRAP_FIT = { size: 32, x: 0, y: 0 };
+  var WRAP_FIT = { size: 100, x: 0, y: 0 };
 
   /* Photos of real finished mugs. A URL or a data: URI; blank leaves the drawing.
      Credits for the files below live in assets/examples/CREDITS.md, not on the page. */
@@ -2241,12 +2241,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
      $8 ride along as a cart attribute on the cart-permalink path. A product
      URL cannot carry that attribute. */
   var BG_EXTRA = 8;
-  /* Cell size in the wrap's own units. Smaller packs more motifs across the
-     ceramic. The default is a field of mini trees; a larger size makes fewer,
-     bigger ones, up to a single motif. */
-  var PATTERN_MIN = 22;
-  var PATTERN_MAX = 170;
-  var patternSize = 32;
+  /* Percent of the cover fit. 100 places one template across the wrap.
+     Size nudges that scale. There is no repeat. */
+  var PATTERN_MIN = 70;
+  var PATTERN_MAX = 150;
+  var patternSize = 100;
   var patternX = 0;
   var patternY = 0;
   var lastBgId = 'tree';
@@ -2300,7 +2299,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     var size = Number(saved.size != null ? saved.size : base.size);
     var x = Number(saved.x != null ? saved.x : base.x);
     var y = Number(saved.y != null ? saved.y : base.y);
-    if (!isFinite(size)) size = 32;
+    if (!isFinite(size)) size = 100;
     if (!isFinite(x)) x = 0;
     if (!isFinite(y)) y = 0;
     return {
@@ -2316,11 +2315,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     patternY = f.y;
   })();
 
-  /** How wide one repeat is, as a percent of the ceramic. */
+  /** Template scale as a percent of the cover fit. */
   function patternPct() {
-    var w = bodyBox()[2];
-    if (!w) return 0;
-    return Math.max(1, Math.round(patternSize / w * 100));
+    return Math.max(1, Math.round(patternSize));
   }
 
   function unitPrice(p) {
@@ -2329,9 +2326,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   }
 
   /**
-   * Draws one template into the ceramic box. The grid divides that box
-   * exactly, and each motif is scaled to its cell, so the artwork is the
-   * size of the wrap instead of a tile that can run off the edge.
+   * Draws one template into the ceramic box. At size 100 the art box covers
+   * the wrap, and the clip keeps it on the ceramic. Size scales that fit.
+   * Position shifts it. Nothing is repeated.
    */
   /** Draws bg into one wrap svg. A null bg clears it. */
   function paintWrapHost(host, ground, motif, clip, bg) {
@@ -2354,25 +2351,16 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     ground.setAttribute('height', H.toFixed(3));
     if (!bg) return;
     ground.setAttribute('fill', bg.ground);
-    var cols = Math.max(1, Math.min(8, Math.round(W / patternSize)));
-    var cellW = W / cols;
-    var rows = Math.max(1, Math.min(10, Math.round(H / cellW)));
-    var cellH = H / rows;
-    var m = Math.min(cellW, cellH) * 0.9;
-    var scale = m / 100;
-    var dx = patternX * W, dy = patternY * H;
-    for (var r = 0; r < rows; r++) {
-      for (var c = 0; c < cols; c++) {
-        var x = c * cellW + (cellW - m) / 2 + dx;
-        var y = r * cellH + (cellH - m) / 2 + dy;
-        var g = svgEl('g', {
-          transform: 'translate(' + x.toFixed(3) + ',' + y.toFixed(3) +
-            ') scale(' + scale.toFixed(6) + ')'
-        });
-        bg.draw(g);
-        motif.appendChild(g);
-      }
-    }
+    var scale = (Math.max(W, H) / 100) * (patternSize / 100);
+    var m = 100 * scale;
+    var x = (W - m) / 2 + patternX * W;
+    var y = (H - m) / 2 + patternY * H;
+    var g = svgEl('g', {
+      transform: 'translate(' + x.toFixed(3) + ',' + y.toFixed(3) +
+        ') scale(' + scale.toFixed(6) + ')'
+    });
+    bg.draw(g);
+    motif.appendChild(g);
   }
 
   /* Both clips sit inside their wrap svg. Parent-mug coordinates miss that
