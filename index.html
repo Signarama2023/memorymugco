@@ -197,6 +197,11 @@ section{scroll-margin-top:92px}
 
 .proof-note{font-size:.9375rem;color:var(--ink-2);line-height:1.55}
 .proof-note b{color:var(--ink)}
+.proof-warn{
+  margin:0;padding:10px 12px;border-radius:6px;border:1.5px solid var(--red);
+  background:var(--red-soft);color:var(--red-deep);
+  font-weight:700;font-size:.9375rem;line-height:1.45;
+}
 .nudge{
   font-size:.9375rem;font-weight:500;color:var(--ink-2);
   background:var(--surface-2);border:1px solid var(--rule-2);border-radius:var(--r-sm);
@@ -609,7 +614,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
 <!-- ══ PROMO BAR ═══════════════════════════════════════════ -->
 <div class="promo">
-  <p>Every mug is proofed before we print &mdash; no surprises</p>
+  <p>You see the mug on this page before we print &mdash; no surprises</p>
 </div>
 
 <!-- ══ HEADER ══════════════════════════════════════════════ -->
@@ -640,7 +645,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       </svg>
       <span class="cart-count" id="cart-count" hidden>0</span>
     </button>
-    <a class="btn btn--fill btn--sm" href="#start">Make my mug</a>
+    <a class="btn btn--fill btn--sm" href="#order">Make my mug</a>
   </div>
 </header>
 
@@ -986,7 +991,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   <div class="wrap">
     <div class="ticker-row">
       <div class="ticker-cell"><span class="ticker-k">Order as few as</span><span class="ticker-v">One mug</span></div>
-      <div class="ticker-cell"><span class="ticker-k">Proof lands in</span><span class="ticker-v">1 business day</span></div>
+      <div class="ticker-cell"><span class="ticker-k">You see it</span><span class="ticker-v">On this page</span></div>
       <div class="ticker-cell"><span class="ticker-k">On your counter in</span><span class="ticker-v">5–7 days</span></div>
       <div class="ticker-cell"><span class="ticker-k">Pressed</span><span class="ticker-v">In our own shop</span></div>
     </div>
@@ -1064,12 +1069,12 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       <div class="step">
         <span class="step-n">1</span>
         <h3 id="step1-h">Send the photo</h3>
-        <p id="step1-p">Text it, email it, or drag it in. No cropping, no resizing, no file types to worry about. If it's too small to print well, we'll tell you before you pay a dime.</p>
+        <p id="step1-p">Choose it on the mug up top, then email the same photo after you order. If it's too small to print well, the mug on this page goes soft before you pay.</p>
       </div>
       <div class="step">
         <span class="step-n">2</span>
-        <h3>Say yes to the proof</h3>
-        <p>Within a day you get a picture of the actual mug. Want it bigger, moved over, a different photo entirely? Just say so — nothing gets printed until you're happy.</p>
+        <h3>Say yes to the mug you see</h3>
+        <p>Move it, zoom it, or leave a little margin. If the photo is too small, the mug goes soft right here, the same way it would print. When it looks right, order that one.</p>
       </div>
       <div class="step">
         <span class="step-n">3</span>
@@ -1118,7 +1123,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         <dt>Print area</dt><dd>Full wrap, edge to edge</dd>
         <dt>Color</dt><dd>Hand-corrected per photo</dd>
         <dt>Care</dt><dd>Dishwasher + microwave safe</dd>
-        <dt>Proof</dt><dd>Digital, 1 business day</dd>
+        <dt>Proof</dt><dd>On this page, before you order</dd>
         <dt>Turnaround</dt><dd>5–7 business days</dd>
         <dt>Minimum</dt><dd>One. Seriously, one.</dd>
       </dl>
@@ -1165,10 +1170,10 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       <details open>
         <summary>Will a photo off my phone actually look good?</summary>
         <div class="faq-a">
-          Almost always, yes. Anything shot on a phone in roughly the last decade has plenty
-          of resolution for an 8.5-inch print. Where it gets dicey is screenshots, photos that
-          got squashed by a group text, and old scans. Send it anyway — a human looks at every
-          file and tells you straight if it won't hold up, before you're charged.
+          Almost always, yes. A photo from your phone is usually plenty for the mug.
+          Screenshots, photos squashed by a group text, and old scans are the ones that
+          get soft. Put it on the mug here — if it would print blurry, the mug goes
+          blurry, before you're charged.
         </div>
       </details>
       <details>
@@ -1199,7 +1204,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         <div class="faq-a">
           Yep, and it's free. Very common with pets and with the one good photo of somebody
           that happens to have a stranger's elbow in it. We can also drop in a solid color,
-          add a name, or combine two photos side by side. Just ask on the proof.
+          add a name, or combine two photos side by side. Just say so with the order.
         </div>
       </details>
       <details>
@@ -1211,10 +1216,10 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         </div>
       </details>
       <details>
-        <summary>What if I don't like the proof?</summary>
+        <summary>What if I don't like how it looks?</summary>
         <div class="faq-a">
-          Then we change it. Crop, text, placement, a totally different photo — we'll keep adjusting it until
-          you're happy. Nothing gets pressed until you say so.
+          Move it, zoom it, or pick another photo. What you see on the mug is what we
+          print. Nothing gets pressed until you order that one.
         </div>
       </details>
       <details>
@@ -1232,36 +1237,15 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
 <!-- ══ CLOSER ══════════════════════════════════════════════ -->
 <section class="band closer" id="start">
-  <div class="wrap closer-grid">
+  <div class="wrap closer-copy">
     <div class="closer-copy">
       <p class="eyebrow">Make my mug</p>
       <h2>You've already got the photo. That's the hard part done.</h2>
       <p class="lede">
-        Send it over and we'll come back with a proof within one business day. No account to
-        make, no checkout until you've seen exactly what you're getting.
+        Put it on the mug and you'll see it the way it will print. If it looks
+        blurry there, it will look blurry when it arrives.
       </p>
-    </div>
-
-    <div>
-      <form class="signup" id="start-form" novalidate>
-        <label for="start-email">Where should we send the proof?</label>
-        <div class="signup-row">
-          <input id="start-email" name="email" type="email" autocomplete="email" placeholder="you@email.com" required>
-          <button class="btn btn--fill" type="submit">Send my photo</button>
-        </div>
-        <p class="signup-fine">
-          We'll write back from the shop and you can attach the photo right to that email.
-          No list, no newsletter, no handing your address to anybody.
-        </p>
-      </form>
-
-      <div class="signup-done" id="start-done" hidden>
-        <span class="tick" aria-hidden="true">✓</span>
-        <div>
-          <b>Got it!</b>
-          <p id="start-done-msg">Reply to the email we just sent and attach your photo — we'll have a proof back to you within one business day.</p>
-        </div>
-      </div>
+      <p><a class="btn btn--fill" href="#order">See it on the mug</a></p>
     </div>
   </div>
 </section>
@@ -1275,7 +1259,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       <div class="foot-brand">
         <span class="brand-name">Memory Mug Company</span>
         <p>
-          Custom photo mugs, proofed and pressed by hand. A shop of
+          Custom photo mugs, pressed by hand. A shop of
           <a href="https://h3customs.com" data-cfg-href="operatorUrl"><span data-cfg="operatorName">H3 Customs</span></a> — tumblers, apparel, signage
           and custom work since day one.
         </p>
@@ -1285,7 +1269,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
           <h4>Shop</h4>
           <a href="#mugs">What goes on it</a>
           <a href="#order">The mug &amp; price</a>
-          <a href="#start">Start an order</a>
+          <a href="#order">Start an order</a>
         </div>
         <div class="foot-col">
           <h4>Details</h4>
@@ -1572,7 +1556,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     hand:   "Her actual handwriting, lifted off the note. Same pen pressure, same shaky letters.",
     recipe: "The index card as she wrote it, big enough to read from across the counter.",
     team:   "Your logo or your crew badge, printed sharp on the white base.",
-    yours:  "Your photo, about where it will sit. Drag or zoom to move it; we send a real proof before printing."
+    yours:  "Your photo, where it will sit. If it looks soft here, it will print soft."
   };
 
   var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
@@ -1604,34 +1588,6 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
   /* No auto-rotation: the designs change only when someone picks one.
      Moving the product while a buyer is reading it costs more than it shows. */
-
-  /* ── Start form ────────────────────────────────────── */
-  var form = document.getElementById('start-form');
-  var done = document.getElementById('start-done');
-  var doneMsg = document.getElementById('start-done-msg');
-  var email = document.getElementById('start-email');
-
-  if (form && done && email) {
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      var value = email.value.trim();
-      if (!value || value.indexOf('@') < 1 || value.indexOf('.', value.indexOf('@')) < 0) {
-        email.focus();
-        email.setAttribute('aria-invalid', 'true');
-        return;
-      }
-      email.removeAttribute('aria-invalid');
-      if (doneMsg) {
-        doneMsg.textContent =
-          'Reply to the email heading to ' + value +
-          ' and attach your photo — we’ll have a proof back to you within one business day.';
-      }
-      form.hidden = true;
-      done.hidden = false;
-      done.setAttribute('tabindex', '-1');
-      done.focus();
-    });
-  }
 })();
 </script>
 
@@ -1701,7 +1657,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       { key:'mug', title:'The Memory Mug', price:28, variantId:'', image:'',
         blurb:'White ceramic, 15 oz. Your photo wrapped the whole way around, cured into the glaze.',
         includes:[
-          'A digital proof before anything is printed',
+          'You see how it will print, before you order',
           'Color correction by hand, every time',
           'Background removal if you want it — no charge',
           'Dishwasher and microwave safe, for good',
@@ -2037,6 +1993,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     /* The photo control sits with the price, above the longer list, so it is
        on the first screen instead of running off the bottom of the card. */
     box.appendChild(buildProofPicker());
+    syncPhotoControls();
 
     if (p.includes.length) {
       var ul = el('ul', 'single-list');
@@ -2070,8 +2027,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     /* Said before payment, not after, so nobody discovers how the photo gets to
        us only once they have already paid. */
     box.appendChild(el('p', 'buy-process', uploadFlow(c)
-      ? 'Checkout happens on Shopify, where you attach your photo to the order. '
-        + 'We send a proof back before anything is printed.'
+      ? 'Checkout happens on Shopify, where you attach your photo to the order.'
       : 'After checkout, email your photo with your order number to ' + (c.supportEmail || '')
         + ' and we\u2019ll put it on the mug. We write to you as soon as the order lands, '
         + 'so you can just reply to that.'));
@@ -2090,15 +2046,26 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
   /* ══ The customer's own photo ══
      A file picker is NOT an upload. The image is read in this browser and
-     drawn on the mug so they can see roughly how it sits; it never leaves
-     the device, and a Shopify cart permalink cannot carry a file. So the
-     wording promises a preview and nothing more, and the filename rides
-     along on the order so the emailed photo can be matched to it. */
-  /* { dataUri, name, w, h, zoom, ox, oy } — in memory only, never stored.
-     zoom 1 is the photo just covering the print; above that it crops in.
-     ox/oy are the offset from centre as a fraction of the print's own width
-     and height. */
+     drawn on the mug; it never leaves the device, and a Shopify cart permalink
+     cannot carry a file. The mug on the page is the proof of how it will print.
+     The filename rides along on the order so the emailed photo can be matched. */
+  /* { sharpUri, img, srcW, srcH, blobUrl, name, w, h, zoom, ox, oy, margin }
+     in memory only, never stored. zoom 1 is the photo just covering the print;
+     above that it crops in. ox/oy are the offset from centre as a fraction of
+     the print's own width and height. srcW/srcH are the file's real pixels,
+     before any shrink used only to keep the sharp drawing light. */
   var ownPhoto = null;
+
+  /* The page calls it a full wrap on a 15 oz mug and does not publish the
+     inches. These are a typical 15 oz white ceramic wrap — 8.5 inches wide
+     by 3.75 inches tall — and they stay in this file rather than on the page.
+     300 pixels per inch is a clean print. The mug is drawn soft once the
+     pixels covering that area would land under about 200 per inch, which is
+     where a mug starts to look blurry. A phone photo clears it; a screenshot,
+     a heavy zoom, or a tiny file does not. */
+  var PRINT_W_IN = 8.5, PRINT_H_IN = 3.75, PRINT_PPI = 300;
+  var SOFT_BELOW = 200 / 300;
+  var softCache = { key: '', uri: '' };
 
   /**
    * Works out the rectangle the photo is drawn into, in the space the scenes
@@ -2130,6 +2097,79 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
              w: w, h: h, canMoveX: mx > 0.001, canMoveY: my > 0.001 };
   }
 
+  /**
+   * How the photo covers the printed area, after zoom and margins.
+   * fit is 1 at 300 pixels per inch across the wrap; under SOFT_BELOW it will print soft.
+   * Panning does not change this — the pixels per inch stay the same.
+   */
+  function coverage() {
+    if (!ownPhoto || !ownPhoto.srcW || !ownPhoto.srcH) return null;
+    var r = photoRect();
+    if (!r || !r.w || !r.h) return null;
+    var m = ownPhoto.margin || 0;
+    var boxW = ART_BOX[2] * (1 - 2 * m), boxH = ART_BOX[3] * (1 - 2 * m);
+    var haveW = ownPhoto.srcW * (boxW / r.w);
+    var haveH = ownPhoto.srcH * (boxH / r.h);
+    var needW = PRINT_W_IN * (1 - 2 * m) * PRINT_PPI;
+    var needH = PRINT_H_IN * (1 - 2 * m) * PRINT_PPI;
+    var fit = Math.min(haveW / needW, haveH / needH);
+    return { fit: fit, soft: fit < SOFT_BELOW };
+  }
+
+  /**
+   * The photo rectangle in screen pixels. photoRect() is in the scene's own
+   * space; layoutPanel() then scales that space onto the print, and the svg
+   * scales the print onto the page. Both have to be in the measurement, or
+   * the soft drawing is the wrong size and the mug lies about the print.
+   */
+  function photoScreenSize(r) {
+    var svg = document.querySelector('.hero .mug-svg');
+    if (!svg || !r) return null;
+    var br = svg.getBoundingClientRect();
+    var vb = svg.viewBox && svg.viewBox.baseVal;
+    if (!br.width || !br.height) return null;
+    var b = printBox();
+    var sx = b[2] / ART_BOX[2], sy = b[3] / ART_BOX[3];
+    var ux = br.width / ((vb && vb.width) || 1);
+    var uy = br.height / ((vb && vb.height) || 1);
+    return { w: Math.max(1, r.w * sx * ux), h: Math.max(1, r.h * sy * uy) };
+  }
+
+  /** A small drawing of the photo, so the mug looks as soft as the print will. */
+  function softUri() {
+    var cov = coverage();
+    if (!cov || !cov.soft || !ownPhoto.img) return null;
+    var screen = photoScreenSize(photoRect());
+    if (!screen) return null;
+    var bw = Math.max(2, Math.round(screen.w * cov.fit));
+    var bh = Math.max(2, Math.round(screen.h * cov.fit));
+    var key = [bw, bh, ownPhoto.srcW, ownPhoto.srcH,
+      Math.round(ownPhoto.zoom * 100), Math.round((ownPhoto.margin || 0) * 1000)].join('x');
+    if (softCache.key === key && softCache.uri) return softCache.uri;
+    var c = document.createElement('canvas');
+    c.width = bw; c.height = bh;
+    var ctx = c.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, bw, bh);
+    ctx.drawImage(ownPhoto.img, 0, 0, bw, bh);
+    var uri;
+    try { uri = c.toDataURL('image/jpeg', 0.8); }
+    catch (e) { return null; }
+    softCache = { key: key, uri: uri };
+    return uri;
+  }
+
+  function softWarning() {
+    if (!ownPhoto) return '';
+    var cov = coverage();
+    if (!cov || !cov.soft) return '';
+    return ownPhoto.zoom > 1.02
+      ? 'Zoomed in this far, it may come out blurry on the mug. Zoom back out, or choose a bigger photo.'
+      : 'This photo may come out blurry on the mug. A bigger one usually prints cleaner.';
+  }
+
   function paintOwnPhoto(dataUri) {
     var SVG = 'http://www.w3.org/2000/svg', XLINK = 'http://www.w3.org/1999/xlink';
     var g = document.querySelector('.memory[data-key="yours"]');
@@ -2152,6 +2192,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     if (!dataUri) { syncPhotoControls(); return; }
 
     var r = photoRect();
+    var href = softUri() || dataUri;
     var img = document.createElementNS(SVG, 'image');
     if (r) {
       img.setAttribute('x', r.x.toFixed(3)); img.setAttribute('y', r.y.toFixed(3));
@@ -2162,11 +2203,16 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       img.setAttribute('width', ART_BOX[2]); img.setAttribute('height', ART_BOX[3]);
     }
     /* The box is already the photo's own aspect; slice absorbs the rounding
-       rather than letterboxing it. */
+       rather than letterboxing it. A short photo is a small bitmap scaled up,
+       so the softness is the print's, not a separate blur. */
     img.setAttribute('preserveAspectRatio', 'xMidYMid slice');
-    img.setAttribute('href', dataUri);
-    img.setAttributeNS(XLINK, 'xlink:href', dataUri);
+    img.setAttribute('href', href);
+    img.setAttributeNS(XLINK, 'xlink:href', href);
     g.appendChild(img);
+    if (frame) {
+      var warn = softWarning();
+      frame.setAttribute('aria-label', warn ? 'Your photo. ' + warn : 'Your photo');
+    }
     syncPhotoControls();
   }
 
@@ -2190,25 +2236,25 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   function movePhoto(dx, dy) {
     if (!ownPhoto) return;
     ownPhoto.ox += dx; ownPhoto.oy += dy;
-    paintOwnPhoto(ownPhoto.dataUri);
+    paintOwnPhoto(ownPhoto.sharpUri);
   }
 
   function zoomPhoto(z) {
     if (!ownPhoto) return;
     ownPhoto.zoom = Math.max(1, Math.min(3, z));
-    paintOwnPhoto(ownPhoto.dataUri);
+    paintOwnPhoto(ownPhoto.sharpUri);
   }
 
   function setMargin(m) {
     if (!ownPhoto) return;
     ownPhoto.margin = Math.max(0, Math.min(0.2, m));
-    paintOwnPhoto(ownPhoto.dataUri);
+    paintOwnPhoto(ownPhoto.sharpUri);
   }
 
   function centerPhoto() {
     if (!ownPhoto) return;
     ownPhoto.zoom = 1; ownPhoto.ox = 0; ownPhoto.oy = 0;
-    paintOwnPhoto(ownPhoto.dataUri);
+    paintOwnPhoto(ownPhoto.sharpUri);
   }
 
   /** Keeps the slider and the hint in step with the photo's actual state. */
@@ -2223,6 +2269,32 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     if (margin && ownPhoto && document.activeElement !== margin) {
       margin.value = Math.round((ownPhoto.margin || 0) * 100);
     }
+    var warn = $('proof-warn');
+    if (warn) {
+      var text = softWarning();
+      warn.hidden = !text;
+      warn.textContent = text;
+    }
+    writeProofNote();
+  }
+
+  /** The line under the controls. The blur warning, when there is one, is separate. */
+  function writeProofNote() {
+    var note = $('proof-note');
+    if (!note) return;
+    var up = uploadFlow();
+    note.innerHTML = '';
+    if (!ownPhoto) {
+      note.appendChild(el('b', null, up ? 'Your photo uploads at checkout. ' : 'Preview on this device. '));
+      note.appendChild(document.createTextNode(up
+        ? 'Pick it here to see it on the mug, then attach the same file on the Shopify page and it lands straight on your order.'
+        : 'Your photo stays on your device. After checkout you email it over with your order number.'));
+      return;
+    }
+    if (!softWarning()) note.appendChild(el('b', null, 'This is how it will print. '));
+    note.appendChild(document.createTextNode(up
+      ? 'Nothing has been sent yet \u2014 it is still only in this browser. You attach this same file on the next page.'
+      : 'Your photo has not been sent \u2014 it stays in this browser. Email it after checkout with your order number.'));
   }
 
   /**
@@ -2302,6 +2374,12 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     row.appendChild(name);
     wrap.appendChild(row);
 
+    var warn = el('p', 'proof-warn');
+    warn.id = 'proof-warn';
+    warn.hidden = true;
+    warn.setAttribute('role', 'status');
+    wrap.appendChild(warn);
+
     /* Only useful once there is a photo, so it starts hidden and
        syncPhotoControls() decides from the state, not from the caller. */
     var tools = el('div', 'proof-tools');
@@ -2349,6 +2427,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     wrap.appendChild(tools);
 
     var note = el('p', 'proof-note');
+    note.id = 'proof-note';
     wrap.appendChild(note);
 
     var addDrop = function () {
@@ -2356,52 +2435,37 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       var drop = el('button', 'proof-drop', 'Remove');
       drop.type = 'button';
       drop.onclick = function () {
-        ownPhoto = null; input.value = '';
+        if (ownPhoto && ownPhoto.blobUrl) URL.revokeObjectURL(ownPhoto.blobUrl);
+        ownPhoto = null; softCache = { key: '', uri: '' }; input.value = '';
         paintOwnPhoto(null);
         var chip = $('chip-yours');
         if (chip) { chip.hidden = true; chip.setAttribute('aria-pressed','false'); }
         var back = $('chip-family');
         if (back) back.click();
-        name.textContent = ''; drop.remove(); setNote();
+        name.textContent = ''; drop.remove();
       };
       row.appendChild(drop);
-    };
-
-    /* Two honest versions of the same sentence. Neither claims the file has
-       gone anywhere, because at this point it has not: on both flows the picker
-       only paints the image onto the mug in this browser. What differs is where
-       it goes next \u2014 the Shopify product page, or an email. */
-    var setNote = function () {
-      var up = uploadFlow();
-      note.innerHTML = '';
-      note.appendChild(el('b', null,
-        ownPhoto ? 'This is a preview, not a proof. '
-                 : up ? 'Your photo uploads at checkout. ' : 'Preview on this device. '));
-      note.appendChild(document.createTextNode(ownPhoto
-        ? (up ? 'Nothing has been sent yet \u2014 it is still only in this browser. You attach this same file on the next page, and we send a real proof before anything is printed.'
-              : 'Your photo has not been sent \u2014 it stays in this browser. Email it after checkout and we\u2019ll send you a real proof before anything is printed.')
-        : (up ? 'Pick it here to see it on the mug, then attach the same file on the Shopify page and it lands straight on your order.'
-              : 'Your photo stays on your device. After checkout you email it over, and we send a real proof before we print.')));
     };
 
     input.onchange = function () {
       var f = input.files && input.files[0];
       if (!f) return;
-      readImage(f, function (dataUri, problem, size) {
+      readCustomerPhoto(f, function (photo, problem) {
         if (problem) { name.textContent = problem; return; }
-        ownPhoto = { dataUri: dataUri, name: f.name,
-                     w: (size && size.w) || 0, h: (size && size.h) || 0,
-                     zoom: 1, ox: 0, oy: 0, margin: 0 };
-        paintOwnPhoto(dataUri);
+        if (ownPhoto && ownPhoto.blobUrl) URL.revokeObjectURL(ownPhoto.blobUrl);
+        softCache = { key: '', uri: '' };
+        ownPhoto = photo;
+        ownPhoto.name = f.name;
+        ownPhoto.zoom = 1; ownPhoto.ox = 0; ownPhoto.oy = 0; ownPhoto.margin = 0;
+        ownPhoto.w = photo.srcW; ownPhoto.h = photo.srcH;
+        paintOwnPhoto(ownPhoto.sharpUri);
         var chip = $('chip-yours');
         if (chip) { chip.hidden = false; chip.click(); }
         name.textContent = f.name;
         addDrop();
-        setNote();
       });
     };
     if (ownPhoto) { name.textContent = ownPhoto.name; addDrop(); }
-    setNote();
     syncPhotoControls();
     return wrap;
   }
@@ -2540,6 +2604,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     if (ownPhoto && ownPhoto.name) {
       qs.push('attributes[Photo to expect]=' + encodeURIComponent(ownPhoto.name));
     }
+    if (ownPhoto && softWarning()) {
+      qs.push('attributes[Photo check]=' + encodeURIComponent('may print soft'));
+    }
     var place = placementNote();
     if (place) qs.push('attributes[Photo placement]=' + encodeURIComponent(place));
     return { url: 'https://' + host(c) + '/cart/' + parts.join(',') + '?' + qs.join('&') };
@@ -2551,7 +2618,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     if (!host()) {
       statusBox(box, 'info', 'No Shopify store linked yet.',
         'Once one is linked, this button hands the order straight over to Shopify to pay. ' +
-        'In the meantime, send it through the order form further down the page.');
+        'You can still line your photo up on the mug in the meantime.');
       return;
     }
     var built = handoffUrl();
@@ -2623,10 +2690,10 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     set('step1-h', up ? 'Upload the photo' : 'Send the photo');
     set('step1-p', up
       ? 'Drop it in when you order, right on the mug page. No cropping, no resizing, no '
-        + 'file types to worry about. If it\u2019s too small to print well, we\u2019ll tell you '
-        + 'before we print anything.'
-      : 'Text it, email it, or drag it in. No cropping, no resizing, no file types to worry '
-        + 'about. If it\u2019s too small to print well, we\u2019ll tell you before you pay a dime.');
+        + 'file types to worry about. If it\u2019s too small to print well, the mug on this '
+        + 'page goes soft so you can see that first.'
+      : 'Choose it on the mug up top, then email the same photo after you order. If it\u2019s '
+        + 'too small to print well, the mug on this page goes soft before you pay.');
 
     set('faq-send-q', up ? 'How do I send you the photo?' : 'How do I get you the photo?');
     set('faq-send-a', up
@@ -2666,6 +2733,34 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
 
   /* ══ Admin: photos ══ */
+
+  /**
+   * The customer's photo, at its real pixel size. A copy capped around 2000px
+   * is what the mug draws when the print will be sharp; the check itself uses
+   * srcW/srcH, so a big phone photo is not marked soft just because we did
+   * not keep every pixel in the drawing.
+   */
+  function readCustomerPhoto(file, cb) {
+    if (!/^image\//.test(file.type)) return cb(null, 'That is not an image file.');
+    var url = URL.createObjectURL(file);
+    var im = new Image();
+    im.onload = function () {
+      var max = 2000, scale = Math.min(1, max / Math.max(im.naturalWidth, im.naturalHeight));
+      var c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(im.naturalWidth * scale));
+      c.height = Math.max(1, Math.round(im.naturalHeight * scale));
+      var ctx = c.getContext('2d');
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.drawImage(im, 0, 0, c.width, c.height);
+      var uri;
+      try { uri = c.toDataURL('image/jpeg', 0.86); }
+      catch (e) { URL.revokeObjectURL(url); cb(null, 'That image could not be converted.'); return; }
+      cb({ img: im, srcW: im.naturalWidth, srcH: im.naturalHeight, sharpUri: uri, blobUrl: url }, null);
+    };
+    im.onerror = function () { URL.revokeObjectURL(url); cb(null, 'That image could not be decoded.'); };
+    im.src = url;
+  }
 
   /** Shrinks to 900px and re-encodes, so a 6 MB phone photo doesn't bloat the page. */
   function readImage(file, cb) {
@@ -3106,6 +3201,16 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     renderMugSlot();
     wireMugSlot();
     wirePhotoDrag();
+    var resizeTimer;
+    window.addEventListener('resize', function () {
+      if (!ownPhoto) return;
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function () {
+        if (!ownPhoto) return;
+        softCache = { key: '', uri: '' };
+        paintOwnPhoto(ownPhoto.sharpUri);
+      }, 150);
+    });
     applyConfig();
     buildVariantFields();
     renderShop();
