@@ -273,7 +273,7 @@ section{scroll-margin-top:92px}
   .stage{justify-content:flex-start;min-height:0;gap:8px}
   .stage-foot{gap:6px}
 }
-.mug-frame{width:100%;max-width:620px;aspect-ratio:512/372}
+.mug-frame{width:100%;max-width:640px;aspect-ratio:240/248}
 .mug-frame svg{display:block;width:100%;height:100%;filter:drop-shadow(0 18px 22px rgba(48,28,18,.16))}
 /* SVG presentation attributes can't read custom properties, so paint via CSS. */
 .mug-svg .f-ink{fill:var(--ink)}
@@ -577,7 +577,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 .mug-slot input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .print-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(140px,100%),1fr));gap:12px}
 .bg-admin-preview{
-  width:100%;max-height:300px;aspect-ratio:512/372;background:var(--ground);
+  width:min(100%, calc(420px * 240 / 248));aspect-ratio:240/248;background:var(--ground);
   border:2px solid var(--rule-2);border-radius:var(--r-md);overflow:hidden;
 }
 /* The outer picture fills the frame. The wrap inside keeps the size paintWrap gives it. */
@@ -705,9 +705,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   <div class="hero-grid" id="order">
     <div class="stage">
       <div class="mug-frame">
-        <svg class="mug-svg" viewBox="4 22 512 372" role="img" aria-labelledby="mug-title mug-desc">
+        <svg class="mug-svg" viewBox="158 110 240 248" role="img" aria-labelledby="mug-title mug-desc">
           <title id="mug-title">A ceramic mug printed with a family photo</title>
-          <desc id="mug-desc">A white 15 oz mug with an example family photograph printed across the front. A photo of a child drawing and a photo of a dog sit beside it. The picture is an example — your photo goes on yours.</desc>
+          <desc id="mug-desc">A white 15 oz mug with an example family photograph printed across the front. The picture is an example — your photo goes on yours.</desc>
 
           <defs>
             <linearGradient id="ceramic" x1="0" y1="0" x2="1" y2="0">
@@ -722,8 +722,6 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
               <stop class="stop-sky-c" offset="100%"/>
             </linearGradient>
             <clipPath id="panelClip"><rect x="178" y="146" width="140" height="172" rx="7"/></clipPath>
-            <clipPath id="snapA"><rect x="39" y="67" width="100" height="94"/></clipPath>
-            <clipPath id="snapB"><rect x="379" y="249" width="100" height="94"/></clipPath>
             <linearGradient id="famSky" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stop-color="#F0B56A"/>
               <stop offset="46%" stop-color="#E08A45"/>
@@ -754,33 +752,12 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
           <!-- ── The real mug ──
                A photograph of the actual product, when the shop has set one.
-               It is the first thing drawn, so the propped snapshots and the
-               steam still sit in front of it, and its white backdrop simply
+               It is the first thing drawn, so the steam still sits in front of
+               it, and its white backdrop simply
                disappears into a white page. With no photo set this stays
                hidden and the drawn mug below takes over. -->
           <image class="mug-base" id="mug-photo" x="103" y="70" width="315" height="315"
                  preserveAspectRatio="xMidYMid meet" hidden/>
-
-          <!-- ── Snapshot A: a kid's crayon drawing ── -->
-          <g transform="rotate(-9 89 122)">
-            <rect class="f-ink" x="32" y="61" width="118" height="128" rx="6" opacity=".09"/>
-            <rect class="f-surf s-rule2" x="30" y="58" width="118" height="128" rx="6" stroke-width="2"/>
-            <rect x="39" y="67" width="100" height="94" rx="2" fill="#F4E3C6"/>
-            <g id="snap-a" clip-path="url(#snapA)">
-              <circle cx="58" cy="86" r="8" fill="#F0C14A" stroke="#D9922A" stroke-width="2"/>
-              <g stroke="#D9922A" stroke-width="2" stroke-linecap="round">
-                <path d="M58 72v-4M46 86h-4M50 76l-3-3M66 76l3-3"/>
-              </g>
-              <path d="M78 112 96 94l18 18Z" fill="#E15A42"/>
-              <rect x="82" y="112" width="28" height="26" fill="#FBF6EC" stroke="#E15A42" stroke-width="2.4"/>
-              <rect x="92" y="124" width="8" height="14" fill="#C47A32"/>
-              <circle cx="62" cy="124" r="6" fill="#F2C8A4" stroke="#2A211C" stroke-width="1.8"/>
-              <path d="M56 130h12v12a6 6 0 0 1-12 0Z" fill="#3C7CC0" stroke="#2A211C" stroke-width="1.8"/>
-              <path d="M39 154c8-5 14 4 22 0s14 4 22 0 14 4 22 0 12 3 16-1" fill="none" stroke="#3E8A52" stroke-width="3.2" stroke-linecap="round"/>
-            </g>
-            <path class="s-ink3" d="M52 173h44" stroke-width="3" stroke-linecap="round" opacity=".4"/>
-            <rect class="f-sun" x="66" y="50" width="46" height="14" rx="3" opacity=".6" transform="rotate(-4 89 57)"/>
-          </g>
 
           <!-- ── Steam ── -->
           <g class="s-ink3" stroke-width="3" stroke-linecap="round" fill="none" opacity=".38">
@@ -996,30 +973,6 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
             <g id="photo-over-fit"></g>
           </g>
           <rect class="s-rule2 mug-drawn" id="panel-edge" x="178" y="146" width="140" height="172" rx="7" fill="none" stroke-width="1.6" opacity=".8"/>
-
-          <!-- ── Snapshot B: the dog ── -->
-          <g transform="rotate(8 429 304)">
-            <rect class="f-ink" x="372" y="243" width="118" height="128" rx="6" opacity=".09"/>
-            <rect class="f-surf s-rule2" x="370" y="240" width="118" height="128" rx="6" stroke-width="2"/>
-            <rect x="379" y="249" width="100" height="94" rx="2" fill="#E7D3BE"/>
-            <g id="snap-b" clip-path="url(#snapB)">
-              <circle cx="408" cy="270" r="16" fill="#F4E6D6" opacity=".8"/>
-              <path d="M408 286c-8-2-14-14-8-24 4-6 12-4 14 2 2 4 1 10 0 14-1 4-3 7-6 8Z" fill="#1C1917"/>
-              <path d="M450 286c8-2 14-14 8-24-4-6-12-4-14 2-2 4-1 10 0 14 1 4 3 7 6 8Z" fill="#1C1917"/>
-              <path d="M429 274c16 0 28 12 30 28 2 16-10 32-30 33s-32-14-30-30c0-16 14-31 30-31Z" fill="#1C1917"/>
-              <ellipse cx="429" cy="312" rx="12" ry="9" fill="#E7C4A4"/>
-              <ellipse cx="418" cy="298" rx="4.5" ry="5" fill="#D7B89A"/>
-              <ellipse cx="440" cy="298" rx="4.5" ry="5" fill="#D7B89A"/>
-              <circle cx="419" cy="299" r="2.2" fill="#1A1614"/>
-              <circle cx="441" cy="299" r="2.2" fill="#1A1614"/>
-              <circle cx="419.8" cy="297.8" r=".7" fill="#E7C4A4"/>
-              <circle cx="441.8" cy="297.8" r=".7" fill="#E7C4A4"/>
-              <ellipse cx="429" cy="308" rx="3.2" ry="2.3" fill="#1A1614"/>
-              <path d="M414 328c6 8 24 8 30 0 1 4-4 8-15 8s-16-4-15-8Z" fill="#C12F1A"/>
-            </g>
-            <path class="s-ink3" d="M392 355h44" stroke-width="3" stroke-linecap="round" opacity=".4"/>
-            <rect class="f-sky" x="406" y="232" width="46" height="14" rx="3" opacity=".55" transform="rotate(5 429 239)"/>
-          </g>
         </svg>
       </div>
 
@@ -1062,9 +1015,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
      Credits are in assets/examples/CREDITS.md, not on the page.
      family.jpg Eric Moura, Pexels 35858303.
      art.jpg Allan Mas, Pexels 5622348.
-     art-polaroid.jpg Liliana Drew, Pexels 8506324.
      dog.jpg Pauline Loroy, Unsplash U3aF7hgUSrk.
-     dog-polaroid.jpg Cornelia Steinwender, Unsplash PW7cNS8C_wM.
      handwriting.jpg cottonbro studio, Pexels 8369519.
      recipe.jpg Daniel & Hannah Snipes, Pexels 29834258.
      crew.jpg César O'neill, Pexels 31517419. -->
@@ -1539,7 +1490,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         </div>
         <p class="hint" id="outline-hint">Click around the ceramic. The pattern stays inside the line, off the handle.</p>
         <div class="bg-admin-preview">
-          <svg viewBox="4 22 512 372" aria-hidden="true">
+          <svg viewBox="158 110 240 248" aria-hidden="true">
             <image id="admin-mug-photo" x="103" y="70" width="315" height="315" preserveAspectRatio="xMidYMid meet"/>
             <!-- Clip lives in this svg's own units. A clip in the parent
                  space sits off the viewBox and hides the whole template. -->
@@ -1561,8 +1512,8 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       <p class="admin-sec">Every other photograph</p>
       <p class="hint" style="margin-top:-6px">
         Family, kid's art, the dog, handwriting, the recipe, and the crew each show on the
-        mug and in the lineup. The left and right snapshots are the polaroids beside the mug.
-        Replace one and both places update. Clear one and the built-in picture comes back.
+        mug and in the lineup. Replace one and both places update. Clear one and the built-in
+        picture comes back.
         Big files are shrunk to 900px automatically so the page stays quick.
         The brand mark, the cart, and the small arrows are drawn in the page, not image files,
         and there is no favicon to replace.
@@ -1857,9 +1808,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     pet: 'assets/examples/dog.jpg',
     hand: 'assets/examples/handwriting.jpg',
     recipe: 'assets/examples/recipe.jpg',
-    team: 'assets/examples/crew.jpg',
-    snapA: 'assets/examples/art-polaroid.jpg',
-    snapB: 'assets/examples/dog-polaroid.jpg'
+    team: 'assets/examples/crew.jpg'
   };
   /* ADMIN-CONFIG-END */
 
@@ -1882,14 +1831,12 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   /* Where each photo sits, in SVG user units: [x, y, width, height]. */
   var PHOTO_BOX = {
     family:[190,152,116,140], art:[190,152,116,140], pet:[190,152,116,140],
-    hand:[190,152,116,140], recipe:[190,152,116,140], team:[190,152,116,140],
-    snapA:[39,67,100,94], snapB:[379,249,100,94]
+    hand:[190,152,116,140], recipe:[190,152,116,140], team:[190,152,116,140]
   };
   var PHOTO_LABEL = {
     family:'Family — mug and lineup', art:"Kid's art — mug and lineup",
     pet:'The dog — mug and lineup', hand:'Handwriting — mug and lineup',
-    recipe:'Recipe — mug and lineup', team:'The crew — mug and lineup',
-    snapA:'Left polaroid', snapB:'Right polaroid'
+    recipe:'Recipe — mug and lineup', team:'The crew — mug and lineup'
   };
 
   var LS_CFG = 'mmc.config.v3', LS_CART = 'mmc.cart.v3', LS_NOTE = 'mmc.note.v3';
@@ -2124,9 +2071,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     Object.keys(live).forEach(function (key) {
       var src = live[key];
       if (!src) return;
-      var target = key === 'snapA' ? $('snap-a')
-                 : key === 'snapB' ? $('snap-b')
-                 : document.querySelector('.memory[data-key="' + key + '"]');
+      var target = document.querySelector('.memory[data-key="' + key + '"]');
       var box = PHOTO_BOX[key];
       if (!target || !box) return;
       var img = document.createElementNS(SVG, 'image');
