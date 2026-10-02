@@ -176,10 +176,17 @@ section{scroll-margin-top:92px}
 .proof-drop:hover{color:var(--red-ink)}
 .proof-tools{display:flex;flex-direction:column;gap:7px}
 .proof-zoom{display:flex;align-items:center;gap:12px}
-.proof-zoom label{font-weight:700;font-size:.9375rem;flex:0 0 auto}
+.proof-zoom label,.proof-k{font-weight:700;font-size:.9375rem;flex:0 0 5.6rem}
 .proof-zoom input[type=range]{flex:1 1 90px;min-width:0;accent-color:var(--red-deep);height:22px}
 .proof-zoom input[type=range]:focus-visible{outline:2px solid var(--red-deep);outline-offset:3px}
-.proof-hint{font-size:.9375rem;color:var(--ink-3);line-height:1.5}
+.proof-nudge{display:flex;flex-wrap:wrap;gap:6px;flex:1 1 auto;min-width:0}
+.proof-nudge button{
+  font-family:var(--f-body);font-weight:700;font-size:.875rem;cursor:pointer;
+  padding:6px 10px;border-radius:var(--r-sm);border:1px solid var(--rule-2);
+  background:var(--surface);color:var(--ink);
+}
+.proof-nudge button:hover{border-color:var(--ink)}
+.proof-nudge button:focus-visible{outline:2px solid var(--red-deep);outline-offset:2px}
 
 /* The mug is a control only while the customer's own photo is on it: that is
    when the grab cursor appears and when a finger on it drags instead of
@@ -2089,22 +2096,29 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
    * Works out the rectangle the photo is drawn into, in the space the scenes
    * are drawn in, clamping the offset back into range as it goes.
    *
-   * The clamp is the point: however far somebody drags, the photo keeps
-   * covering the print, so a white gap can never open along an edge and the
-   * preview never shows a crop the press could not produce.
+   * The clamp is the point: however far somebody drags or zooms, the photo
+   * keeps covering the area inside the margins, so a gap cannot open along
+   * that edge. Margins are the white border the customer asked for.
    */
   function photoRect() {
     if (!ownPhoto || !ownPhoto.w || !ownPhoto.h) return null;
-    var P = ART_BOX, a = ownPhoto.w / ownPhoto.h, pa = P[2] / P[3], w, h;
-    if (a > pa) { h = P[3]; w = h * a; } else { w = P[2]; h = w / a; }
+    var P = ART_BOX;
+    var m = Math.max(0, Math.min(0.2, ownPhoto.margin || 0));
+    ownPhoto.margin = m;
+    /* Margins shrink the area the photo has to cover. The offset is still a
+       fraction of the full print, so a drag tracks the finger. */
+    var boxW = P[2] * (1 - 2 * m), boxH = P[3] * (1 - 2 * m);
+    var boxX = P[0] + P[2] * m, boxY = P[1] + P[3] * m;
+    var a = ownPhoto.w / ownPhoto.h, pa = boxW / boxH, w, h;
+    if (a > pa) { h = boxH; w = h * a; } else { w = boxW; h = w / a; }
     w *= ownPhoto.zoom; h *= ownPhoto.zoom;
 
-    var mx = (w - P[2]) / 2 / P[2], my = (h - P[3]) / 2 / P[3];
+    var mx = (w - boxW) / 2 / P[2], my = (h - boxH) / 2 / P[3];
     ownPhoto.ox = Math.max(-mx, Math.min(mx, ownPhoto.ox));
     ownPhoto.oy = Math.max(-my, Math.min(my, ownPhoto.oy));
 
-    return { x: P[0] + (P[2] - w) / 2 + ownPhoto.ox * P[2],
-             y: P[1] + (P[3] - h) / 2 + ownPhoto.oy * P[3],
+    return { x: boxX + (boxW - w) / 2 + ownPhoto.ox * P[2],
+             y: boxY + (boxH - h) / 2 + ownPhoto.oy * P[3],
              w: w, h: h, canMoveX: mx > 0.001, canMoveY: my > 0.001 };
   }
 
@@ -2120,8 +2134,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       if (dataUri) {
         frame.setAttribute('tabindex', '0');
         frame.setAttribute('role', 'application');
-        frame.setAttribute('aria-label',
-          'Your photo on the mug. Use the arrow keys to move it, or the zoom slider below.');
+        frame.setAttribute('aria-label', 'Your photo');
       } else {
         frame.removeAttribute('tabindex');
         frame.removeAttribute('role');
@@ -2158,9 +2171,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     if (!ownPhoto) return '';
     var z = Math.round((ownPhoto.zoom || 1) * 100);
     var ox = Math.round((ownPhoto.ox || 0) * 100), oy = Math.round((ownPhoto.oy || 0) * 100);
-    if (z === 100 && !ox && !oy) return '';
+    var m = Math.round((ownPhoto.margin || 0) * 100);
+    if (z === 100 && !ox && !oy && !m) return '';
     var sign = function (n) { return (n > 0 ? '+' : '') + n + '%'; };
-    return 'zoom ' + z + '%, offset ' + sign(ox) + ' across, ' + sign(oy) + ' down';
+    return 'zoom ' + z + '%, offset ' + sign(ox) + ' across, ' + sign(oy) + ' down'
+      + (m ? ', margin ' + m + '%' : '');
   }
 
   /** Moves the photo by a fraction of the print area, and redraws. */
@@ -2173,6 +2188,12 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   function zoomPhoto(z) {
     if (!ownPhoto) return;
     ownPhoto.zoom = Math.max(1, Math.min(3, z));
+    paintOwnPhoto(ownPhoto.dataUri);
+  }
+
+  function setMargin(m) {
+    if (!ownPhoto) return;
+    ownPhoto.margin = Math.max(0, Math.min(0.2, m));
     paintOwnPhoto(ownPhoto.dataUri);
   }
 
@@ -2190,13 +2211,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     if (slider && ownPhoto && document.activeElement !== slider) {
       slider.value = Math.round(ownPhoto.zoom * 100);
     }
-    var hint = $('photo-move-hint');
-    if (hint) {
-      var r = ownPhoto && photoRect();
-      hint.textContent = !r ? ''
-        : (r.canMoveX || r.canMoveY)
-          ? 'Drag it on the mug to move it, or use the arrow keys.'
-          : 'Zoom in to choose which part of the photo shows.';
+    var margin = $('photo-margin');
+    if (margin && ownPhoto && document.activeElement !== margin) {
+      margin.value = Math.round((ownPhoto.margin || 0) * 100);
     }
   }
 
@@ -2282,19 +2299,45 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     var tools = el('div', 'proof-tools');
     tools.id = 'photo-tools'; tools.hidden = true;
 
+    var posRow = el('div', 'proof-zoom');
+    var posLab = el('span', 'proof-k', 'Position');
+    posLab.id = 'photo-position-label';
+    var nudge = el('div', 'proof-nudge');
+    nudge.setAttribute('role', 'group');
+    nudge.setAttribute('aria-labelledby', 'photo-position-label');
+    [['Left', -1, 0], ['Right', 1, 0], ['Up', 0, -1], ['Down', 0, 1]].forEach(function (d) {
+      var b = el('button', null, d[0]);
+      b.type = 'button';
+      b.onclick = function () { movePhoto(d[1] * 0.06, d[2] * 0.06); };
+      nudge.appendChild(b);
+    });
+    posRow.appendChild(posLab); posRow.appendChild(nudge);
+    tools.appendChild(posRow);
+
     var zoomRow = el('div', 'proof-zoom');
     var zlab = el('label', null, 'Zoom');
     zlab.setAttribute('for', 'photo-zoom');
     var zoom = document.createElement('input');
     zoom.type = 'range'; zoom.id = 'photo-zoom';
     zoom.min = '100'; zoom.max = '300'; zoom.step = '1'; zoom.value = '100';
+    zoom.setAttribute('aria-valuemin', '100');
+    zoom.setAttribute('aria-valuemax', '300');
     zoom.addEventListener('input', function () { zoomPhoto(Number(zoom.value) / 100); });
     var center = el('button', 'proof-drop', 'Center');
     center.type = 'button';
     center.onclick = function () { centerPhoto(); };
     zoomRow.appendChild(zlab); zoomRow.appendChild(zoom); zoomRow.appendChild(center);
     tools.appendChild(zoomRow);
-    tools.appendChild(el('p', 'proof-hint', '')).id = 'photo-move-hint';
+
+    var marginRow = el('div', 'proof-zoom');
+    var mlab = el('label', null, 'Margins');
+    mlab.setAttribute('for', 'photo-margin');
+    var margin = document.createElement('input');
+    margin.type = 'range'; margin.id = 'photo-margin';
+    margin.min = '0'; margin.max = '20'; margin.step = '1'; margin.value = '0';
+    margin.addEventListener('input', function () { setMargin(Number(margin.value) / 100); });
+    marginRow.appendChild(mlab); marginRow.appendChild(margin);
+    tools.appendChild(marginRow);
     wrap.appendChild(tools);
 
     var note = el('p', 'proof-note');
@@ -2340,7 +2383,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         if (problem) { name.textContent = problem; return; }
         ownPhoto = { dataUri: dataUri, name: f.name,
                      w: (size && size.w) || 0, h: (size && size.h) || 0,
-                     zoom: 1, ox: 0, oy: 0 };
+                     zoom: 1, ox: 0, oy: 0, margin: 0 };
         paintOwnPhoto(dataUri);
         var chip = $('chip-yours');
         if (chip) { chip.hidden = false; chip.click(); }
