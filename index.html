@@ -217,6 +217,15 @@ section{scroll-margin-top:92px}
 .bg-pick:hover{border-color:var(--ink)}
 .bg-pick:focus-visible{outline:2px solid var(--red-deep);outline-offset:2px}
 .bg-pick.is-on{border-color:var(--red);background:var(--red-soft);color:var(--red-deep)}
+.bg-add{
+  width:100%;font-family:var(--f-body);font-weight:700;font-size:.9375rem;cursor:pointer;
+  padding:11px 18px;border-radius:var(--r-sm);border:2px solid var(--red);
+  background:var(--red);color:#FFFFFF;
+}
+.bg-add:hover{background:var(--red-deep);border-color:var(--red-deep)}
+.bg-add:focus-visible{outline:2px solid var(--red-deep);outline-offset:2px}
+.bg-add[aria-pressed="true"]{background:var(--surface);color:var(--ink);border-color:var(--ink)}
+.bg-add[aria-pressed="true"]:hover{background:var(--surface-2)}
 .price-extra{margin:0;font-size:.9375rem;font-weight:700;color:var(--ink);line-height:1.4}
 .nudge{
   font-size:.9375rem;font-weight:500;color:var(--ink-2);
@@ -697,11 +706,6 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
             </linearGradient>
             <clipPath id="panelClip"><rect x="178" y="146" width="140" height="172" rx="7"/></clipPath>
             <clipPath id="wrapClip"><rect id="wrap-clip-rect" x="166" y="142" width="153" height="195" rx="6"/></clipPath>
-            <!-- One flat motif, repeated. The tile size is the Size control. -->
-            <pattern id="wrap-pattern" patternUnits="userSpaceOnUse" x="166" y="142" width="56" height="56">
-              <rect id="wrap-ground" width="56" height="56" fill="#F3EFE6"/>
-              <g id="wrap-motif"></g>
-            </pattern>
             <clipPath id="snapA"><rect x="39" y="67" width="100" height="94"/></clipPath>
             <clipPath id="snapB"><rect x="379" y="249" width="100" height="94"/></clipPath>
             <linearGradient id="famSky" x1="0" y1="0" x2="0" y2="1">
@@ -795,10 +799,13 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
                (sx = width/116, sy = height/140, tx = x - 190*sx, ty = y - 152*sy).
                The scenes themselves never need touching. -->
           <rect class="f-ground mug-drawn" id="panel-ground" x="178" y="146" width="140" height="172" rx="7"/>
-          <!-- A premade wrap, edge to edge on the ceramic. The pattern repeats
-               across the body. The customer's photo is drawn later, on top. -->
-          <rect class="mug-wrap" id="mug-wrap" x="166" y="142" width="153" height="195"
-                fill="url(#wrap-pattern)" clip-path="url(#wrapClip)" hidden/>
+          <!-- One template, drawn to the ceramic and scaled onto it.
+               The customer's photo is drawn later, on top. -->
+          <svg class="mug-wrap" id="mug-wrap" x="166" y="142" width="153" height="195"
+               viewBox="0 0 153 195" preserveAspectRatio="none" clip-path="url(#wrapClip)" hidden>
+            <rect id="wrap-ground" x="0" y="0" width="153" height="195" fill="#F3EFE6"/>
+            <g id="wrap-motif"></g>
+          </svg>
           <g class="panel-art" clip-path="url(#panelClip)">
            <g id="panel-fit" transform="translate(-51.3103,-40.7429) scale(1.206897,1.228571)">
 
@@ -2180,15 +2187,18 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
      and height. */
   var ownPhoto = null;
 
-  /* Premade wraps. Each one is a flat motif, repeated across the ceramic.
-     $8 is added to the price this page shows and to the order built here.
+  /* Premade wraps. Each one is a single template fitted to the ceramic,
+     edge to edge. $8 is added only after the customer adds a background.
      Shopify still charges the mug's own variant; the name, the size, and the
      $8 ride along as a cart attribute on the cart-permalink path. A product
      URL cannot carry that attribute. */
   var BG_EXTRA = 8;
-  var PATTERN_MIN = 40;
-  var PATTERN_MAX = 130;
-  var patternSize = 56;
+  /* Cell size in the wrap's own units. Larger means fewer motifs, each one
+     filling more of the template. The default is one motif sized to the wrap. */
+  var PATTERN_MIN = 46;
+  var PATTERN_MAX = 170;
+  var patternSize = 150;
+  var lastBgId = 'tree';
   var SVGNS = 'http://www.w3.org/2000/svg';
   function svgEl(name, attrs) {
     var n = document.createElementNS(SVGNS, name);
@@ -2244,29 +2254,42 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     return base + (chosenBg ? BG_EXTRA : 0);
   }
 
+  /**
+   * Draws one template into the ceramic box. The grid divides that box
+   * exactly, and each motif is scaled to its cell, so the artwork is the
+   * size of the wrap instead of a tile that can run off the edge.
+   */
   function paintWrap() {
-    var pat = document.querySelector('#wrap-pattern');
+    var host = document.querySelector('#mug-wrap');
     var ground = document.querySelector('#wrap-ground');
     var motif = document.querySelector('#wrap-motif');
-    if (!pat || !ground || !motif) return;
+    if (!host || !ground || !motif) return;
     while (motif.firstChild) motif.removeChild(motif.firstChild);
-    if (!chosenBg) return;
-    var s = patternSize;
     var body = bodyBox();
-    pat.setAttribute('x', body[0].toFixed(3));
-    pat.setAttribute('y', body[1].toFixed(3));
-    pat.setAttribute('width', String(s));
-    pat.setAttribute('height', String(s));
-    ground.setAttribute('width', String(s));
-    ground.setAttribute('height', String(s));
+    var W = body[2], H = body[3];
+    host.setAttribute('viewBox', '0 0 ' + W.toFixed(3) + ' ' + H.toFixed(3));
+    ground.setAttribute('width', W.toFixed(3));
+    ground.setAttribute('height', H.toFixed(3));
+    if (!chosenBg) return;
     ground.setAttribute('fill', chosenBg.ground);
-    var pad = s * 0.16;
-    var g = svgEl('g', {
-      transform: 'translate(' + pad.toFixed(3) + ',' + pad.toFixed(3) + ') scale(' +
-        ((s - pad * 2) / 100).toFixed(6) + ')'
-    });
-    chosenBg.draw(g);
-    motif.appendChild(g);
+    var cols = Math.max(1, Math.min(4, Math.round(W / patternSize)));
+    var cellW = W / cols;
+    var rows = Math.max(1, Math.min(5, Math.round(H / cellW)));
+    var cellH = H / rows;
+    var m = Math.min(cellW, cellH) * 0.9;
+    var scale = m / 100;
+    for (var r = 0; r < rows; r++) {
+      for (var c = 0; c < cols; c++) {
+        var x = c * cellW + (cellW - m) / 2;
+        var y = r * cellH + (cellH - m) / 2;
+        var g = svgEl('g', {
+          transform: 'translate(' + x.toFixed(3) + ',' + y.toFixed(3) +
+            ') scale(' + scale.toFixed(6) + ')'
+        });
+        chosenBg.draw(g);
+        motif.appendChild(g);
+      }
+    }
   }
 
   function setPatternSize(n) {
@@ -2294,6 +2317,16 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         ? 'Your photo on ' + chosenBg.name + '. Move it, zoom it, or leave a margin.'
         : chosenBg.name + ' wraps the whole mug. Your photo sits on top.';
     }
+    var opts = $('bg-options');
+    if (opts) opts.hidden = !chosenBg;
+    var note = $('bg-note');
+    if (note) note.hidden = !chosenBg;
+    var add = $('bg-add');
+    if (add) {
+      var onBg = !!chosenBg;
+      add.setAttribute('aria-pressed', onBg ? 'true' : 'false');
+      add.textContent = onBg ? 'Remove background' : 'Add a background, $8';
+    }
     Array.prototype.forEach.call(document.querySelectorAll('.bg-pick'), function (b) {
       var onThis = (b.getAttribute('data-bg') || '') === (chosenBg ? chosenBg.id : '');
       b.classList.toggle('is-on', onThis);
@@ -2310,6 +2343,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   function chooseBg(id) {
     chosenBg = null;
     BACKGROUNDS.forEach(function (b) { if (b.id === id) chosenBg = b; });
+    if (chosenBg) lastBgId = chosenBg.id;
     paintWrap();
     paintOwnPhoto(ownPhoto ? ownPhoto.dataUri : null);
     if (chosenBg) showCustomerMug();
@@ -2549,32 +2583,34 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     wrap.appendChild(row);
 
     wrap.appendChild(el('p', 'proof-head', 'Background'));
+    var addBg = el('button', 'bg-add', 'Add a background, $8');
+    addBg.type = 'button';
+    addBg.id = 'bg-add';
+    addBg.setAttribute('aria-pressed', 'false');
+    addBg.onclick = function () {
+      if (chosenBg) chooseBg('');
+      else chooseBg(lastBgId || 'tree');
+    };
+    wrap.appendChild(addBg);
     function bgButton(id, label, bg) {
       var b = document.createElement('button');
       b.type = 'button';
       b.className = 'bg-pick';
       b.setAttribute('data-bg', id);
       b.setAttribute('aria-pressed', 'false');
-      if (bg) {
-        var sw = svgEl('svg', { viewBox: '0 0 100 100', 'aria-hidden': 'true' });
-        sw.appendChild(svgEl('rect', { width: '100', height: '100', fill: bg.ground }));
-        var g = svgEl('g');
-        bg.draw(g);
-        sw.appendChild(g);
-        b.appendChild(sw);
-      } else {
-        b.appendChild(el('span', 'bg-none', ''));
-      }
+      var sw = svgEl('svg', { viewBox: '0 0 100 100', 'aria-hidden': 'true' });
+      sw.appendChild(svgEl('rect', { width: '100', height: '100', fill: bg.ground }));
+      var g = svgEl('g');
+      bg.draw(g);
+      sw.appendChild(g);
+      b.appendChild(sw);
       b.appendChild(document.createTextNode(label));
       b.onclick = function () { chooseBg(id); };
       return b;
     }
-    var noneRow = el('div', 'bg-row');
-    noneRow.setAttribute('role', 'group');
-    noneRow.setAttribute('aria-label', 'Background');
-    noneRow.appendChild(bgButton('', 'None', null));
-    wrap.appendChild(noneRow);
     var sets = el('div', 'bg-sets');
+    sets.id = 'bg-options';
+    sets.hidden = true;
     var seen = {};
     BACKGROUNDS.forEach(function (bg) {
       if (!seen[bg.group]) {
@@ -2589,8 +2625,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       seen[bg.group].querySelector('.bg-row').appendChild(bgButton(bg.id, bg.name, bg));
     });
     wrap.appendChild(sets);
-    wrap.appendChild(el('p', 'proof-note',
-      'Wraps the whole mug, edge to edge. Your photo sits on top. Add one for $8, or leave it off.'));
+    var bgNote = el('p', 'proof-note',
+      'Wraps the whole mug, edge to edge. Your photo sits on top.');
+    bgNote.id = 'bg-note';
+    bgNote.hidden = true;
+    wrap.appendChild(bgNote);
 
     /* Hidden until there is a photo or a background.
        syncPhotoControls() decides from the state, not from the caller. */
