@@ -217,6 +217,15 @@ section{scroll-margin-top:92px}
 .bg-pick:hover{border-color:var(--ink)}
 .bg-pick:focus-visible{outline:2px solid var(--red-deep);outline-offset:2px}
 .bg-pick.is-on{border-color:var(--red);background:var(--red-soft);color:var(--red-deep)}
+.bg-add{
+  width:100%;font-family:var(--f-body);font-weight:700;font-size:.9375rem;cursor:pointer;
+  padding:11px 18px;border-radius:var(--r-sm);border:2px solid var(--red);
+  background:var(--red);color:#FFFFFF;
+}
+.bg-add:hover{background:var(--red-deep);border-color:var(--red-deep)}
+.bg-add:focus-visible{outline:2px solid var(--red-deep);outline-offset:2px}
+.bg-add[aria-pressed="true"]{background:var(--surface);color:var(--ink);border-color:var(--ink)}
+.bg-add[aria-pressed="true"]:hover{background:var(--surface-2)}
 .price-extra{margin:0;font-size:.9375rem;font-weight:700;color:var(--ink);line-height:1.4}
 .nudge{
   font-size:.9375rem;font-weight:500;color:var(--ink-2);
@@ -557,6 +566,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 .mug-slot-side{flex:1 1 200px;min-width:0;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
 .mug-slot input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .print-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(140px,100%),1fr));gap:12px}
+.bg-admin-preview{
+  width:100%;aspect-ratio:512/372;background:var(--ground);
+  border:2px solid var(--rule-2);border-radius:var(--r-md);overflow:hidden;
+}
+.bg-admin-preview svg{width:100%;height:100%;display:block}
 
 /* With a product photo in place the drawn mug and the printed panel's own
    white ground step aside, and the artwork multiplies onto the real ceramic so
@@ -697,11 +711,6 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
             </linearGradient>
             <clipPath id="panelClip"><rect x="178" y="146" width="140" height="172" rx="7"/></clipPath>
             <clipPath id="wrapClip"><rect id="wrap-clip-rect" x="166" y="142" width="153" height="195" rx="6"/></clipPath>
-            <!-- One flat motif, repeated. The tile size is the Size control. -->
-            <pattern id="wrap-pattern" patternUnits="userSpaceOnUse" x="166" y="142" width="56" height="56">
-              <rect id="wrap-ground" width="56" height="56" fill="#F3EFE6"/>
-              <g id="wrap-motif"></g>
-            </pattern>
             <clipPath id="snapA"><rect x="39" y="67" width="100" height="94"/></clipPath>
             <clipPath id="snapB"><rect x="379" y="249" width="100" height="94"/></clipPath>
             <linearGradient id="famSky" x1="0" y1="0" x2="0" y2="1">
@@ -795,10 +804,13 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
                (sx = width/116, sy = height/140, tx = x - 190*sx, ty = y - 152*sy).
                The scenes themselves never need touching. -->
           <rect class="f-ground mug-drawn" id="panel-ground" x="178" y="146" width="140" height="172" rx="7"/>
-          <!-- A premade wrap, edge to edge on the ceramic. The pattern repeats
-               across the body. The customer's photo is drawn later, on top. -->
-          <rect class="mug-wrap" id="mug-wrap" x="166" y="142" width="153" height="195"
-                fill="url(#wrap-pattern)" clip-path="url(#wrapClip)" hidden/>
+          <!-- One template, drawn to the ceramic and scaled onto it.
+               The customer's photo is drawn later, on top. -->
+          <svg class="mug-wrap" id="mug-wrap" x="166" y="142" width="153" height="195"
+               viewBox="0 0 153 195" preserveAspectRatio="none" clip-path="url(#wrapClip)" hidden>
+            <rect id="wrap-ground" x="0" y="0" width="153" height="195" fill="#F3EFE6"/>
+            <g id="wrap-motif"></g>
+          </svg>
           <g class="panel-art" clip-path="url(#panelClip)">
            <g id="panel-fit" transform="translate(-51.3103,-40.7429) scale(1.206897,1.228571)">
 
@@ -1485,6 +1497,36 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         <button type="button" class="line-rm" id="pa-reset" style="margin-top:10px">Back to the standard 15 oz placement</button>
       </div>
 
+      <div id="bg-admin-box">
+        <p class="admin-sec">Background</p>
+        <div class="proof-zoom">
+          <label for="bg-admin-size">Size</label>
+          <input id="bg-admin-size" type="range" min="46" max="170" step="2" value="150">
+        </div>
+        <div class="proof-zoom">
+          <span class="proof-k" id="bg-admin-pos-label">Position</span>
+          <div class="proof-nudge" role="group" aria-labelledby="bg-admin-pos-label">
+            <button type="button" id="bg-nudge-left">Left</button>
+            <button type="button" id="bg-nudge-right">Right</button>
+            <button type="button" id="bg-nudge-up">Up</button>
+            <button type="button" id="bg-nudge-down">Down</button>
+            <button type="button" id="bg-nudge-center">Center</button>
+          </div>
+        </div>
+        <div class="bg-admin-preview">
+          <svg viewBox="4 22 512 372" aria-hidden="true">
+            <defs>
+              <clipPath id="adminWrapClip"><rect id="admin-wrap-clip" x="166" y="142" width="153" height="195" rx="6"/></clipPath>
+            </defs>
+            <image id="admin-mug-photo" x="103" y="70" width="315" height="315" preserveAspectRatio="xMidYMid meet"/>
+            <svg id="admin-wrap" x="166" y="142" width="153" height="195" viewBox="0 0 153 195" preserveAspectRatio="none" clip-path="url(#adminWrapClip)">
+              <rect id="admin-wrap-ground" x="0" y="0" width="153" height="195" fill="#F3EFE6"/>
+              <g id="admin-wrap-motif"></g>
+            </svg>
+          </svg>
+        </div>
+      </div>
+
       <p class="admin-sec">Every other photograph</p>
       <p class="hint" style="margin-top:-6px">
         Family, kid's art, the dog, handwriting, the recipe, and the crew each show on the
@@ -1760,6 +1802,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
      photo and these need redoing; the admin panel nudges them with a live
      preview, which is why they are data and not constants. */
   var PRINT_AREA = { x: 0.242, y: 0.252, w: 0.404, h: 0.53 };
+
+  /* How the background template sits on the ceramic: motif size in the wrap's
+     own units, and a shift as a fraction of that wrap. The admin panel moves
+     these; the download writes them back here. */
+  var WRAP_FIT = { size: 150, x: 0, y: 0 };
 
   /* Photos of real finished mugs. A URL or a data: URI; blank leaves the drawing.
      Credits for the files below live in assets/examples/CREDITS.md, not on the page. */
@@ -2180,15 +2227,20 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
      and height. */
   var ownPhoto = null;
 
-  /* Premade wraps. Each one is a flat motif, repeated across the ceramic.
-     $8 is added to the price this page shows and to the order built here.
+  /* Premade wraps. Each one is a single template fitted to the ceramic,
+     edge to edge. $8 is added only after the customer adds a background.
      Shopify still charges the mug's own variant; the name, the size, and the
      $8 ride along as a cart attribute on the cart-permalink path. A product
      URL cannot carry that attribute. */
   var BG_EXTRA = 8;
-  var PATTERN_MIN = 40;
-  var PATTERN_MAX = 130;
-  var patternSize = 56;
+  /* Cell size in the wrap's own units. Larger means fewer motifs, each one
+     filling more of the template. The default is one motif sized to the wrap. */
+  var PATTERN_MIN = 46;
+  var PATTERN_MAX = 170;
+  var patternSize = 150;
+  var patternX = 0;
+  var patternY = 0;
+  var lastBgId = 'tree';
   var SVGNS = 'http://www.w3.org/2000/svg';
   function svgEl(name, attrs) {
     var n = document.createElementNS(SVGNS, name);
@@ -2232,6 +2284,29 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   var chosenBg = null;
   var refreshPrice = function () {};
 
+  /** Shop default, then any fit saved in this browser. */
+  function wrapFit() {
+    var saved = (lsGet(LS_CFG) || {}).wrapFit || {};
+    var base = WRAP_FIT || {};
+    var size = Number(saved.size != null ? saved.size : base.size);
+    var x = Number(saved.x != null ? saved.x : base.x);
+    var y = Number(saved.y != null ? saved.y : base.y);
+    if (!isFinite(size)) size = 150;
+    if (!isFinite(x)) x = 0;
+    if (!isFinite(y)) y = 0;
+    return {
+      size: Math.max(PATTERN_MIN, Math.min(PATTERN_MAX, size)),
+      x: Math.max(-0.45, Math.min(0.45, x)),
+      y: Math.max(-0.45, Math.min(0.45, y))
+    };
+  }
+  (function bootWrap() {
+    var f = wrapFit();
+    patternSize = f.size;
+    patternX = f.x;
+    patternY = f.y;
+  })();
+
   /** How wide one repeat is, as a percent of the ceramic. */
   function patternPct() {
     var w = bodyBox()[2];
@@ -2244,34 +2319,102 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     return base + (chosenBg ? BG_EXTRA : 0);
   }
 
-  function paintWrap() {
-    var pat = document.querySelector('#wrap-pattern');
-    var ground = document.querySelector('#wrap-ground');
-    var motif = document.querySelector('#wrap-motif');
-    if (!pat || !ground || !motif) return;
+  /**
+   * Draws one template into the ceramic box. The grid divides that box
+   * exactly, and each motif is scaled to its cell, so the artwork is the
+   * size of the wrap instead of a tile that can run off the edge.
+   */
+  /** Draws bg into one wrap svg. A null bg clears it. */
+  function paintWrapHost(host, ground, motif, clip, bg) {
+    if (!host || !ground || !motif) return;
     while (motif.firstChild) motif.removeChild(motif.firstChild);
-    if (!chosenBg) return;
-    var s = patternSize;
     var body = bodyBox();
-    pat.setAttribute('x', body[0].toFixed(3));
-    pat.setAttribute('y', body[1].toFixed(3));
-    pat.setAttribute('width', String(s));
-    pat.setAttribute('height', String(s));
-    ground.setAttribute('width', String(s));
-    ground.setAttribute('height', String(s));
-    ground.setAttribute('fill', chosenBg.ground);
-    var pad = s * 0.16;
-    var g = svgEl('g', {
-      transform: 'translate(' + pad.toFixed(3) + ',' + pad.toFixed(3) + ') scale(' +
-        ((s - pad * 2) / 100).toFixed(6) + ')'
-    });
-    chosenBg.draw(g);
-    motif.appendChild(g);
+    var W = body[2], H = body[3];
+    host.setAttribute('x', body[0].toFixed(3));
+    host.setAttribute('y', body[1].toFixed(3));
+    host.setAttribute('width', W.toFixed(3));
+    host.setAttribute('height', H.toFixed(3));
+    host.setAttribute('viewBox', '0 0 ' + W.toFixed(3) + ' ' + H.toFixed(3));
+    if (clip) {
+      clip.setAttribute('x', body[0].toFixed(3));
+      clip.setAttribute('y', body[1].toFixed(3));
+      clip.setAttribute('width', W.toFixed(3));
+      clip.setAttribute('height', H.toFixed(3));
+    }
+    ground.setAttribute('width', W.toFixed(3));
+    ground.setAttribute('height', H.toFixed(3));
+    if (!bg) return;
+    ground.setAttribute('fill', bg.ground);
+    var cols = Math.max(1, Math.min(4, Math.round(W / patternSize)));
+    var cellW = W / cols;
+    var rows = Math.max(1, Math.min(5, Math.round(H / cellW)));
+    var cellH = H / rows;
+    var m = Math.min(cellW, cellH) * 0.9;
+    var scale = m / 100;
+    var dx = patternX * W, dy = patternY * H;
+    for (var r = 0; r < rows; r++) {
+      for (var c = 0; c < cols; c++) {
+        var x = c * cellW + (cellW - m) / 2 + dx;
+        var y = r * cellH + (cellH - m) / 2 + dy;
+        var g = svgEl('g', {
+          transform: 'translate(' + x.toFixed(3) + ',' + y.toFixed(3) +
+            ') scale(' + scale.toFixed(6) + ')'
+        });
+        bg.draw(g);
+        motif.appendChild(g);
+      }
+    }
+  }
+
+  function paintWrap() {
+    paintWrapHost(
+      document.querySelector('#mug-wrap'),
+      document.querySelector('#wrap-ground'),
+      document.querySelector('#wrap-motif'),
+      document.querySelector('#wrap-clip-rect'),
+      chosenBg
+    );
+    var previewBg = chosenBg || BACKGROUNDS[0];
+    paintWrapHost(
+      document.querySelector('#admin-wrap'),
+      document.querySelector('#admin-wrap-ground'),
+      document.querySelector('#admin-wrap-motif'),
+      document.querySelector('#admin-wrap-clip'),
+      previewBg
+    );
+    var photo = document.querySelector('#admin-mug-photo');
+    if (photo) {
+      var src = mugPhoto();
+      if (src) {
+        photo.setAttribute('href', src);
+        photo.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', src);
+        photo.removeAttribute('hidden');
+      } else {
+        photo.setAttribute('hidden', '');
+      }
+    }
+  }
+
+  function rememberWrapFit() {
+    saveBits({ wrapFit: { size: patternSize, x: patternX, y: patternY } });
   }
 
   function setPatternSize(n) {
     patternSize = Math.max(PATTERN_MIN, Math.min(PATTERN_MAX, n));
     paintWrap();
+  }
+
+  function setWrapOffset(x, y) {
+    patternX = Math.max(-0.45, Math.min(0.45, x));
+    patternY = Math.max(-0.45, Math.min(0.45, y));
+    rememberWrapFit();
+    paintWrap();
+    syncWrapAdmin();
+  }
+
+  function syncWrapAdmin() {
+    var size = $('bg-admin-size');
+    if (size && document.activeElement !== size) size.value = String(patternSize);
   }
 
   /** Shows the wrap and the photo-on-top only while the customer's mug is the scene. */
@@ -2294,6 +2437,16 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         ? 'Your photo on ' + chosenBg.name + '. Move it, zoom it, or leave a margin.'
         : chosenBg.name + ' wraps the whole mug. Your photo sits on top.';
     }
+    var opts = $('bg-options');
+    if (opts) opts.hidden = !chosenBg;
+    var note = $('bg-note');
+    if (note) note.hidden = !chosenBg;
+    var add = $('bg-add');
+    if (add) {
+      var onBg = !!chosenBg;
+      add.setAttribute('aria-pressed', onBg ? 'true' : 'false');
+      add.textContent = onBg ? 'Remove background' : 'Add a background, $8';
+    }
     Array.prototype.forEach.call(document.querySelectorAll('.bg-pick'), function (b) {
       var onThis = (b.getAttribute('data-bg') || '') === (chosenBg ? chosenBg.id : '');
       b.classList.toggle('is-on', onThis);
@@ -2310,6 +2463,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   function chooseBg(id) {
     chosenBg = null;
     BACKGROUNDS.forEach(function (b) { if (b.id === id) chosenBg = b; });
+    if (chosenBg) lastBgId = chosenBg.id;
     paintWrap();
     paintOwnPhoto(ownPhoto ? ownPhoto.dataUri : null);
     if (chosenBg) showCustomerMug();
@@ -2469,6 +2623,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     if (margin && ownPhoto && document.activeElement !== margin) {
       margin.value = Math.round((ownPhoto.margin || 0) * 100);
     }
+    syncWrapAdmin();
   }
 
   /**
@@ -2549,32 +2704,34 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     wrap.appendChild(row);
 
     wrap.appendChild(el('p', 'proof-head', 'Background'));
+    var addBg = el('button', 'bg-add', 'Add a background, $8');
+    addBg.type = 'button';
+    addBg.id = 'bg-add';
+    addBg.setAttribute('aria-pressed', 'false');
+    addBg.onclick = function () {
+      if (chosenBg) chooseBg('');
+      else chooseBg(lastBgId || 'tree');
+    };
+    wrap.appendChild(addBg);
     function bgButton(id, label, bg) {
       var b = document.createElement('button');
       b.type = 'button';
       b.className = 'bg-pick';
       b.setAttribute('data-bg', id);
       b.setAttribute('aria-pressed', 'false');
-      if (bg) {
-        var sw = svgEl('svg', { viewBox: '0 0 100 100', 'aria-hidden': 'true' });
-        sw.appendChild(svgEl('rect', { width: '100', height: '100', fill: bg.ground }));
-        var g = svgEl('g');
-        bg.draw(g);
-        sw.appendChild(g);
-        b.appendChild(sw);
-      } else {
-        b.appendChild(el('span', 'bg-none', ''));
-      }
+      var sw = svgEl('svg', { viewBox: '0 0 100 100', 'aria-hidden': 'true' });
+      sw.appendChild(svgEl('rect', { width: '100', height: '100', fill: bg.ground }));
+      var g = svgEl('g');
+      bg.draw(g);
+      sw.appendChild(g);
+      b.appendChild(sw);
       b.appendChild(document.createTextNode(label));
       b.onclick = function () { chooseBg(id); };
       return b;
     }
-    var noneRow = el('div', 'bg-row');
-    noneRow.setAttribute('role', 'group');
-    noneRow.setAttribute('aria-label', 'Background');
-    noneRow.appendChild(bgButton('', 'None', null));
-    wrap.appendChild(noneRow);
     var sets = el('div', 'bg-sets');
+    sets.id = 'bg-options';
+    sets.hidden = true;
     var seen = {};
     BACKGROUNDS.forEach(function (bg) {
       if (!seen[bg.group]) {
@@ -2589,8 +2746,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       seen[bg.group].querySelector('.bg-row').appendChild(bgButton(bg.id, bg.name, bg));
     });
     wrap.appendChild(sets);
-    wrap.appendChild(el('p', 'proof-note',
-      'Wraps the whole mug, edge to edge. Your photo sits on top. Add one for $8, or leave it off.'));
+    var bgNote = el('p', 'proof-note',
+      'Wraps the whole mug, edge to edge. Your photo sits on top.');
+    bgNote.id = 'bg-note';
+    bgNote.hidden = true;
+    wrap.appendChild(bgNote);
 
     /* Hidden until there is a photo or a background.
        syncPhotoControls() decides from the state, not from the caller. */
@@ -3111,6 +3271,27 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       if (!saveBits({ printArea: PRINT_AREA })) return;
       layoutPanel(); renderMugSlot();
     };
+
+    var adminSize = $('bg-admin-size');
+    if (adminSize) adminSize.addEventListener('input', function () {
+      setPatternSize(Number(adminSize.value));
+      rememberWrapFit();
+    });
+    var step = 0.06;
+    var nudge = function (dx, dy) {
+      setWrapOffset(patternX + dx, patternY + dy);
+    };
+    var left = $('bg-nudge-left');
+    var right = $('bg-nudge-right');
+    var up = $('bg-nudge-up');
+    var down = $('bg-nudge-down');
+    var center = $('bg-nudge-center');
+    if (left) left.onclick = function () { nudge(-step, 0); };
+    if (right) right.onclick = function () { nudge(step, 0); };
+    if (up) up.onclick = function () { nudge(0, -step); };
+    if (down) down.onclick = function () { nudge(0, step); };
+    if (center) center.onclick = function () { setWrapOffset(0, 0); };
+    syncWrapAdmin();
   }
 
   function renderPhotoGrid() {
@@ -3194,6 +3375,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       freeShipOver:   $('a-freeship').value.trim(),
       variants:       variants,
       photos:         saved.photos || {},
+      wrapFit:        { size: patternSize, x: patternX, y: patternY },
       product: {
         title:    $('a-title').value.trim(),
         price:    $('a-price').value.trim(),
@@ -3266,7 +3448,12 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
   function clearAll() {
     lsDel(LS_CFG);
+    var f = wrapFit();
+    patternSize = f.size;
+    patternX = f.x;
+    patternY = f.y;
     fillForm(); applyConfig(); buildVariantFields(); renderShop(); renderCart(); mountPhotos(); renderPhotoGrid(); renderMugSlot();
+    syncWrapAdmin();
     statusBox($('connect-status'), 'info', 'Back to the built-in defaults.', 'Nothing was kept.');
   }
 
@@ -3307,6 +3494,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
            '  var SITE_CONFIG = ' + indent(site) + ';\n\n' +
            '  var MUG_PHOTO = ' + JSON.stringify(mugPhoto()) + ';\n\n' +
            '  var PRINT_AREA = ' + JSON.stringify(printArea()) + ';\n\n' +
+           '  var WRAP_FIT = ' + JSON.stringify({ size: patternSize, x: patternX, y: patternY }) + ';\n\n' +
            '  var EXAMPLE_PHOTOS = ' + indent(pics) + ';\n  ';
   }
 
