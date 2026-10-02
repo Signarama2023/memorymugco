@@ -147,8 +147,7 @@ section{scroll-margin-top:92px}
 
 /* ── Hero ───────────────────────────────────────────────── */
 .hero{padding-block:clamp(12px,2vw,22px) clamp(28px,4vw,48px)}
-.hero-aside{display:flex;flex-direction:column;gap:16px;min-width:0;padding-top:6px}
-.hero-head{margin:0;display:flex;flex-direction:column;gap:12px;text-align:left;min-width:0}
+.hero-head{margin:0 0 clamp(14px,2vw,22px);display:flex;flex-direction:column;gap:12px;text-align:left;min-width:0;max-width:40rem}
 .buy{
   background:var(--surface);border:1px solid var(--rule-2);border-radius:var(--r-lg);
   padding:clamp(16px,2vw,22px);display:flex;flex-direction:column;gap:10px;align-self:stretch;min-width:0;
@@ -177,10 +176,17 @@ section{scroll-margin-top:92px}
 .proof-drop:hover{color:var(--red-ink)}
 .proof-tools{display:flex;flex-direction:column;gap:7px}
 .proof-zoom{display:flex;align-items:center;gap:12px}
-.proof-zoom label{font-weight:700;font-size:.9375rem;flex:0 0 auto}
+.proof-zoom label,.proof-k{font-weight:700;font-size:.9375rem;flex:0 0 5.6rem}
 .proof-zoom input[type=range]{flex:1 1 90px;min-width:0;accent-color:var(--red-deep);height:22px}
 .proof-zoom input[type=range]:focus-visible{outline:2px solid var(--red-deep);outline-offset:3px}
-.proof-hint{font-size:.9375rem;color:var(--ink-3);line-height:1.5}
+.proof-nudge{display:flex;flex-wrap:wrap;gap:6px;flex:1 1 auto;min-width:0}
+.proof-nudge button{
+  font-family:var(--f-body);font-weight:700;font-size:.875rem;cursor:pointer;
+  padding:6px 10px;border-radius:var(--r-sm);border:1px solid var(--rule-2);
+  background:var(--surface);color:var(--ink);
+}
+.proof-nudge button:hover{border-color:var(--ink)}
+.proof-nudge button:focus-visible{outline:2px solid var(--red-deep);outline-offset:2px}
 
 /* The mug is a control only while the customer's own photo is on it: that is
    when the grab cursor appears and when a finger on it drags instead of
@@ -203,14 +209,10 @@ section{scroll-margin-top:92px}
   font-size:.9375rem;color:var(--ink-2);line-height:1.55;
   background:var(--surface-2);border-radius:var(--r-md);padding:12px 14px;
 }
-.hero-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:clamp(18px,3vw,40px);align-items:start}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:clamp(18px,3vw,40px);align-items:stretch}
 @media (max-width:920px){
-  .hero-grid{grid-template-columns:minmax(0,1fr);gap:16px}
-  .hero-aside{display:contents}
-  .hero-head{order:0}
-  .stage{order:1}
-  .buy{order:2}
-  #shop-notice{order:3}
+  .hero-grid{grid-template-columns:minmax(0,1fr);gap:10px}
+  .hero-head{margin-bottom:8px}
 }
 .hero h1{font-size:clamp(2.65rem,4.4vw,4.05rem);line-height:.98;letter-spacing:-.03em;font-weight:500}
 .hero h1 em{font-style:italic;font-weight:500;color:var(--red-ink)}
@@ -225,7 +227,12 @@ section{scroll-margin-top:92px}
 .hero-note span::before{content:"";width:7px;height:7px;border-radius:50%;flex:none;background:var(--red)}
 
 /* ── Mug stage ──────────────────────────────────────────── */
-.stage{display:flex;flex-direction:column;gap:12px;align-items:center;min-width:0}
+.stage{display:flex;flex-direction:column;justify-content:space-between;gap:12px;align-items:center;min-width:0;min-height:100%}
+.stage-foot{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
+@media (max-width:920px){
+  .stage{justify-content:flex-start;min-height:0;gap:8px}
+  .stage-foot{gap:6px}
+}
 .mug-frame{width:100%;max-width:620px;aspect-ratio:512/372}
 .mug-frame svg{display:block;width:100%;height:100%;filter:drop-shadow(0 18px 22px rgba(48,28,18,.16))}
 /* SVG presentation attributes can't read custom properties, so paint via CSS. */
@@ -314,10 +321,21 @@ section{scroll-margin-top:92px}
   width:44px;height:44px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;
   background:var(--red-soft);color:var(--red-ink);margin-bottom:2px;
 }
-.cat-photo{
-  width:calc(100% + 40px);max-width:none;margin:-22px -20px 6px;aspect-ratio:5/4;object-fit:cover;
-  object-position:center 22%;display:block;
+/* One frame for every lineup photo. The box sets the size; the picture
+   covers it, so nothing stretches or sits in a letterbox. */
+.cat-frame{
+  width:calc(100% + 40px);max-width:none;margin:-22px -20px 6px;aspect-ratio:4/3;
+  overflow:hidden;flex:none;
 }
+.cat-photo{
+  width:100%;height:100%;max-width:none;object-fit:cover;object-position:center;display:block;
+}
+.cat-photo--family{object-position:center 34%}
+.cat-photo--art{object-position:center 42%}
+.cat-photo--dog{object-position:center 46%}
+.cat-photo--hand{object-position:center 38%}
+.cat-photo--recipe{object-position:center 32%}
+.cat-photo--crew{object-position:center 42%}
 .cat h3{font-size:1.3rem}
 .cat p{font-size:.97rem;color:var(--ink-2);line-height:1.6}
 
@@ -562,7 +580,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 .photo-thumb{position:relative;aspect-ratio:1/1;max-width:100%;background:var(--surface-2);display:flex;align-items:center;justify-content:center;overflow:hidden}
 .photo-thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .photo-thumb span{font-size:.7rem;font-weight:700;color:var(--ink-3);text-align:center;padding:6px;line-height:1.3}
-.photo-slot .cap{padding:6px 6px 0;font-size:.68rem;font-weight:700;text-align:center;color:var(--ink-2)}
+.photo-slot .cap{padding:8px 6px 0;font-size:.75rem;font-weight:700;text-align:center;color:var(--ink-2);line-height:1.3}
 .photo-slot .pick{display:block;padding:6px;font-size:.7rem;font-weight:700;text-align:center;color:var(--red-ink);cursor:pointer}
 .photo-slot .pick:hover{text-decoration:underline}
 .photo-slot input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
@@ -630,6 +648,13 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
 <!-- ══ HERO ════════════════════════════════════════════════ -->
 <section class="wrap hero">
+  <div class="hero-head">
+    <p class="eyebrow">Custom photo mugs · By <span data-cfg="operatorName">H3 Customs</span></p>
+    <h1>Put your <em>favorite people</em> on a mug.</h1>
+    <p class="lede">
+      Turn a photo you already have into a gift they'll reach for every morning.
+    </p>
+  </div>
   <div class="hero-grid" id="order">
     <div class="stage">
       <div class="mug-frame">
@@ -933,6 +958,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         </svg>
       </div>
 
+      <div class="stage-foot">
       <div class="chips" role="group" aria-label="Preview a mug style">
         <button type="button" class="chip" id="chip-family" data-key="family" aria-pressed="true">Family</button>
         <button type="button" class="chip" id="chip-art" data-key="art" aria-pressed="false">Kid's art</button>
@@ -947,20 +973,12 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         The whole crew, wrapped the entire way around. Yes, the dog counts as family.
       </p>
       <p class="stage-caption" id="stage-fineprint" style="margin-top:-8px">Illustrated example — your mug carries your photo.</p>
+      </div>
     </div>
 
-    <div class="hero-aside">
-      <div class="hero-head">
-        <p class="eyebrow">Custom photo mugs · By <span data-cfg="operatorName">H3 Customs</span></p>
-        <h1>Put your <em>favorite people</em> on a mug.</h1>
-        <p class="lede">
-          Turn a photo you already have into a gift they'll reach for every morning.
-        </p>
-      </div>
-      <div class="buy" id="shop-single"></div>
-      <div id="shop-notice"></div>
-    </div>
+    <div class="buy" id="shop-single"></div>
   </div>
+  <div id="shop-notice"></div>
 </section>
 
 <!-- ══ TICKER ══════════════════════════════════════════════ -->
@@ -990,37 +1008,37 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
   <div class="cat-grid">
     <article class="cat">
-      <img class="cat-photo" src="assets/examples/family.jpg" alt="Example family photograph" width="1000" height="1200">
+      <div class="cat-frame"><img class="cat-photo cat-photo--family" data-photo="family" src="assets/examples/family.jpg" alt="Example family photograph" width="800" height="600"></div>
       <h3>The family photo</h3>
       <p>The one where everybody is actually looking at the camera. Wrapped the whole way around, so it looks good from wherever you're sitting.</p>
     </article>
 
     <article class="cat">
-      <img class="cat-photo" src="assets/examples/art.jpg" alt="Example photograph of a child drawing" width="1000" height="1200">
+      <div class="cat-frame"><img class="cat-photo cat-photo--art" data-photo="art" src="assets/examples/art.jpg" alt="Example photograph of a child drawing" width="800" height="600"></div>
       <h3>Your kid's masterpiece</h3>
       <p>The crayon drawing that's been on the fridge since March. Grandparents completely lose it over these — fair warning.</p>
     </article>
 
     <article class="cat">
-      <img class="cat-photo" src="assets/examples/dog.jpg" alt="Example photograph of a dog" width="1000" height="1200">
+      <div class="cat-frame"><img class="cat-photo cat-photo--dog" data-photo="pet" src="assets/examples/dog.jpg" alt="Example photograph of a dog" width="800" height="600"></div>
       <h3>The dog. Obviously.</h3>
       <p>We knock the background out so it's just your dog's face, six inches tall, staring at you before coffee. Add the name underneath — everyone does.</p>
     </article>
 
     <article class="cat">
-      <img class="cat-photo" src="assets/examples/handwriting.jpg" alt="Example photograph of handwriting" width="1000" height="1200">
+      <div class="cat-frame"><img class="cat-photo cat-photo--hand" data-photo="hand" src="assets/examples/handwriting.jpg" alt="Example photograph of handwriting" width="800" height="600"></div>
       <h3>Somebody's handwriting</h3>
       <p>A birthday card, a note off the fridge, a signature. We keep the pen pressure and the shaky letters — that's the part that gets people.</p>
     </article>
 
     <article class="cat">
-      <img class="cat-photo" src="assets/examples/recipe.jpg" alt="Example photograph of a handwritten recipe" width="1000" height="1200">
+      <div class="cat-frame"><img class="cat-photo cat-photo--recipe" data-photo="recipe" src="assets/examples/recipe.jpg" alt="Example photograph of a handwritten recipe" width="800" height="600"></div>
       <h3>The family recipe</h3>
       <p>The cobbler, the gravy, the thing nobody else can get right. Printed big enough to actually read while it's sitting on the counter.</p>
     </article>
 
     <article class="cat">
-      <img class="cat-photo" src="assets/examples/crew.jpg" alt="Example photograph of a group of people" width="1000" height="1200">
+      <div class="cat-frame"><img class="cat-photo cat-photo--crew" data-photo="team" src="assets/examples/crew.jpg" alt="Example photograph of a group of people" width="800" height="600"></div>
       <h3>Your logo or your crew</h3>
       <p>Shop mugs, closing gifts, the whole team's names on the back. Send whatever logo file you've got and we'll clean it up for print.</p>
     </article>
@@ -1350,8 +1368,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
       <div class="status status--info">
         <b>Changes show here right away — but only in this browser.</b>
-        When they look right, use <strong>Download updated site</strong> at the bottom and
-        re-upload that file to your host. That is what makes them live for customers.
+        When they look right, use <strong>Download updated site</strong> at the bottom.
+        That file is the site visitors load, photographs included. On this host it goes
+        live when it replaces <code>index.html</code> on <code>main</code>, which is what
+        GitHub Pages publishes. This page cannot do that step itself: there is no
+        repository write token here, and the deploy workflow is only allowed to read the repo.
       </div>
 
       <p class="admin-sec">The mug</p>
@@ -1386,7 +1407,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
       <p class="admin-sec">The mug itself</p>
       <p class="hint" style="margin-top:-6px">
-        A photograph of the blank mug, shot straight on against white. Set one and every
+        The hero photograph: the blank mug, shot straight on against white. Set one and every
         preview on the page shows the real product with the artwork pressed onto it,
         instead of the drawing.
       </p>
@@ -1419,10 +1440,14 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         <button type="button" class="line-rm" id="pa-reset" style="margin-top:10px">Back to the standard 15 oz placement</button>
       </div>
 
-      <p class="admin-sec">Example photos</p>
+      <p class="admin-sec">Every other photograph</p>
       <p class="hint" style="margin-top:-6px">
-        Photos of real finished mugs. Each replaces a drawing; clear one and the drawing comes back.
+        Family, kid's art, the dog, handwriting, the recipe, and the crew each show on the
+        mug and in the lineup. The left and right snapshots are the polaroids beside the mug.
+        Replace one and both places update. Clear one and the built-in picture comes back.
         Big files are shrunk to 900px automatically so the page stays quick.
+        The brand mark, the cart, and the small arrows are drawn in the page, not image files,
+        and there is no favicon to replace.
       </p>
       <div class="photo-grid" id="photo-grid"></div>
 
@@ -1721,8 +1746,10 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     snapA:[39,67,100,94], snapB:[379,249,100,94]
   };
   var PHOTO_LABEL = {
-    family:'Family', art:"Kid's art", pet:'The dog', hand:'Handwriting',
-    recipe:'Recipe', team:'The crew', snapA:'Propped left', snapB:'Propped right'
+    family:'Family — mug and lineup', art:"Kid's art — mug and lineup",
+    pet:'The dog — mug and lineup', hand:'Handwriting — mug and lineup',
+    recipe:'Recipe — mug and lineup', team:'The crew — mug and lineup',
+    snapA:'Left polaroid', snapB:'Right polaroid'
   };
 
   var LS_CFG = 'mmc.config.v3', LS_CART = 'mmc.cart.v3', LS_NOTE = 'mmc.note.v3';
@@ -1951,6 +1978,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       img.addEventListener('error', function () { img.remove(); });
       target.appendChild(img);
     });
+    /* The lineup cards are the same photographs as the mug prints. */
+    Array.prototype.forEach.call(document.querySelectorAll('[data-photo]'), function (img) {
+      var src = live[img.getAttribute('data-photo')];
+      if (src) img.src = src;
+    });
   }
   /* ══ Shop ══ */
 
@@ -2064,22 +2096,29 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
    * Works out the rectangle the photo is drawn into, in the space the scenes
    * are drawn in, clamping the offset back into range as it goes.
    *
-   * The clamp is the point: however far somebody drags, the photo keeps
-   * covering the print, so a white gap can never open along an edge and the
-   * preview never shows a crop the press could not produce.
+   * The clamp is the point: however far somebody drags or zooms, the photo
+   * keeps covering the area inside the margins, so a gap cannot open along
+   * that edge. Margins are the white border the customer asked for.
    */
   function photoRect() {
     if (!ownPhoto || !ownPhoto.w || !ownPhoto.h) return null;
-    var P = ART_BOX, a = ownPhoto.w / ownPhoto.h, pa = P[2] / P[3], w, h;
-    if (a > pa) { h = P[3]; w = h * a; } else { w = P[2]; h = w / a; }
+    var P = ART_BOX;
+    var m = Math.max(0, Math.min(0.2, ownPhoto.margin || 0));
+    ownPhoto.margin = m;
+    /* Margins shrink the area the photo has to cover. The offset is still a
+       fraction of the full print, so a drag tracks the finger. */
+    var boxW = P[2] * (1 - 2 * m), boxH = P[3] * (1 - 2 * m);
+    var boxX = P[0] + P[2] * m, boxY = P[1] + P[3] * m;
+    var a = ownPhoto.w / ownPhoto.h, pa = boxW / boxH, w, h;
+    if (a > pa) { h = boxH; w = h * a; } else { w = boxW; h = w / a; }
     w *= ownPhoto.zoom; h *= ownPhoto.zoom;
 
-    var mx = (w - P[2]) / 2 / P[2], my = (h - P[3]) / 2 / P[3];
+    var mx = (w - boxW) / 2 / P[2], my = (h - boxH) / 2 / P[3];
     ownPhoto.ox = Math.max(-mx, Math.min(mx, ownPhoto.ox));
     ownPhoto.oy = Math.max(-my, Math.min(my, ownPhoto.oy));
 
-    return { x: P[0] + (P[2] - w) / 2 + ownPhoto.ox * P[2],
-             y: P[1] + (P[3] - h) / 2 + ownPhoto.oy * P[3],
+    return { x: boxX + (boxW - w) / 2 + ownPhoto.ox * P[2],
+             y: boxY + (boxH - h) / 2 + ownPhoto.oy * P[3],
              w: w, h: h, canMoveX: mx > 0.001, canMoveY: my > 0.001 };
   }
 
@@ -2095,8 +2134,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       if (dataUri) {
         frame.setAttribute('tabindex', '0');
         frame.setAttribute('role', 'application');
-        frame.setAttribute('aria-label',
-          'Your photo on the mug. Use the arrow keys to move it, or the zoom slider below.');
+        frame.setAttribute('aria-label', 'Your photo');
       } else {
         frame.removeAttribute('tabindex');
         frame.removeAttribute('role');
@@ -2133,9 +2171,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     if (!ownPhoto) return '';
     var z = Math.round((ownPhoto.zoom || 1) * 100);
     var ox = Math.round((ownPhoto.ox || 0) * 100), oy = Math.round((ownPhoto.oy || 0) * 100);
-    if (z === 100 && !ox && !oy) return '';
+    var m = Math.round((ownPhoto.margin || 0) * 100);
+    if (z === 100 && !ox && !oy && !m) return '';
     var sign = function (n) { return (n > 0 ? '+' : '') + n + '%'; };
-    return 'zoom ' + z + '%, offset ' + sign(ox) + ' across, ' + sign(oy) + ' down';
+    return 'zoom ' + z + '%, offset ' + sign(ox) + ' across, ' + sign(oy) + ' down'
+      + (m ? ', margin ' + m + '%' : '');
   }
 
   /** Moves the photo by a fraction of the print area, and redraws. */
@@ -2148,6 +2188,12 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   function zoomPhoto(z) {
     if (!ownPhoto) return;
     ownPhoto.zoom = Math.max(1, Math.min(3, z));
+    paintOwnPhoto(ownPhoto.dataUri);
+  }
+
+  function setMargin(m) {
+    if (!ownPhoto) return;
+    ownPhoto.margin = Math.max(0, Math.min(0.2, m));
     paintOwnPhoto(ownPhoto.dataUri);
   }
 
@@ -2165,13 +2211,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     if (slider && ownPhoto && document.activeElement !== slider) {
       slider.value = Math.round(ownPhoto.zoom * 100);
     }
-    var hint = $('photo-move-hint');
-    if (hint) {
-      var r = ownPhoto && photoRect();
-      hint.textContent = !r ? ''
-        : (r.canMoveX || r.canMoveY)
-          ? 'Drag it on the mug to move it, or use the arrow keys.'
-          : 'Zoom in to choose which part of the photo shows.';
+    var margin = $('photo-margin');
+    if (margin && ownPhoto && document.activeElement !== margin) {
+      margin.value = Math.round((ownPhoto.margin || 0) * 100);
     }
   }
 
@@ -2257,19 +2299,45 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     var tools = el('div', 'proof-tools');
     tools.id = 'photo-tools'; tools.hidden = true;
 
+    var posRow = el('div', 'proof-zoom');
+    var posLab = el('span', 'proof-k', 'Position');
+    posLab.id = 'photo-position-label';
+    var nudge = el('div', 'proof-nudge');
+    nudge.setAttribute('role', 'group');
+    nudge.setAttribute('aria-labelledby', 'photo-position-label');
+    [['Left', -1, 0], ['Right', 1, 0], ['Up', 0, -1], ['Down', 0, 1]].forEach(function (d) {
+      var b = el('button', null, d[0]);
+      b.type = 'button';
+      b.onclick = function () { movePhoto(d[1] * 0.06, d[2] * 0.06); };
+      nudge.appendChild(b);
+    });
+    posRow.appendChild(posLab); posRow.appendChild(nudge);
+    tools.appendChild(posRow);
+
     var zoomRow = el('div', 'proof-zoom');
     var zlab = el('label', null, 'Zoom');
     zlab.setAttribute('for', 'photo-zoom');
     var zoom = document.createElement('input');
     zoom.type = 'range'; zoom.id = 'photo-zoom';
     zoom.min = '100'; zoom.max = '300'; zoom.step = '1'; zoom.value = '100';
+    zoom.setAttribute('aria-valuemin', '100');
+    zoom.setAttribute('aria-valuemax', '300');
     zoom.addEventListener('input', function () { zoomPhoto(Number(zoom.value) / 100); });
     var center = el('button', 'proof-drop', 'Center');
     center.type = 'button';
     center.onclick = function () { centerPhoto(); };
     zoomRow.appendChild(zlab); zoomRow.appendChild(zoom); zoomRow.appendChild(center);
     tools.appendChild(zoomRow);
-    tools.appendChild(el('p', 'proof-hint', '')).id = 'photo-move-hint';
+
+    var marginRow = el('div', 'proof-zoom');
+    var mlab = el('label', null, 'Margins');
+    mlab.setAttribute('for', 'photo-margin');
+    var margin = document.createElement('input');
+    margin.type = 'range'; margin.id = 'photo-margin';
+    margin.min = '0'; margin.max = '20'; margin.step = '1'; margin.value = '0';
+    margin.addEventListener('input', function () { setMargin(Number(margin.value) / 100); });
+    marginRow.appendChild(mlab); marginRow.appendChild(margin);
+    tools.appendChild(marginRow);
     wrap.appendChild(tools);
 
     var note = el('p', 'proof-note');
@@ -2315,7 +2383,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         if (problem) { name.textContent = problem; return; }
         ownPhoto = { dataUri: dataUri, name: f.name,
                      w: (size && size.w) || 0, h: (size && size.h) || 0,
-                     zoom: 1, ox: 0, oy: 0 };
+                     zoom: 1, ox: 0, oy: 0, margin: 0 };
         paintOwnPhoto(dataUri);
         var chip = $('chip-yours');
         if (chip) { chip.hidden = false; chip.click(); }
@@ -2903,7 +2971,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   function offerSave(name, text) {
     var done = function () {
       statusBox($('publish-status'), 'ok', 'Downloaded.',
-        'Re-upload that file to your host, replacing the old one, and the changes are live for everyone.');
+        'Replace index.html with that file and visitors see these photographs. '
+        + 'GitHub Pages does that when the file is on main. This page cannot commit it — '
+        + 'there is no repository write token.');
     };
     var viaBlob = function () {
       try {
