@@ -567,10 +567,12 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 .mug-slot input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .print-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(140px,100%),1fr));gap:12px}
 .bg-admin-preview{
-  width:100%;aspect-ratio:512/372;background:var(--ground);
+  width:100%;max-height:300px;aspect-ratio:512/372;background:var(--ground);
   border:2px solid var(--rule-2);border-radius:var(--r-md);overflow:hidden;
 }
-.bg-admin-preview svg{width:100%;height:100%;display:block}
+/* The outer picture fills the frame. The wrap inside keeps the size paintWrap gives it. */
+.bg-admin-preview > svg{width:100%;height:100%;display:block;max-width:none}
+.bg-admin-preview svg svg{max-width:none}
 
 /* With a product photo in place the drawn mug and the printed panel's own
    white ground step aside, and the artwork multiplies onto the real ceramic so
@@ -710,7 +712,6 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
               <stop class="stop-sky-c" offset="100%"/>
             </linearGradient>
             <clipPath id="panelClip"><rect x="178" y="146" width="140" height="172" rx="7"/></clipPath>
-            <clipPath id="wrapClip"><rect id="wrap-clip-rect" x="166" y="142" width="153" height="195" rx="6"/></clipPath>
             <clipPath id="snapA"><rect x="39" y="67" width="100" height="94"/></clipPath>
             <clipPath id="snapB"><rect x="379" y="249" width="100" height="94"/></clipPath>
             <linearGradient id="famSky" x1="0" y1="0" x2="0" y2="1">
@@ -807,9 +808,14 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
           <!-- One template, drawn to the ceramic and scaled onto it.
                The customer's photo is drawn later, on top. -->
           <svg class="mug-wrap" id="mug-wrap" x="166" y="142" width="153" height="195"
-               viewBox="0 0 153 195" preserveAspectRatio="none" clip-path="url(#wrapClip)" hidden>
-            <rect id="wrap-ground" x="0" y="0" width="153" height="195" fill="#F3EFE6"/>
-            <g id="wrap-motif"></g>
+               viewBox="0 0 153 195" preserveAspectRatio="none" hidden>
+            <defs>
+              <clipPath id="wrapClip"><rect id="wrap-clip-rect" x="0" y="0" width="153" height="195" rx="6"/></clipPath>
+            </defs>
+            <g clip-path="url(#wrapClip)">
+              <rect id="wrap-ground" x="0" y="0" width="153" height="195" fill="none"/>
+              <g id="wrap-motif"></g>
+            </g>
           </svg>
           <g class="panel-art" clip-path="url(#panelClip)">
            <g id="panel-fit" transform="translate(-51.3103,-40.7429) scale(1.206897,1.228571)">
@@ -1501,7 +1507,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         <p class="admin-sec">Background</p>
         <div class="proof-zoom">
           <label for="bg-admin-size">Size</label>
-          <input id="bg-admin-size" type="range" min="46" max="170" step="2" value="150">
+          <input id="bg-admin-size" type="range" min="22" max="170" step="2" value="32">
         </div>
         <div class="proof-zoom">
           <span class="proof-k" id="bg-admin-pos-label">Position</span>
@@ -1515,13 +1521,17 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         </div>
         <div class="bg-admin-preview">
           <svg viewBox="4 22 512 372" aria-hidden="true">
-            <defs>
-              <clipPath id="adminWrapClip"><rect id="admin-wrap-clip" x="166" y="142" width="153" height="195" rx="6"/></clipPath>
-            </defs>
             <image id="admin-mug-photo" x="103" y="70" width="315" height="315" preserveAspectRatio="xMidYMid meet"/>
-            <svg id="admin-wrap" x="166" y="142" width="153" height="195" viewBox="0 0 153 195" preserveAspectRatio="none" clip-path="url(#adminWrapClip)">
-              <rect id="admin-wrap-ground" x="0" y="0" width="153" height="195" fill="#F3EFE6"/>
-              <g id="admin-wrap-motif"></g>
+            <!-- Clip lives in this svg's own units. A clip in the parent
+                 space sits off the viewBox and hides the whole template. -->
+            <svg id="admin-wrap" x="166" y="142" width="153" height="195" viewBox="0 0 153 195" preserveAspectRatio="none">
+              <defs>
+                <clipPath id="adminWrapClip"><rect id="admin-wrap-clip" x="0" y="0" width="153" height="195" rx="6"/></clipPath>
+              </defs>
+              <g clip-path="url(#adminWrapClip)">
+                <rect id="admin-wrap-ground" x="0" y="0" width="153" height="195" fill="none"/>
+                <g id="admin-wrap-motif"></g>
+              </g>
             </svg>
           </svg>
         </div>
@@ -1806,7 +1816,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   /* How the background template sits on the ceramic: motif size in the wrap's
      own units, and a shift as a fraction of that wrap. The admin panel moves
      these; the download writes them back here. */
-  var WRAP_FIT = { size: 150, x: 0, y: 0 };
+  var WRAP_FIT = { size: 32, x: 0, y: 0 };
 
   /* Photos of real finished mugs. A URL or a data: URI; blank leaves the drawing.
      Credits for the files below live in assets/examples/CREDITS.md, not on the page. */
@@ -1970,15 +1980,13 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     if (overFit) overFit.setAttribute('transform', tf);
 
     var body = bodyBox();
-    var wrapClip = svg.querySelector('#wrap-clip-rect');
     var wrap = svg.querySelector('#mug-wrap');
-    [wrapClip, wrap].forEach(function (r) {
-      if (!r) return;
-      r.setAttribute('x', body[0].toFixed(3));
-      r.setAttribute('y', body[1].toFixed(3));
-      r.setAttribute('width', body[2].toFixed(3));
-      r.setAttribute('height', body[3].toFixed(3));
-    });
+    if (wrap) {
+      wrap.setAttribute('x', body[0].toFixed(3));
+      wrap.setAttribute('y', body[1].toFixed(3));
+      wrap.setAttribute('width', body[2].toFixed(3));
+      wrap.setAttribute('height', body[3].toFixed(3));
+    }
     paintWrap();
   }
 
@@ -2227,17 +2235,18 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
      and height. */
   var ownPhoto = null;
 
-  /* Premade wraps. Each one is a single template fitted to the ceramic,
-     edge to edge. $8 is added only after the customer adds a background.
+  /* Premade wraps. Each one is a small pattern of motifs on the ceramic,
+     with no fill behind them. $8 is added only after the customer adds a background.
      Shopify still charges the mug's own variant; the name, the size, and the
      $8 ride along as a cart attribute on the cart-permalink path. A product
      URL cannot carry that attribute. */
   var BG_EXTRA = 8;
-  /* Cell size in the wrap's own units. Larger means fewer motifs, each one
-     filling more of the template. The default is one motif sized to the wrap. */
-  var PATTERN_MIN = 46;
+  /* Cell size in the wrap's own units. Smaller packs more motifs across the
+     ceramic. The default is a small pattern; a larger size makes fewer,
+     bigger motifs. */
+  var PATTERN_MIN = 22;
   var PATTERN_MAX = 170;
-  var patternSize = 150;
+  var patternSize = 32;
   var patternX = 0;
   var patternY = 0;
   var lastBgId = 'tree';
@@ -2276,10 +2285,10 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     g.appendChild(svgEl('circle', { cx: '32', cy: '45', r: '1.7', fill: '#2A211C' }));
   }
   var BACKGROUNDS = [
-    { id: 'tree', name: 'Tree', group: 'Christmas', ground: '#F3EFE6', draw: drawTree },
-    { id: 'balloon', name: 'Balloon', group: 'Birthday', ground: '#F6F1EA', draw: drawBalloon },
-    { id: 'rings', name: 'Rings', group: 'Wedding', ground: '#F7F3EC', draw: drawRings },
-    { id: 'duck', name: 'Duck', group: 'New baby', ground: '#F4F0E8', draw: drawDuck }
+    { id: 'tree', name: 'Tree', group: 'Christmas', draw: drawTree },
+    { id: 'balloon', name: 'Balloon', group: 'Birthday', draw: drawBalloon },
+    { id: 'rings', name: 'Rings', group: 'Wedding', draw: drawRings },
+    { id: 'duck', name: 'Duck', group: 'New baby', draw: drawDuck }
   ];
   var chosenBg = null;
   var refreshPrice = function () {};
@@ -2291,7 +2300,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     var size = Number(saved.size != null ? saved.size : base.size);
     var x = Number(saved.x != null ? saved.x : base.x);
     var y = Number(saved.y != null ? saved.y : base.y);
-    if (!isFinite(size)) size = 150;
+    if (!isFinite(size)) size = 32;
     if (!isFinite(x)) x = 0;
     if (!isFinite(y)) y = 0;
     return {
@@ -2321,8 +2330,8 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
   /**
    * Draws one template into the ceramic box. The grid divides that box
-   * exactly, and each motif is scaled to its cell, so the artwork is the
-   * size of the wrap instead of a tile that can run off the edge.
+   * exactly, and each motif is scaled to its cell, so the pattern sits on
+   * the wrap instead of a tile that runs off the edge.
    */
   /** Draws bg into one wrap svg. A null bg clears it. */
   function paintWrapHost(host, ground, motif, clip, bg) {
@@ -2343,11 +2352,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     }
     ground.setAttribute('width', W.toFixed(3));
     ground.setAttribute('height', H.toFixed(3));
+    ground.setAttribute('fill', 'none');
     if (!bg) return;
-    ground.setAttribute('fill', bg.ground);
-    var cols = Math.max(1, Math.min(4, Math.round(W / patternSize)));
+    var cols = Math.max(1, Math.min(8, Math.round(W / patternSize)));
     var cellW = W / cols;
-    var rows = Math.max(1, Math.min(5, Math.round(H / cellW)));
+    var rows = Math.max(1, Math.min(10, Math.round(H / cellW)));
     var cellH = H / rows;
     var m = Math.min(cellW, cellH) * 0.9;
     var scale = m / 100;
@@ -2366,12 +2375,23 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     }
   }
 
+  /* Both clips sit inside their wrap svg. Parent-mug coordinates miss that
+     viewBox and hide the template. */
+  function fitWrapClip(clip) {
+    if (!clip) return;
+    var b = bodyBox();
+    clip.setAttribute('x', '0');
+    clip.setAttribute('y', '0');
+    clip.setAttribute('width', b[2].toFixed(3));
+    clip.setAttribute('height', b[3].toFixed(3));
+  }
+
   function paintWrap() {
     paintWrapHost(
       document.querySelector('#mug-wrap'),
       document.querySelector('#wrap-ground'),
       document.querySelector('#wrap-motif'),
-      document.querySelector('#wrap-clip-rect'),
+      null,
       chosenBg
     );
     var previewBg = chosenBg || BACKGROUNDS[0];
@@ -2379,9 +2399,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       document.querySelector('#admin-wrap'),
       document.querySelector('#admin-wrap-ground'),
       document.querySelector('#admin-wrap-motif'),
-      document.querySelector('#admin-wrap-clip'),
+      null,
       previewBg
     );
+    fitWrapClip(document.querySelector('#wrap-clip-rect'));
+    fitWrapClip(document.querySelector('#admin-wrap-clip'));
     var photo = document.querySelector('#admin-mug-photo');
     if (photo) {
       var src = mugPhoto();
@@ -2720,7 +2742,6 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       b.setAttribute('data-bg', id);
       b.setAttribute('aria-pressed', 'false');
       var sw = svgEl('svg', { viewBox: '0 0 100 100', 'aria-hidden': 'true' });
-      sw.appendChild(svgEl('rect', { width: '100', height: '100', fill: bg.ground }));
       var g = svgEl('g');
       bg.draw(g);
       sw.appendChild(g);
