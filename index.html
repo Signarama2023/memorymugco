@@ -573,7 +573,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 .photo-thumb{position:relative;aspect-ratio:1/1;max-width:100%;background:var(--surface-2);display:flex;align-items:center;justify-content:center;overflow:hidden}
 .photo-thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .photo-thumb span{font-size:.7rem;font-weight:700;color:var(--ink-3);text-align:center;padding:6px;line-height:1.3}
-.photo-slot .cap{padding:6px 6px 0;font-size:.68rem;font-weight:700;text-align:center;color:var(--ink-2)}
+.photo-slot .cap{padding:8px 6px 0;font-size:.75rem;font-weight:700;text-align:center;color:var(--ink-2);line-height:1.3}
 .photo-slot .pick{display:block;padding:6px;font-size:.7rem;font-weight:700;text-align:center;color:var(--red-ink);cursor:pointer}
 .photo-slot .pick:hover{text-decoration:underline}
 .photo-slot input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
@@ -1001,37 +1001,37 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
   <div class="cat-grid">
     <article class="cat">
-      <div class="cat-frame"><img class="cat-photo cat-photo--family" src="assets/examples/family.jpg" alt="Example family photograph" width="800" height="600"></div>
+      <div class="cat-frame"><img class="cat-photo cat-photo--family" data-photo="family" src="assets/examples/family.jpg" alt="Example family photograph" width="800" height="600"></div>
       <h3>The family photo</h3>
       <p>The one where everybody is actually looking at the camera. Wrapped the whole way around, so it looks good from wherever you're sitting.</p>
     </article>
 
     <article class="cat">
-      <div class="cat-frame"><img class="cat-photo cat-photo--art" src="assets/examples/art.jpg" alt="Example photograph of a child drawing" width="800" height="600"></div>
+      <div class="cat-frame"><img class="cat-photo cat-photo--art" data-photo="art" src="assets/examples/art.jpg" alt="Example photograph of a child drawing" width="800" height="600"></div>
       <h3>Your kid's masterpiece</h3>
       <p>The crayon drawing that's been on the fridge since March. Grandparents completely lose it over these — fair warning.</p>
     </article>
 
     <article class="cat">
-      <div class="cat-frame"><img class="cat-photo cat-photo--dog" src="assets/examples/dog.jpg" alt="Example photograph of a dog" width="800" height="600"></div>
+      <div class="cat-frame"><img class="cat-photo cat-photo--dog" data-photo="pet" src="assets/examples/dog.jpg" alt="Example photograph of a dog" width="800" height="600"></div>
       <h3>The dog. Obviously.</h3>
       <p>We knock the background out so it's just your dog's face, six inches tall, staring at you before coffee. Add the name underneath — everyone does.</p>
     </article>
 
     <article class="cat">
-      <div class="cat-frame"><img class="cat-photo cat-photo--hand" src="assets/examples/handwriting.jpg" alt="Example photograph of handwriting" width="800" height="600"></div>
+      <div class="cat-frame"><img class="cat-photo cat-photo--hand" data-photo="hand" src="assets/examples/handwriting.jpg" alt="Example photograph of handwriting" width="800" height="600"></div>
       <h3>Somebody's handwriting</h3>
       <p>A birthday card, a note off the fridge, a signature. We keep the pen pressure and the shaky letters — that's the part that gets people.</p>
     </article>
 
     <article class="cat">
-      <div class="cat-frame"><img class="cat-photo cat-photo--recipe" src="assets/examples/recipe.jpg" alt="Example photograph of a handwritten recipe" width="800" height="600"></div>
+      <div class="cat-frame"><img class="cat-photo cat-photo--recipe" data-photo="recipe" src="assets/examples/recipe.jpg" alt="Example photograph of a handwritten recipe" width="800" height="600"></div>
       <h3>The family recipe</h3>
       <p>The cobbler, the gravy, the thing nobody else can get right. Printed big enough to actually read while it's sitting on the counter.</p>
     </article>
 
     <article class="cat">
-      <div class="cat-frame"><img class="cat-photo cat-photo--crew" src="assets/examples/crew.jpg" alt="Example photograph of a group of people" width="800" height="600"></div>
+      <div class="cat-frame"><img class="cat-photo cat-photo--crew" data-photo="team" src="assets/examples/crew.jpg" alt="Example photograph of a group of people" width="800" height="600"></div>
       <h3>Your logo or your crew</h3>
       <p>Shop mugs, closing gifts, the whole team's names on the back. Send whatever logo file you've got and we'll clean it up for print.</p>
     </article>
@@ -1361,8 +1361,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
       <div class="status status--info">
         <b>Changes show here right away — but only in this browser.</b>
-        When they look right, use <strong>Download updated site</strong> at the bottom and
-        re-upload that file to your host. That is what makes them live for customers.
+        When they look right, use <strong>Download updated site</strong> at the bottom.
+        That file is the site visitors load, photographs included. On this host it goes
+        live when it replaces <code>index.html</code> on <code>main</code>, which is what
+        GitHub Pages publishes. This page cannot do that step itself: there is no
+        repository write token here, and the deploy workflow is only allowed to read the repo.
       </div>
 
       <p class="admin-sec">The mug</p>
@@ -1397,7 +1400,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
       <p class="admin-sec">The mug itself</p>
       <p class="hint" style="margin-top:-6px">
-        A photograph of the blank mug, shot straight on against white. Set one and every
+        The hero photograph: the blank mug, shot straight on against white. Set one and every
         preview on the page shows the real product with the artwork pressed onto it,
         instead of the drawing.
       </p>
@@ -1430,10 +1433,14 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         <button type="button" class="line-rm" id="pa-reset" style="margin-top:10px">Back to the standard 15 oz placement</button>
       </div>
 
-      <p class="admin-sec">Example photos</p>
+      <p class="admin-sec">Every other photograph</p>
       <p class="hint" style="margin-top:-6px">
-        Photos of real finished mugs. Each replaces a drawing; clear one and the drawing comes back.
+        Family, kid's art, the dog, handwriting, the recipe, and the crew each show on the
+        mug and in the lineup. The left and right snapshots are the polaroids beside the mug.
+        Replace one and both places update. Clear one and the built-in picture comes back.
         Big files are shrunk to 900px automatically so the page stays quick.
+        The brand mark, the cart, and the small arrows are drawn in the page, not image files,
+        and there is no favicon to replace.
       </p>
       <div class="photo-grid" id="photo-grid"></div>
 
@@ -1732,8 +1739,10 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     snapA:[39,67,100,94], snapB:[379,249,100,94]
   };
   var PHOTO_LABEL = {
-    family:'Family', art:"Kid's art", pet:'The dog', hand:'Handwriting',
-    recipe:'Recipe', team:'The crew', snapA:'Propped left', snapB:'Propped right'
+    family:'Family — mug and lineup', art:"Kid's art — mug and lineup",
+    pet:'The dog — mug and lineup', hand:'Handwriting — mug and lineup',
+    recipe:'Recipe — mug and lineup', team:'The crew — mug and lineup',
+    snapA:'Left polaroid', snapB:'Right polaroid'
   };
 
   var LS_CFG = 'mmc.config.v3', LS_CART = 'mmc.cart.v3', LS_NOTE = 'mmc.note.v3';
@@ -1961,6 +1970,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       img.setAttributeNS(XLINK, 'xlink:href', src);
       img.addEventListener('error', function () { img.remove(); });
       target.appendChild(img);
+    });
+    /* The lineup cards are the same photographs as the mug prints. */
+    Array.prototype.forEach.call(document.querySelectorAll('[data-photo]'), function (img) {
+      var src = live[img.getAttribute('data-photo')];
+      if (src) img.src = src;
     });
   }
   /* ══ Shop ══ */
@@ -2914,7 +2928,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   function offerSave(name, text) {
     var done = function () {
       statusBox($('publish-status'), 'ok', 'Downloaded.',
-        'Re-upload that file to your host, replacing the old one, and the changes are live for everyone.');
+        'Replace index.html with that file and visitors see these photographs. '
+        + 'GitHub Pages does that when the file is on main. This page cannot commit it — '
+        + 'there is no repository write token.');
     };
     var viaBlob = function () {
       try {
