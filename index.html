@@ -197,7 +197,10 @@ section{scroll-margin-top:92px}
 
 .proof-note{font-size:.9375rem;color:var(--ink-2);line-height:1.55}
 .proof-note b{color:var(--ink)}
-.bg-sets{display:flex;flex-direction:column;gap:10px}
+.bg-sets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 10px}
+@media (min-width:480px){
+  .bg-sets{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
 .bg-set{display:flex;flex-direction:column;gap:4px}
 .bg-k{margin:0;font-size:.8125rem;font-weight:700;color:var(--ink-2)}
 .bg-row{display:flex;gap:8px;flex-wrap:wrap}
@@ -239,7 +242,7 @@ section{scroll-margin-top:92px}
   font-size:.9375rem;color:var(--ink-2);line-height:1.55;
   background:var(--surface-2);border-radius:var(--r-md);padding:12px 14px;
 }
-.hero-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:clamp(18px,3vw,40px);align-items:stretch}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:clamp(18px,3vw,40px);align-items:start}
 @media (max-width:920px){
   .hero-grid{grid-template-columns:minmax(0,1fr);gap:10px}
   .hero-head{margin-bottom:8px}
@@ -257,7 +260,12 @@ section{scroll-margin-top:92px}
 .hero-note span::before{content:"";width:7px;height:7px;border-radius:50%;flex:none;background:var(--red)}
 
 /* ── Mug stage ──────────────────────────────────────────── */
-.stage{display:flex;flex-direction:column;justify-content:space-between;gap:12px;align-items:center;min-width:0;min-height:100%}
+.stage{display:flex;flex-direction:column;justify-content:flex-start;gap:12px;align-items:center;min-width:0}
+@media (min-width:921px){
+  /* The order card is the tall piece. Keep the mug beside it instead of
+     stretching an empty gap under the picture. */
+  .stage{position:sticky;top:76px}
+}
 .stage-foot{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
 @media (max-width:920px){
   .stage{justify-content:flex-start;min-height:0;gap:8px}
