@@ -295,7 +295,7 @@ section{scroll-margin-top:92px}
   .hero-grid{display:flex;flex-direction:column;gap:12px}
   .stage{display:contents}
   .hero-head{order:1}
-  .mug-frame{order:2;align-self:center}
+  .mug-dock{order:2}
   .buy{order:3}
   .stage-foot{order:4}
   section{scroll-margin-top:124px}
@@ -314,6 +314,8 @@ section{scroll-margin-top:92px}
 
 /* ── Mug stage ──────────────────────────────────────────── */
 .stage{display:flex;flex-direction:column;justify-content:flex-start;gap:12px;align-items:center;min-width:0}
+/* Desktop: the wrapper is not a box, so the mug stays a child of the stage. */
+.mug-dock{display:contents}
 @media (min-width:921px){
   /* The order card is the tall piece. Keep the mug beside it instead of
      stretching an empty gap under the picture. */
@@ -323,7 +325,7 @@ section{scroll-margin-top:92px}
 @media (max-width:920px){
   .stage{display:contents}
   .hero-head{order:1}
-  .mug-frame{order:2;align-self:center}
+  .mug-dock{order:2}
   .stage-foot{order:3;gap:6px}
   .buy{order:4}
 }
@@ -398,6 +400,29 @@ section{scroll-margin-top:92px}
 }
 @media (max-width:720px) and (max-height:720px){
   .mug-frame{max-height:180px}
+}
+/* Phone: the design controls sit under the mug. Pin the mug below the header
+   so a background, a size change, or a nudge is visible as it happens.
+   --head-h is the sticky header's height, measured in the first script. */
+@media (max-width:920px){
+  .mug-dock{
+    display:flex;justify-content:center;align-items:flex-end;
+    position:sticky;top:var(--head-h,96px);z-index:40;
+    align-self:stretch;width:100%;
+    background-color:transparent;
+  }
+  .mug-dock.is-stuck{
+    background-color:var(--ground);
+    box-shadow:0 16px 22px -20px rgba(22,19,17,.7);
+  }
+  .bg-sets,.proof-tools,.bg-pick,.proof-nudge button,
+  #pattern-size,#photo-zoom,#photo-margin{
+    scroll-margin-top:calc(var(--head-h, 96px) + 220px);
+    scroll-margin-bottom:12px;
+  }
+}
+@media (max-width:920px) and (min-width:721px){
+  .mug-dock .mug-frame{width:auto;max-height:220px;margin-inline:auto}
 }
 
 /* ── Ticker ─────────────────────────────────────────────── */
@@ -773,6 +798,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
           Choose a photo, add a background if you want one, and put the mug on your order.
         </p>
       </div>
+      <div class="mug-dock">
       <div class="mug-frame">
         <svg class="mug-svg" viewBox="158 110 240 248" role="img" aria-labelledby="mug-title mug-desc">
           <title id="mug-title">A white ceramic mug with an example design</title>
@@ -1043,6 +1069,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
           </g>
           <rect class="s-rule2 mug-drawn" id="panel-edge" x="178" y="146" width="140" height="172" rx="7" fill="none" stroke-width="1.6" opacity=".8"/>
         </svg>
+      </div>
       </div>
 
       <div class="stage-foot">
@@ -1648,6 +1675,28 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   }
   window.addEventListener('scroll', markNav, { passive: true });
   markNav();
+
+  /* Keeps the pinned mug clear of the sticky header on a phone. */
+  var dock = document.querySelector('.mug-dock');
+  var header = document.querySelector('.site-header');
+  var phoneQ = window.matchMedia('(max-width: 920px)');
+  function placeDock() {
+    if (!dock || !header) return;
+    if (!phoneQ.matches) {
+      document.documentElement.style.removeProperty('--head-h');
+      dock.classList.remove('is-stuck');
+      return;
+    }
+    var safe = parseFloat(window.getComputedStyle(header).top) || 0;
+    var h = Math.ceil(header.offsetHeight + safe);
+    document.documentElement.style.setProperty('--head-h', h + 'px');
+    dock.classList.toggle('is-stuck', dock.getBoundingClientRect().top <= h + 1);
+  }
+  window.addEventListener('scroll', placeDock, { passive: true });
+  window.addEventListener('resize', placeDock);
+  if (phoneQ.addEventListener) phoneQ.addEventListener('change', placeDock);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeDock);
+  placeDock();
 })();
 </script>
 
