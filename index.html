@@ -240,40 +240,34 @@ section{scroll-margin-top:92px}
 
 .proof-note{font-size:.9375rem;color:var(--ink-2);line-height:1.55}
 .proof-note b{color:var(--ink)}
-.bg-sets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-@media (min-width:560px){
-  .bg-sets{grid-template-columns:repeat(5,minmax(0,1fr))}
+.bg-drop{position:relative;width:100%;min-width:0}
+.bg-drop-btn{
+  width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  font-family:var(--f-body);font-weight:700;font-size:1rem;line-height:1.3;color:var(--ink);
+  background:var(--surface);border:2px solid var(--field);border-radius:var(--r-sm);
+  padding:12px 14px;cursor:pointer;text-align:left;
 }
-.bg-set{display:flex;flex-direction:column;gap:4px}
-.bg-k{margin:0;font-size:.8125rem;font-weight:700;color:var(--ink-2)}
-.bg-row{display:flex;gap:8px;flex-wrap:wrap}
-.bg-pick{
-  flex:none;width:100%;max-width:none;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;
-  font-family:var(--f-body);font-weight:700;font-size:.8125rem;line-height:1.2;color:var(--ink);
-  background:var(--surface);border:2px solid var(--rule-2);border-radius:14px;
-  padding:6px 4px 8px;cursor:pointer;
+.bg-drop-btn::after{
+  content:"";flex:none;width:8px;height:8px;margin-right:4px;
+  border-right:2px solid var(--ink);border-bottom:2px solid var(--ink);
+  transform:translateY(-2px) rotate(45deg);
 }
-.bg-g{font-weight:500;font-size:.75rem;color:var(--ink-3)}
-.bg-pick.is-on .bg-g{color:var(--red-deep)}
-.bg-pick svg,.bg-none{
-  width:100%;height:58px;border-radius:8px;display:block;
+.bg-drop.is-open .bg-drop-btn{border-color:var(--ink);border-bottom-left-radius:0;border-bottom-right-radius:0}
+.bg-drop.is-open .bg-drop-btn::after{transform:translateY(2px) rotate(225deg)}
+.bg-drop-list{
+  margin:0;padding:6px;list-style:none;
+  background:var(--surface);border:2px solid var(--ink);border-top:0;
+  border-radius:0 0 var(--r-sm) var(--r-sm);
+  box-shadow:0 18px 28px -22px rgba(22,19,17,.7);
 }
-.bg-none{
-  display:flex;align-items:center;justify-content:center;
-  background:var(--surface-2);color:var(--ink-3);font-size:.75rem;
+.bg-drop-opt{
+  width:100%;display:block;font-family:var(--f-body);font-weight:700;font-size:1rem;
+  line-height:1.3;color:var(--ink);background:transparent;border:0;border-radius:10px;
+  padding:10px 12px;cursor:pointer;text-align:left;
 }
-.bg-pick:hover{border-color:var(--ink)}
-.bg-pick:focus-visible{outline:2px solid var(--red-deep);outline-offset:2px}
-.bg-pick.is-on{border-color:var(--red);background:var(--red-soft);color:var(--red-deep)}
-.bg-add{
-  width:100%;font-family:var(--f-body);font-weight:700;font-size:.9375rem;cursor:pointer;
-  padding:11px 18px;border-radius:var(--r-sm);border:2px solid var(--red);
-  background:var(--red);color:#FFFFFF;
-}
-.bg-add:hover{background:var(--red-deep);border-color:var(--red-deep)}
-.bg-add:focus-visible{outline:2px solid var(--red-deep);outline-offset:2px}
-.bg-add[aria-pressed="true"]{background:var(--surface);color:var(--ink);border-color:var(--ink)}
-.bg-add[aria-pressed="true"]:hover{background:var(--surface-2)}
+.bg-drop-opt:hover{background:var(--surface-2)}
+.bg-drop-opt.is-on{background:var(--red-soft);color:var(--red-deep)}
+.bg-drop-opt.is-on:hover{background:var(--red-soft)}
 .price-extra{margin:0;font-size:.9375rem;font-weight:700;color:var(--ink);line-height:1.4}
 .nudge{
   font-size:.9375rem;font-weight:500;color:var(--ink-2);
@@ -415,7 +409,7 @@ section{scroll-margin-top:92px}
     background-color:var(--ground);
     box-shadow:0 16px 22px -20px rgba(22,19,17,.7);
   }
-  .bg-sets,.proof-tools,.bg-pick,.proof-nudge button,
+  .bg-drop,.bg-drop-btn,.bg-drop-opt,.proof-tools,.proof-nudge button,
   #pattern-size,#photo-zoom,#photo-margin{
     scroll-margin-top:calc(var(--head-h, 96px) + 220px);
     scroll-margin-bottom:12px;
@@ -2535,10 +2529,13 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       add.setAttribute('aria-pressed', onBg ? 'true' : 'false');
       add.textContent = onBg ? 'Remove background' : 'Add a background, $8';
     }
-    Array.prototype.forEach.call(document.querySelectorAll('.bg-pick'), function (b) {
-      var onThis = (b.getAttribute('data-bg') || '') === (chosenBg ? chosenBg.id : '');
+    var currentBg = chosenBg ? chosenBg.id : '';
+    var bgBtn = $('bg-drop-btn');
+    if (bgBtn) bgBtn.textContent = chosenBg ? chosenBg.name + ' (' + chosenBg.group + ')' : 'None';
+    Array.prototype.forEach.call(document.querySelectorAll('.bg-drop-opt'), function (b) {
+      var onThis = (b.getAttribute('data-bg') || '') === currentBg;
       b.classList.toggle('is-on', onThis);
-      b.setAttribute('aria-pressed', onThis ? 'true' : 'false');
+      b.setAttribute('aria-selected', onThis ? 'true' : 'false');
     });
   }
 
@@ -2805,35 +2802,65 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     var step2b = el('div', 'flow-b');
     step2b.appendChild(el('p', 'proof-head', 'Background'));
     step2b.appendChild(el('p', 'proof-note', 'Optional. A small repeating pattern on the white ceramic, $8 extra.'));
-    function bgButton(id, label, group, bg) {
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'bg-pick';
-      b.setAttribute('data-bg', id);
-      b.setAttribute('aria-pressed', 'false');
-      if (bg) {
-        var sw = svgEl('svg', { viewBox: '0 0 100 100', 'aria-hidden': 'true' });
-        var g = svgEl('g');
-        bg.draw(g);
-        sw.appendChild(g);
-        b.appendChild(sw);
-      } else {
-        b.appendChild(el('span', 'bg-none', '\u2014'));
-      }
-      b.appendChild(document.createTextNode(label));
-      if (group) b.appendChild(el('span', 'bg-g', group));
-      b.onclick = function () { chooseBg(id); };
-      return b;
+    var drop = el('div', 'bg-drop');
+    drop.id = 'bg-options';
+    var bgBtn = el('button', 'bg-drop-btn', 'None');
+    bgBtn.type = 'button';
+    bgBtn.id = 'bg-drop-btn';
+    bgBtn.setAttribute('aria-haspopup', 'listbox');
+    bgBtn.setAttribute('aria-expanded', 'false');
+    bgBtn.setAttribute('aria-controls', 'bg-list');
+    var list = el('div', 'bg-drop-list');
+    list.id = 'bg-list';
+    list.setAttribute('role', 'listbox');
+    list.setAttribute('aria-label', 'Background');
+    list.hidden = true;
+    function addBgOpt(id, label) {
+      var o = el('button', 'bg-drop-opt', label);
+      o.type = 'button';
+      o.setAttribute('role', 'option');
+      o.setAttribute('data-bg', id);
+      o.setAttribute('aria-selected', id ? 'false' : 'true');
+      if (!id) o.classList.add('is-on');
+      o.onclick = function () { chooseBg(id); closeBg(); };
+      list.appendChild(o);
     }
-    var sets = el('div', 'bg-sets');
-    sets.id = 'bg-options';
-    sets.setAttribute('role', 'group');
-    sets.setAttribute('aria-label', 'Background');
+    function closeBg() {
+      list.hidden = true;
+      drop.classList.remove('is-open');
+      bgBtn.setAttribute('aria-expanded', 'false');
+    }
+    function openBg() {
+      list.hidden = false;
+      drop.classList.add('is-open');
+      bgBtn.setAttribute('aria-expanded', 'true');
+    }
     BACKGROUNDS.forEach(function (bg) {
-      sets.appendChild(bgButton(bg.id, bg.name, bg.group, bg));
+      addBgOpt(bg.id, bg.name + ' (' + bg.group + ')');
     });
-    sets.appendChild(bgButton('', 'None', 'No extra', null));
-    step2b.appendChild(sets);
+    addBgOpt('', 'None');
+    bgBtn.onclick = function () { if (list.hidden) openBg(); else closeBg(); };
+    if (!buildProofPicker.bgWired) {
+      buildProofPicker.bgWired = true;
+      var shutBg = function () {
+        var live = document.getElementById('bg-options');
+        var liveList = document.getElementById('bg-list');
+        var liveBtn = document.getElementById('bg-drop-btn');
+        if (liveList) liveList.hidden = true;
+        if (live) live.classList.remove('is-open');
+        if (liveBtn) liveBtn.setAttribute('aria-expanded', 'false');
+      };
+      document.addEventListener('click', function (e) {
+        var live = document.getElementById('bg-options');
+        if (live && !live.contains(e.target)) shutBg();
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') shutBg();
+      });
+    }
+    drop.appendChild(bgBtn);
+    drop.appendChild(list);
+    step2b.appendChild(drop);
     var bgNote = el('p', 'proof-note',
       'Wraps the whole mug, edge to edge. Your photo sits on top.');
     bgNote.id = 'bg-note';
