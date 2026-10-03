@@ -466,6 +466,10 @@ section{scroll-margin-top:92px}
 }
 .signup input::placeholder{color:var(--ink-3)}
 .signup-fine{font-size:.9375rem;color:var(--ink-2)}
+#start-order{display:flex;flex-direction:column;gap:4px;padding-bottom:12px;border-bottom:1px solid var(--rule)}
+#start-order p{margin:0}
+.start-order-k{font-weight:700;font-size:.95rem}
+#start-order-body{font-size:.95rem;color:var(--ink-2);line-height:1.45}
 .signup-done{
   display:flex;gap:13px;align-items:flex-start;padding:20px 22px;border-radius:var(--r-lg);
   background:var(--surface);border:1.5px solid var(--red);
@@ -1260,6 +1264,10 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
     <div>
       <form class="signup" id="start-form" novalidate>
+        <div id="start-order" hidden>
+          <p class="start-order-k">This order</p>
+          <p id="start-order-body"></p>
+        </div>
         <label for="start-email">Where should we send the proof?</label>
         <div class="signup-row">
           <input id="start-email" name="email" type="email" autocomplete="email" placeholder="you@email.com" required>
@@ -1349,7 +1357,10 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       </p>
       <p class="nudge" id="cart-nudge" hidden></p>
       <div class="cart-total"><span>Subtotal</span><b id="cart-total">$0.00</b></div>
-      <p class="signup-fine">Shipping and tax are calculated on the Shopify page.</p>
+      <p class="signup-fine" id="cart-ship-note">Shipping and tax are calculated on the Shopify page.</p>
+      <p class="signup-fine" id="checkout-next" hidden>
+        No payment on this page until a store is linked. The next step is the order form further down the page. It carries this mug, the background, the note, and the total.
+      </p>
       <div id="checkout-status"></div>
       <button type="button" class="btn btn--fill" id="checkout-btn">Continue to payment</button>
     </div>
@@ -1683,9 +1694,13 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       }
       email.removeAttribute('aria-invalid');
       if (doneMsg) {
+        var orderEl = document.getElementById('start-order');
+        var orderBody = document.getElementById('start-order-body');
+        var order = orderEl && !orderEl.hidden && orderBody ? orderBody.textContent.trim() : '';
         doneMsg.textContent =
           'Reply to the email heading to ' + value +
-          ' and attach your photo — we’ll have a proof back to you within one business day.';
+          ' and attach your photo — we’ll have a proof back to you within one business day.' +
+          (order ? ' Your order: ' + order : '');
       }
       form.hidden = true;
       done.hidden = false;
@@ -2983,6 +2998,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     if (!cart.length) {
       lines.appendChild(el('p', 'cart-empty', 'Nothing in your order yet.'));
       if (foot) foot.hidden = true;
+      paintStartOrder();
       return;
     }
     if (foot) foot.hidden = false;
@@ -3033,6 +3049,56 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     var total = cart.reduce(function (s, l) { return s + l.price * l.qty; }, 0);
     $('cart-total').textContent = money(total);
     nudgeInto($('cart-nudge'), total, cart.length ? cart[0].price : 0);
+    paintStartOrder();
+  }
+
+  /** One sentence the order form can show: the mug, the background, the note, the total. */
+  function orderBlurb() {
+    if (!cart.length) return '';
+    var bits = cart.map(function (l) {
+      var bit = (l.qty > 1 ? l.qty + ' × ' : '') + (l.title || 'Mug');
+      if (l.background) {
+        bit += ' with ' + l.background + ', $' + BG_EXTRA;
+        if (l.bgSize) bit += ', size ' + l.bgSize + '%';
+      }
+      return bit;
+    });
+    var total = cart.reduce(function (s, l) { return s + l.price * l.qty; }, 0);
+    var note = ($('cart-note') && $('cart-note').value.trim()) || '';
+    var text = bits.join('; ') + '. Total ' + money(total) + '.';
+    if (note) text += ' Note: ' + note;
+    return text;
+  }
+
+  function paintStartOrder() {
+    var box = $('start-order'), body = $('start-order-body');
+    if (!box || !body) return;
+    var text = orderBlurb();
+    body.textContent = text;
+    box.hidden = !text;
+  }
+
+  /** No store yet, so the order form is the next step. Nothing here pretends to take payment. */
+  function goToOrderForm() {
+    var noteEl = $('cart-note');
+    lsSet(LS_NOTE, (noteEl && noteEl.value.trim()) || '');
+    paintStartOrder();
+    var d = $('cart-dlg');
+    if (d && d.open) d.close();
+    /* Closing the dialog hands focus back to the button that opened it, and
+       that scroll fights this one. Land on the form after that has finished. */
+    var land = function () {
+      var start = document.getElementById('start');
+      if (!start) return;
+      var top = start.getBoundingClientRect().top + window.pageYOffset - 80;
+      window.scrollTo(0, Math.max(0, top));
+    };
+    setTimeout(land, 0);
+    setTimeout(function () {
+      land();
+      var email = document.getElementById('start-email');
+      if (email) email.focus({ preventScroll: true });
+    }, 180);
   }
 
   function openCart() { var d = $('cart-dlg'); if (d && !d.open) d.showModal(); }
@@ -3114,9 +3180,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     var box = $('checkout-status');
 
     if (!host()) {
-      statusBox(box, 'info', 'No Shopify store linked yet.',
-        'Once one is linked, this button hands the order straight over to Shopify to pay. ' +
-        'In the meantime, send it through the order form further down the page.');
+      goToOrderForm();
       return;
     }
     var built = handoffUrl();
@@ -3205,7 +3269,22 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     if (noteField) noteField.hidden = up;
     if (noteAlt) noteAlt.hidden = !up;
 
-    set('checkout-btn', up ? 'Add your photo and check out' : 'Continue to payment');
+    /* A store address is what makes payment real. Until then the button goes
+       to the order form instead of offering a checkout that cannot charge. */
+    var linked = !!host(c || cfg());
+    var ship = $('cart-ship-note'), next = $('checkout-next'), btn = $('checkout-btn');
+    if (ship) ship.hidden = !linked;
+    if (next) next.hidden = linked;
+    if (btn) {
+      if (linked) {
+        btn.textContent = up ? 'Add your photo and check out' : 'Continue to payment';
+        btn.onclick = goToShopify;
+      } else {
+        btn.textContent = 'Go to the order form';
+        btn.onclick = goToOrderForm;
+        statusBox($('checkout-status'));
+      }
+    }
   }
 
   /* ══ Connect panel ══ */
@@ -3803,10 +3882,14 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
     var note = lsGet(LS_NOTE);
     if (note && $('cart-note')) $('cart-note').value = note;
+    paintStartOrder();
+    if ($('cart-note')) $('cart-note').addEventListener('input', function () {
+      lsSet(LS_NOTE, $('cart-note').value.trim());
+      paintStartOrder();
+    });
 
     var dialogs = [$('cart-dlg'), $('connect-dlg'), $('gate-dlg')];
     $('cart-btn').onclick = openCart;
-    $('checkout-btn').onclick = goToShopify;
     $('owner-link').onclick = askForKey;
     $('gate-go').onclick = tryKey;
     $('gate-input').addEventListener('keydown', function (e) {
