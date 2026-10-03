@@ -188,7 +188,7 @@ section{scroll-margin-top:92px}
 }
 .order-bar .flow-n{background:var(--red)}
 .order-bar .flow-b{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:14px;row-gap:4px;align-items:center;padding-top:0}
-.order-bar .proof-head,.order-bar .price-extra{grid-column:1 / -1}
+.order-bar .proof-head,.order-bar .price-extra,.order-bar .order-ask{grid-column:1 / -1}
 .order-bar .single-price{margin:0}
 .order-bar .single-price b{font-size:2.35rem}
 .order-bar .single-buy{margin-top:0;flex-wrap:nowrap}
@@ -268,6 +268,52 @@ section{scroll-margin-top:92px}
 .bg-drop-opt:hover{background:var(--surface-2)}
 .bg-drop-opt.is-on{background:var(--red-soft);color:var(--red-deep)}
 .bg-drop-opt.is-on:hover{background:var(--red-soft)}
+/* The crop is a fixed circle over the photo, plus a round inset of that same
+   circle. The shade is clipped by the stage, so it cannot widen the page. */
+.face-row{display:flex;align-items:center;gap:12px;min-width:0}
+.face-stage{
+  position:relative;flex:1 1 150px;max-width:240px;aspect-ratio:1;min-width:0;
+  overflow:hidden;border-radius:16px;background:var(--surface-2);
+  touch-action:none;cursor:grab;
+}
+.face-stage.dragging{cursor:grabbing}
+.face-stage img,.face-inset img{position:absolute;max-width:none;user-select:none;pointer-events:none}
+.face-ring{
+  position:absolute;left:14%;top:14%;width:72%;height:72%;border-radius:50%;
+  border:2.5px dashed var(--red-deep);pointer-events:none;
+  box-shadow:0 0 0 240px rgba(22,19,17,.42);
+}
+.face-side{display:flex;flex-direction:column;align-items:center;gap:4px;flex:none}
+.face-inset{
+  position:relative;width:88px;height:88px;border-radius:50%;overflow:hidden;
+  background:var(--surface-2);box-shadow:0 0 0 2px var(--surface),0 0 0 3px var(--rule-2);
+}
+.face-side p{font-size:.75rem;font-weight:700;color:var(--ink-3);text-align:center}
+.face-zoom{margin-top:2px}
+.face-fields{display:flex;flex-direction:column;gap:8px}
+.face-fields label{font-weight:700;font-size:.9375rem}
+.face-fields input{
+  font:inherit;font-weight:600;font-size:1rem;color:var(--ink);width:100%;
+  padding:12px 14px;border-radius:var(--r-sm);border:2px solid var(--field);background:var(--surface);
+}
+.face-fields input:focus-visible{border-color:var(--red-deep)}
+.mug-svg .face-name{fill:var(--ink);font-family:Outfit,"Helvetica Neue",Arial,sans-serif;font-weight:700}
+.mug-svg .face-line{fill:var(--ink);font-family:Caveat,cursive;font-weight:600}
+.mug-svg .face-edge{stroke:var(--surface);fill:none}
+.face-ask{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.face-ask label{font-weight:700;font-size:.9375rem}
+.face-ask textarea{
+  font:inherit;font-weight:600;font-size:1rem;line-height:1.4;color:var(--ink);width:100%;
+  padding:12px 14px;border-radius:var(--r-sm);border:2px solid var(--field);background:var(--surface);
+  resize:vertical;min-height:4.6em;
+}
+.face-ask textarea:focus-visible{border-color:var(--red-deep)}
+.ask-preview{
+  margin:0;max-width:36ch;padding:0 12px;text-align:center;
+  font-size:.875rem;line-height:1.4;font-weight:600;color:var(--ink);
+}
+.ask-k{display:block;margin-bottom:2px;font-size:.75rem;font-weight:700;color:var(--ink-3)}
+.order-ask{margin:0;font-size:.9375rem;line-height:1.4;color:var(--ink);font-weight:600}
 .price-extra{margin:0;font-size:.9375rem;font-weight:700;color:var(--ink);line-height:1.4}
 .nudge{
   font-size:.9375rem;font-weight:500;color:var(--ink-2);
@@ -400,20 +446,22 @@ section{scroll-margin-top:92px}
    --head-h is the sticky header's height, measured in the first script. */
 @media (max-width:920px){
   .mug-dock{
-    display:flex;justify-content:center;align-items:flex-end;
+    display:flex;flex-direction:column;justify-content:flex-end;align-items:center;
     position:sticky;top:var(--head-h,96px);z-index:40;
     align-self:stretch;width:100%;
     background-color:transparent;
   }
+  .ask-preview{max-width:34ch;padding:2px 16px 8px}
   .mug-dock.is-stuck{
     background-color:var(--ground);
     box-shadow:0 16px 22px -20px rgba(22,19,17,.7);
   }
-  .bg-drop,.bg-drop-btn,.bg-drop-opt,.proof-tools,.proof-nudge button,
+  .bg-drop,.bg-drop-btn,.bg-drop-opt,.face-stage,.face-fields input,.face-ask textarea,.proof-tools,.proof-nudge button,
   #pattern-size,#photo-zoom,#photo-margin{
     scroll-margin-top:calc(var(--head-h, 96px) + 220px);
     scroll-margin-bottom:12px;
   }
+  .face-ask textarea{scroll-margin-top:calc(var(--head-h, 96px) + 320px)}
 }
 @media (max-width:920px) and (min-width:721px){
   .mug-dock .mug-frame{width:auto;max-height:220px;margin-inline:auto}
@@ -649,7 +697,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 .line-thumb img{width:100%;height:100%;object-fit:cover}
 .line-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
 .line-main b{font-family:var(--f-display);font-weight:600;font-size:1rem}
-.line-sub{font-size:.85rem;color:var(--ink-3)}
+.line-sub{display:block;font-size:.85rem;color:var(--ink-3)}
 .line-qty{display:flex;align-items:center;gap:10px}
 .line-price{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 .line-rm{background:none;border:0;padding:0;font:inherit;font-size:.83rem;font-weight:600;color:var(--ink-3);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
@@ -789,7 +837,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         <p class="eyebrow">Custom photo mugs · By <span data-cfg="operatorName">H3 Customs</span></p>
         <h1>Put your <em>favorite people</em> on a mug.</h1>
         <p class="lede">
-          Choose a photo, add a background if you want one, and put the mug on your order.
+          Crop a face from your photo, add a name, and put the mug on your order.
         </p>
       </div>
       <div class="mug-dock">
@@ -1064,6 +1112,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
           <rect class="s-rule2 mug-drawn" id="panel-edge" x="178" y="146" width="140" height="172" rx="7" fill="none" stroke-width="1.6" opacity=".8"/>
         </svg>
       </div>
+      <p class="ask-preview" id="photo-ask" hidden><span class="ask-k">Your note</span><span id="photo-ask-text"></span></p>
       </div>
 
       <div class="stage-foot">
@@ -1113,7 +1162,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       <div class="step">
         <span class="step-n">1</span>
         <h3 id="step1-h">Send the photo</h3>
-        <p id="step1-p">Text it, email it, or drag it in. No cropping, no resizing, no file types to worry about. If it's too small to print well, we'll tell you before you pay a dime.</p>
+        <p id="step1-p">Crop the face on this page, then email the photo after you order. Straight off your phone is fine. If it's too small to print well, we'll tell you before you pay a dime.</p>
       </div>
       <div class="step">
         <span class="step-n">2</span>
@@ -1212,8 +1261,8 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       <details>
         <summary id="faq-send-q">How do I get you the photo?</summary>
         <div class="faq-a" id="faq-send-a">
-          Order the mug, then email the photo over and we'll take it from there. Straight off
-          your phone is fine — don't bother cropping or resizing it first.
+          Crop the face here so we can see where it sits, then email the photo after you order.
+          Straight off your phone is fine.
         </div>
       </details>
       <details>
@@ -1620,7 +1669,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     hand:   "Handwriting from a real note, large enough to read.",
     recipe: "A recipe from the kitchen, printed on the mug.",
     team:   "A crew, printed on the white base.",
-    yours:  "Your photo, about where it will sit. Drag or zoom to move it; we send a real proof before printing."
+    yours:  "Your face, in a circle on the front. Drag the photo until it sits in the ring."
   };
 
   var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
@@ -1758,7 +1807,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
        `price` is only what the page DISPLAYS; Shopify charges its own. */
     products: [
       { key:'mug', title:'The Memory Mug', price:28, variantId:'', image:'',
-        blurb:'White ceramic, 15 oz. Your photo wrapped the whole way around, cured into the glaze.',
+        blurb:'White ceramic, 15 oz. A face, cropped to a circle on the front.',
         includes:[
           'A digital proof before anything is printed',
           'Color correction by hand, every time',
@@ -2129,7 +2178,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     box.appendChild(buildProofPicker());
 
     var step3 = el('div', 'flow-step order-bar');
-    var n3 = el('span', 'flow-n', '3');
+    var n3 = el('span', 'flow-n', '5');
     n3.setAttribute('aria-hidden', 'true');
     step3.appendChild(n3);
     var step3b = el('div', 'flow-b');
@@ -2144,6 +2193,14 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     var extra = el('p', 'price-extra');
     extra.id = 'price-extra';
     step3b.appendChild(extra);
+    var askEcho = el('p', 'order-ask');
+    askEcho.id = 'order-ask';
+    askEcho.hidden = true;
+    askEcho.appendChild(el('span', 'ask-k', 'Your note'));
+    var askEchoText = el('span', null, '');
+    askEchoText.id = 'order-ask-text';
+    askEcho.appendChild(askEchoText);
+    step3b.appendChild(askEcho);
 
     var buy = el('div', 'single-buy');
     var qty = document.createElement('select');
@@ -2516,9 +2573,10 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     var cap = $('mug-caption');
     if (cap && yours && chosenBg) {
       cap.textContent = ownPhoto
-        ? 'Your photo on ' + chosenBg.name + '. Move it, zoom it, or leave a margin.'
-        : chosenBg.name + ' wraps the whole mug. Your photo sits on top.';
+        ? 'Your face on ' + chosenBg.name + '. The pattern stays behind the circle.'
+        : chosenBg.name + ' wraps the mug. Your face sits on the front.';
     }
+    syncAskPreview();
     var opts = $('bg-options');
     if (opts) opts.hidden = false;
     var note = $('bg-note');
@@ -2572,38 +2630,109 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     syncSceneChrome();
   }
 
+  /* The face is a circle on the front of the print, with room for a line
+     of type above it and a short line under it. Not a full-bleed photo. */
+  var FACE = { cx: 248, cy: 214, r: 38 };
+  var faceName = '';
+  var faceLine = '';
+  var faceAsk = '';
+
   /**
-   * Works out the rectangle the photo is drawn into, in the space the scenes
-   * are drawn in, clamping the offset back into range as it goes.
-   *
-   * The clamp is the point: however far somebody drags or zooms, the photo
-   * keeps covering the area inside the margins, so a gap cannot open along
-   * that edge. Margins are the white border the customer asked for.
+   * Where the photo sits relative to a circle of the given radius.
+   * ox/oy are a fraction of the circle's diameter. Clamped on every call
+   * so the circle cannot open onto empty space.
    */
-  function photoRect() {
-    if (!ownPhoto || !ownPhoto.w || !ownPhoto.h) return null;
-    var P = ART_BOX;
-    var m = Math.max(0, Math.min(0.2, ownPhoto.margin || 0));
-    ownPhoto.margin = m;
-    /* Margins shrink the area the photo has to cover. The offset is still a
-       fraction of the full print, so a drag tracks the finger. */
-    var boxW = P[2] * (1 - 2 * m), boxH = P[3] * (1 - 2 * m);
-    var boxX = P[0] + P[2] * m, boxY = P[1] + P[3] * m;
-    var a = ownPhoto.w / ownPhoto.h, pa = boxW / boxH, w, h;
-    if (a > pa) { h = boxH; w = h * a; } else { w = boxW; h = w / a; }
-    w *= ownPhoto.zoom; h *= ownPhoto.zoom;
+  function layoutCrop(radius) {
+    if (!ownPhoto || !ownPhoto.w || !ownPhoto.h || !(radius > 0)) return null;
+    var z = Number(ownPhoto.zoom);
+    if (!isFinite(z)) z = 1;
+    ownPhoto.zoom = Math.max(1, Math.min(3, z));
+    var short = Math.min(ownPhoto.w, ownPhoto.h);
+    var scale = (2 * radius * ownPhoto.zoom) / short;
+    var iw = ownPhoto.w * scale, ih = ownPhoto.h * scale;
+    var maxX = Math.max(0, (iw / 2 - radius) / (2 * radius));
+    var maxY = Math.max(0, (ih / 2 - radius) / (2 * radius));
+    var ox = Number(ownPhoto.ox), oy = Number(ownPhoto.oy);
+    if (!isFinite(ox)) ox = 0;
+    if (!isFinite(oy)) oy = 0;
+    ownPhoto.ox = Math.max(-maxX, Math.min(maxX, ox));
+    ownPhoto.oy = Math.max(-maxY, Math.min(maxY, oy));
+    return {
+      x: -iw / 2 + ownPhoto.ox * 2 * radius,
+      y: -ih / 2 + ownPhoto.oy * 2 * radius,
+      w: iw, h: ih,
+      canMoveX: maxX > 0.001, canMoveY: maxY > 0.001
+    };
+  }
 
-    var mx = (w - boxW) / 2 / P[2], my = (h - boxH) / 2 / P[3];
-    ownPhoto.ox = Math.max(-mx, Math.min(mx, ownPhoto.ox));
-    ownPhoto.oy = Math.max(-my, Math.min(my, ownPhoto.oy));
+  function faceWords() {
+    return [faceName, faceLine].map(function (s) {
+      return String(s || '').replace(/\s+/g, ' ').trim();
+    }).filter(Boolean).join(' / ');
+  }
 
-    return { x: boxX + (boxW - w) / 2 + ownPhoto.ox * P[2],
-             y: boxY + (boxH - h) / 2 + ownPhoto.oy * P[3],
-             w: w, h: h, canMoveX: mx > 0.001, canMoveY: my > 0.001 };
+  /** The buyer's own words about what to keep and what to take out. */
+  function cleanAsk() {
+    return String(faceAsk || '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
+
+  /** Shows those words under the mug and on the order, without touching the photo. */
+  function syncAskPreview() {
+    var clean = cleanAsk();
+    var on = document.querySelector('.memory.is-on');
+    var yours = !!(on && on.getAttribute('data-key') === 'yours' && ownPhoto);
+    var text = $('photo-ask-text');
+    var preview = $('photo-ask');
+    if (text) text.textContent = clean;
+    if (preview) preview.hidden = !clean || !yours;
+    var echo = $('order-ask');
+    var echoText = $('order-ask-text');
+    if (echoText) echoText.textContent = clean;
+    if (echo) echo.hidden = !clean;
+  }
+
+  /**
+   * Keeps the cart note equal to the prompt plus anything else typed there.
+   * The note is what already rides on the order, so this does not add a new field.
+   */
+  function applyAskToNote() {
+    var noteEl = $('cart-note');
+    if (!noteEl) return;
+    var ask = cleanAsk();
+    var prev = applyAskToNote.prev || '';
+    var cur = noteEl.value.replace(/\s+$/, '');
+    if (prev && cur.indexOf(prev) === 0) cur = cur.slice(prev.length).replace(/^\n+/, '');
+    else if (prev && cur.indexOf(prev) !== -1) cur = cur.replace(prev, '');
+    cur = cur.replace(/\n{3,}/g, '\n\n').trim();
+    if (ask) cur = cur ? (ask + '\n' + cur) : ask;
+    if (noteEl.value !== cur) noteEl.value = cur;
+    applyAskToNote.prev = ask;
+    lsSet(LS_NOTE, cur);
+  }
+
+  function publishAsk() {
+    syncAskPreview();
+    var clean = cleanAsk();
+    var dirty = false;
+    cart.forEach(function (l) {
+      if (l.key === 'mug' && l.ask !== clean) { l.ask = clean; dirty = true; }
+    });
+    if (dirty) save();
+    applyAskToNote();
+  }
+
+  function placeFaceImage(img, frame, cx, cy) {
+    var XLINK = 'http://www.w3.org/1999/xlink';
+    img.setAttribute('x', (cx + frame.x).toFixed(3));
+    img.setAttribute('y', (cy + frame.y).toFixed(3));
+    img.setAttribute('width', frame.w.toFixed(3));
+    img.setAttribute('height', frame.h.toFixed(3));
+    img.setAttribute('preserveAspectRatio', 'none');
+    img.setAttribute('href', ownPhoto.dataUri);
+    img.setAttributeNS(XLINK, 'xlink:href', ownPhoto.dataUri);
   }
 
   function paintOwnPhoto(dataUri) {
-    var SVG = 'http://www.w3.org/2000/svg', XLINK = 'http://www.w3.org/1999/xlink';
     var g = document.querySelector('.memory[data-key="yours"]');
     var over = document.querySelector('#photo-over-fit');
     if (!g) return;
@@ -2612,73 +2741,132 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     var frame = document.querySelector('.hero .mug-frame');
     if (frame) {
       frame.classList.toggle('has-mine', !!dataUri);
-      /* Only reachable by keyboard while there is something to move. */
       if (dataUri) {
         frame.setAttribute('tabindex', '0');
         frame.setAttribute('role', 'application');
-        frame.setAttribute('aria-label', 'Your photo');
+        frame.setAttribute('aria-label', 'Your face. Drag to move it inside the circle.');
       } else {
         frame.removeAttribute('tabindex');
         frame.removeAttribute('role');
         frame.removeAttribute('aria-label');
       }
     }
-    if (!dataUri) { syncPhotoControls(); syncSceneChrome(); return; }
+    if (!dataUri) { syncPhotoControls(); syncSceneChrome(); syncCropView(); return; }
 
-    var r = photoRect();
-    var img = document.createElementNS(SVG, 'image');
-    if (r) {
-      img.setAttribute('x', r.x.toFixed(3)); img.setAttribute('y', r.y.toFixed(3));
-      img.setAttribute('width', r.w.toFixed(3)); img.setAttribute('height', r.h.toFixed(3));
-    } else {
-      /* No dimensions to work from. Cover the print and leave it centred. */
-      img.setAttribute('x', ART_BOX[0]); img.setAttribute('y', ART_BOX[1]);
-      img.setAttribute('width', ART_BOX[2]); img.setAttribute('height', ART_BOX[3]);
+    var placed = layoutCrop(FACE.r);
+    var parent = chosenBg && over ? over : g;
+    var holder = svgEl('g');
+    /* The print box is mapped with a different scale on each axis, which
+       turns a circle into an oval. Undo that on the face only, around its
+       own center, so the crop stays round and the type above and below
+       keeps the spacing it was drawn with. */
+    var face = svgEl('g');
+    var box = printBox();
+    var sx = box[2] / ART_BOX[2], sy = box[3] / ART_BOX[3];
+    if (sx > 0 && sy > 0 && Math.abs(sx - sy) > 0.01) {
+      var k = sx / sy;
+      face.setAttribute('transform',
+        'translate(' + FACE.cx + ' ' + FACE.cy + ') scale(1 ' + k.toFixed(6) +
+        ') translate(' + (-FACE.cx) + ' ' + (-FACE.cy) + ')');
     }
-    /* The box is already the photo's own aspect; slice absorbs the rounding
-       rather than letterboxing it. With a wrap behind it, the photo is drawn
-       in the overlay so it sits on top of the design instead of multiplying
-       into it. */
-    img.setAttribute('preserveAspectRatio', 'xMidYMid slice');
-    img.setAttribute('href', dataUri);
-    img.setAttributeNS(XLINK, 'xlink:href', dataUri);
-    (chosenBg && over ? over : g).appendChild(img);
+    var defs = svgEl('defs');
+    var clip = svgEl('clipPath', { id: 'faceClip' });
+    clip.appendChild(svgEl('circle', {
+      cx: String(FACE.cx), cy: String(FACE.cy), r: String(FACE.r)
+    }));
+    defs.appendChild(clip);
+    face.appendChild(defs);
+    var pic = svgEl('g', { 'clip-path': 'url(#faceClip)' });
+    var img = svgEl('image');
+    if (placed) placeFaceImage(img, placed, FACE.cx, FACE.cy);
+    pic.appendChild(img);
+    face.appendChild(pic);
+    face.appendChild(svgEl('circle', {
+      id: 'face-edge',
+      cx: String(FACE.cx), cy: String(FACE.cy), r: String(FACE.r),
+      'stroke-width': '1.5', 'class': 'face-edge'
+    }));
+    holder.appendChild(face);
+    function putText(str, y, cls, size, maxW) {
+      var clean = String(str || '').replace(/\s+/g, ' ').trim();
+      if (!clean) return;
+      var t = svgEl('text', {
+        x: String(FACE.cx), y: String(y),
+        'text-anchor': 'middle', 'font-size': String(size), 'class': cls
+      });
+      t.textContent = clean;
+      var width = Math.min(maxW, Math.max(size * 1.4, clean.length * size * 0.52));
+      t.setAttribute('textLength', width.toFixed(1));
+      t.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+      holder.appendChild(t);
+    }
+    putText(faceName, 166, 'face-name', 13, 100);
+    putText(faceLine, 274, 'face-line', 22, 92);
+    parent.appendChild(holder);
     syncPhotoControls();
     syncSceneChrome();
+    syncCropView();
   }
 
-  /**
-   * How the customer left the photo sitting, in words short enough to ride on
-   * the order. Empty when they did not move it, so the shop only ever reads a
-   * placement that somebody actually chose.
-   */
+  /** The same circle, drawn in the crop box and in the round inset. */
+  function syncCropView() {
+    var stage = $('face-stage');
+    var photo = $('face-img');
+    var inset = $('face-inset');
+    var insetImg = $('face-inset-img');
+    if (!stage || !photo || !inset || !insetImg) return;
+    if (!ownPhoto || !ownPhoto.dataUri) {
+      photo.removeAttribute('src');
+      insetImg.removeAttribute('src');
+      return;
+    }
+    var cropBox = $('face-crop');
+    if (cropBox && !cropBox.hidden && !stage.clientWidth) {
+      requestAnimationFrame(function () { syncCropView(); });
+      return;
+    }
+    function park(imgEl, box, radius) {
+      var frame = layoutCrop(radius);
+      if (!frame) return;
+      var cx = box / 2, cy = box / 2;
+      imgEl.src = ownPhoto.dataUri;
+      imgEl.style.width = frame.w + 'px';
+      imgEl.style.height = frame.h + 'px';
+      imgEl.style.left = (cx + frame.x) + 'px';
+      imgEl.style.top = (cy + frame.y) + 'px';
+    }
+    var size = stage.clientWidth || 220;
+    park(photo, size, size * 0.36);
+    var isz = inset.clientWidth || 88;
+    park(insetImg, isz, isz / 2);
+  }
+
+  /** Words and crop, short enough to ride on the order. */
   function placementNote() {
     if (!ownPhoto) return '';
+    var bits = ['circle on the front'];
+    var words = faceWords();
+    if (words) bits.push(words);
     var z = Math.round((ownPhoto.zoom || 1) * 100);
     var ox = Math.round((ownPhoto.ox || 0) * 100), oy = Math.round((ownPhoto.oy || 0) * 100);
-    var m = Math.round((ownPhoto.margin || 0) * 100);
-    if (z === 100 && !ox && !oy && !m) return '';
-    var sign = function (n) { return (n > 0 ? '+' : '') + n + '%'; };
-    return 'zoom ' + z + '%, offset ' + sign(ox) + ' across, ' + sign(oy) + ' down'
-      + (m ? ', margin ' + m + '%' : '');
+    bits.push('zoom ' + z + '%');
+    if (ox || oy) {
+      var sign = function (n) { return (n > 0 ? '+' : '') + n + '%'; };
+      bits.push('offset ' + sign(ox) + ' across, ' + sign(oy) + ' down');
+    }
+    return bits.join(', ');
   }
 
-  /** Moves the photo by a fraction of the print area, and redraws. */
   function movePhoto(dx, dy) {
     if (!ownPhoto) return;
-    ownPhoto.ox += dx; ownPhoto.oy += dy;
+    ownPhoto.ox = (ownPhoto.ox || 0) + dx;
+    ownPhoto.oy = (ownPhoto.oy || 0) + dy;
     paintOwnPhoto(ownPhoto.dataUri);
   }
 
   function zoomPhoto(z) {
     if (!ownPhoto) return;
     ownPhoto.zoom = Math.max(1, Math.min(3, z));
-    paintOwnPhoto(ownPhoto.dataUri);
-  }
-
-  function setMargin(m) {
-    if (!ownPhoto) return;
-    ownPhoto.margin = Math.max(0, Math.min(0.2, m));
     paintOwnPhoto(ownPhoto.dataUri);
   }
 
@@ -2693,20 +2881,16 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     var box = $('photo-tools');
     var sizeRow = $('pattern-size-row');
     if (sizeRow) sizeRow.hidden = !chosenBg;
-    ['photo-position-row', 'photo-zoom-row', 'photo-margin-row'].forEach(function (id) {
-      var row = $(id);
-      if (row) row.hidden = !ownPhoto;
-    });
+    var crop = $('face-crop');
+    var words = $('face-words');
+    if (crop) crop.hidden = !ownPhoto;
+    if (words) words.hidden = !ownPhoto;
     if (box) box.hidden = !ownPhoto && !chosenBg;
     var size = $('pattern-size');
     if (size && document.activeElement !== size) size.value = String(patternSize);
-    var slider = $('photo-zoom');
+    var slider = $('face-zoom');
     if (slider && ownPhoto && document.activeElement !== slider) {
-      slider.value = Math.round(ownPhoto.zoom * 100);
-    }
-    var margin = $('photo-margin');
-    if (margin && ownPhoto && document.activeElement !== margin) {
-      margin.value = Math.round((ownPhoto.margin || 0) * 100);
+      slider.value = String(Math.round((ownPhoto.zoom || 1) * 100));
     }
     syncWrapAdmin();
   }
@@ -2740,7 +2924,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     var last = null;
     frame.addEventListener('pointerdown', function (e) {
       if (!active()) return;
-      var r = photoRect();
+      var r = layoutCrop(FACE.r);
       if (!r || (!r.canMoveX && !r.canMoveY)) return;
       last = [e.clientX, e.clientY];
       try { frame.setPointerCapture(e.pointerId); } catch (err) {}
@@ -2749,8 +2933,10 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     });
     frame.addEventListener('pointermove', function (e) {
       if (!last) return;
-      var s = span();
-      movePhoto((e.clientX - last[0]) / s[0], (e.clientY - last[1]) / s[1]);
+      var edge = document.getElementById('face-edge');
+      var d = edge ? edge.getBoundingClientRect().width : span()[0];
+      d = Math.max(1, d);
+      movePhoto((e.clientX - last[0]) / d, (e.clientY - last[1]) / d);
       last = [e.clientX, e.clientY];
     });
     var stop = function (e) {
@@ -2795,13 +2981,136 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     step1.appendChild(step1b);
     wrap.appendChild(step1);
 
+    var cropStep = el('div', 'flow-step');
+    cropStep.id = 'face-crop';
+    cropStep.hidden = true;
+    var nCrop = el('span', 'flow-n', '2');
+    nCrop.setAttribute('aria-hidden', 'true');
+    cropStep.appendChild(nCrop);
+    var cropB = el('div', 'flow-b');
+    cropB.appendChild(el('p', 'proof-head', 'Crop the face'));
+    cropB.appendChild(el('p', 'proof-note', 'Drag the photo until the face sits in the circle. That circle is what prints.'));
+    var faceRow = el('div', 'face-row');
+    var stage = el('div', 'face-stage');
+    stage.id = 'face-stage';
+    stage.tabIndex = 0;
+    stage.setAttribute('role', 'application');
+    stage.setAttribute('aria-label', 'Drag to move the face inside the circle');
+    var stageImg = document.createElement('img');
+    stageImg.id = 'face-img';
+    stageImg.alt = '';
+    stageImg.draggable = false;
+    stage.appendChild(stageImg);
+    stage.appendChild(el('div', 'face-ring'));
+    faceRow.appendChild(stage);
+    var side = el('div', 'face-side');
+    var inset = el('div', 'face-inset');
+    inset.id = 'face-inset';
+    var insetImg = document.createElement('img');
+    insetImg.id = 'face-inset-img';
+    insetImg.alt = '';
+    insetImg.draggable = false;
+    inset.appendChild(insetImg);
+    side.appendChild(inset);
+    side.appendChild(el('p', null, 'On the mug'));
+    faceRow.appendChild(side);
+    cropB.appendChild(faceRow);
+    var zoomRow = el('div', 'proof-zoom face-zoom');
+    var zlab = el('label', null, 'Zoom');
+    zlab.setAttribute('for', 'face-zoom');
+    var zoom = document.createElement('input');
+    zoom.type = 'range'; zoom.id = 'face-zoom';
+    zoom.min = '100'; zoom.max = '300'; zoom.step = '1'; zoom.value = '100';
+    zoom.setAttribute('aria-valuemin', '100');
+    zoom.setAttribute('aria-valuemax', '300');
+    zoom.addEventListener('input', function () { zoomPhoto(Number(zoom.value) / 100); });
+    var center = el('button', 'proof-drop', 'Center');
+    center.type = 'button';
+    center.onclick = function () { centerPhoto(); };
+    zoomRow.appendChild(zlab); zoomRow.appendChild(zoom); zoomRow.appendChild(center);
+    cropB.appendChild(zoomRow);
+    var askBox = el('div', 'face-ask');
+    var askLab = el('label', null, 'What to keep in focus');
+    askLab.setAttribute('for', 'photo-ask-input');
+    var askIn = document.createElement('textarea');
+    askIn.id = 'photo-ask-input';
+    askIn.rows = 3;
+    askIn.maxLength = 400;
+    askIn.placeholder = "Focus on the dog's face. Remove the couch and the other dog.";
+    askIn.value = faceAsk;
+    askIn.addEventListener('input', function () { faceAsk = askIn.value; publishAsk(); });
+    askBox.appendChild(askLab);
+    askBox.appendChild(el('p', 'proof-note', 'Say what to leave in, and what to take out. This stays on your order.'));
+    askBox.appendChild(askIn);
+    cropB.appendChild(askBox);
+    cropStep.appendChild(cropB);
+    wrap.appendChild(cropStep);
+
+    var wordStep = el('div', 'flow-step');
+    wordStep.id = 'face-words';
+    wordStep.hidden = true;
+    var nWords = el('span', 'flow-n', '3');
+    nWords.setAttribute('aria-hidden', 'true');
+    wordStep.appendChild(nWords);
+    var wordB = el('div', 'flow-b');
+    wordB.appendChild(el('p', 'proof-head', 'Name'));
+    var fields = el('div', 'face-fields');
+    var nameLab = el('label', null, 'Above the face');
+    nameLab.setAttribute('for', 'face-name');
+    var nameIn = document.createElement('input');
+    nameIn.id = 'face-name'; nameIn.type = 'text'; nameIn.maxLength = 24;
+    nameIn.autocomplete = 'off'; nameIn.placeholder = "Lincoln's";
+    nameIn.value = faceName;
+    nameIn.addEventListener('input', function () { faceName = nameIn.value; paintOwnPhoto(ownPhoto && ownPhoto.dataUri); });
+    var lineLab = el('label', null, 'Under the face');
+    lineLab.setAttribute('for', 'face-line');
+    var lineIn = document.createElement('input');
+    lineIn.id = 'face-line'; lineIn.type = 'text'; lineIn.maxLength = 18;
+    lineIn.autocomplete = 'off'; lineIn.placeholder = 'Mom';
+    lineIn.value = faceLine;
+    lineIn.addEventListener('input', function () { faceLine = lineIn.value; paintOwnPhoto(ownPhoto && ownPhoto.dataUri); });
+    fields.appendChild(nameLab); fields.appendChild(nameIn);
+    fields.appendChild(lineLab); fields.appendChild(lineIn);
+    wordB.appendChild(fields);
+    wordStep.appendChild(wordB);
+    wrap.appendChild(wordStep);
+
+    var cropDrag = null;
+    stage.addEventListener('pointerdown', function (e) {
+      if (!ownPhoto) return;
+      cropDrag = [e.clientX, e.clientY];
+      try { stage.setPointerCapture(e.pointerId); } catch (err) {}
+      stage.classList.add('dragging');
+      e.preventDefault();
+    });
+    stage.addEventListener('pointermove', function (e) {
+      if (!cropDrag) return;
+      var d = Math.max(1, stage.clientWidth * 0.72);
+      movePhoto((e.clientX - cropDrag[0]) / d, (e.clientY - cropDrag[1]) / d);
+      cropDrag = [e.clientX, e.clientY];
+    });
+    var stopCrop = function (e) {
+      if (!cropDrag) return;
+      cropDrag = null;
+      stage.classList.remove('dragging');
+      try { stage.releasePointerCapture(e.pointerId); } catch (err) {}
+    };
+    stage.addEventListener('pointerup', stopCrop);
+    stage.addEventListener('pointercancel', stopCrop);
+    stage.addEventListener('keydown', function (e) {
+      var d = { ArrowLeft:[-1,0], ArrowRight:[1,0], ArrowUp:[0,-1], ArrowDown:[0,1] }[e.key];
+      if (!d || !ownPhoto) return;
+      e.preventDefault();
+      movePhoto(d[0] * (e.shiftKey ? 0.02 : 0.06), d[1] * (e.shiftKey ? 0.02 : 0.06));
+    });
+
     var step2 = el('div', 'flow-step');
-    var n2 = el('span', 'flow-n', '2');
+    var n2 = el('span', 'flow-n', '4');
     n2.setAttribute('aria-hidden', 'true');
     step2.appendChild(n2);
     var step2b = el('div', 'flow-b');
     step2b.appendChild(el('p', 'proof-head', 'Background'));
-    step2b.appendChild(el('p', 'proof-note', 'Optional. A small repeating pattern on the white ceramic, $8 extra.'));
+    step2b.appendChild(el('p', 'proof-note', 'Optional. A small repeating pattern on the white ceramic, $8 extra. The face stays a circle on the front.'));
     var drop = el('div', 'bg-drop');
     drop.id = 'bg-options';
     var bgBtn = el('button', 'bg-drop-btn', 'None');
@@ -2862,7 +3171,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     drop.appendChild(list);
     step2b.appendChild(drop);
     var bgNote = el('p', 'proof-note',
-      'Wraps the whole mug, edge to edge. Your photo sits on top.');
+      'The pattern wraps the mug. Your face stays a circle on the front.');
     bgNote.id = 'bg-note';
     bgNote.hidden = true;
     step2b.appendChild(bgNote);
@@ -2886,49 +3195,6 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     size.addEventListener('input', function () { setPatternSize(Number(size.value)); });
     sizeRow.appendChild(slab); sizeRow.appendChild(size);
     tools.appendChild(sizeRow);
-
-    var posRow = el('div', 'proof-zoom');
-    posRow.id = 'photo-position-row';
-    var posLab = el('span', 'proof-k', 'Position');
-    posLab.id = 'photo-position-label';
-    var nudge = el('div', 'proof-nudge');
-    nudge.setAttribute('role', 'group');
-    nudge.setAttribute('aria-labelledby', 'photo-position-label');
-    [['Left', -1, 0], ['Right', 1, 0], ['Up', 0, -1], ['Down', 0, 1]].forEach(function (d) {
-      var b = el('button', null, d[0]);
-      b.type = 'button';
-      b.onclick = function () { movePhoto(d[1] * 0.06, d[2] * 0.06); };
-      nudge.appendChild(b);
-    });
-    posRow.appendChild(posLab); posRow.appendChild(nudge);
-    tools.appendChild(posRow);
-
-    var zoomRow = el('div', 'proof-zoom');
-    zoomRow.id = 'photo-zoom-row';
-    var zlab = el('label', null, 'Zoom');
-    zlab.setAttribute('for', 'photo-zoom');
-    var zoom = document.createElement('input');
-    zoom.type = 'range'; zoom.id = 'photo-zoom';
-    zoom.min = '100'; zoom.max = '300'; zoom.step = '1'; zoom.value = '100';
-    zoom.setAttribute('aria-valuemin', '100');
-    zoom.setAttribute('aria-valuemax', '300');
-    zoom.addEventListener('input', function () { zoomPhoto(Number(zoom.value) / 100); });
-    var center = el('button', 'proof-drop', 'Center');
-    center.type = 'button';
-    center.onclick = function () { centerPhoto(); };
-    zoomRow.appendChild(zlab); zoomRow.appendChild(zoom); zoomRow.appendChild(center);
-    tools.appendChild(zoomRow);
-
-    var marginRow = el('div', 'proof-zoom');
-    marginRow.id = 'photo-margin-row';
-    var mlab = el('label', null, 'Margins');
-    mlab.setAttribute('for', 'photo-margin');
-    var margin = document.createElement('input');
-    margin.type = 'range'; margin.id = 'photo-margin';
-    margin.min = '0'; margin.max = '20'; margin.step = '1'; margin.value = '0';
-    margin.addEventListener('input', function () { setMargin(Number(margin.value) / 100); });
-    marginRow.appendChild(mlab); marginRow.appendChild(margin);
-    tools.appendChild(marginRow);
     wrap.appendChild(tools);
 
     var note = el('p', 'proof-note');
@@ -2978,7 +3244,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         if (problem) { name.textContent = problem; return; }
         ownPhoto = { dataUri: dataUri, name: f.name,
                      w: (size && size.w) || 0, h: (size && size.h) || 0,
-                     zoom: 1, ox: 0, oy: 0, margin: 0 };
+                     zoom: 1, ox: 0, oy: 0 };
         paintOwnPhoto(dataUri);
         var chip = $('chip-yours');
         if (chip) { chip.hidden = false; chip.click(); }
@@ -3012,10 +3278,14 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       line.price = price;
       line.background = background;
       line.bgSize = bgSize;
+      line.words = faceWords();
+      line.ask = cleanAsk();
     } else {
-      cart.push({ key:p.key, title:p.title, price:price, image:p.image || '', qty:qty, background:background, bgSize:bgSize });
+      cart.push({ key:p.key, title:p.title, price:price, image:p.image || '', qty:qty,
+        background:background, bgSize:bgSize, words:faceWords(), ask:cleanAsk() });
     }
     save();
+    applyAskToNote();
   }
 
   function renderCart() {
@@ -3047,6 +3317,8 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
       var main = el('div', 'line-main');
       main.appendChild(el('b', null, l.title));
+      if (l.words) main.appendChild(el('span', 'line-sub', l.words));
+      if (l.ask) main.appendChild(el('span', 'line-sub', l.ask));
       if (l.background) {
         var sub = l.background + ', $' + BG_EXTRA;
         if (l.bgSize) sub += ', size ' + l.bgSize + '%';
@@ -3243,19 +3515,18 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
     set('step1-h', up ? 'Upload the photo' : 'Send the photo');
     set('step1-p', up
-      ? 'Drop it in when you order, right on the mug page. No cropping, no resizing, no '
-        + 'file types to worry about. If it\u2019s too small to print well, we\u2019ll tell you '
+      ? 'Crop the face on this page, then attach the same photo on the Shopify page. '
+        + 'Straight off your phone is fine. If it\u2019s too small to print well, we\u2019ll tell you '
         + 'before we print anything.'
-      : 'Text it, email it, or drag it in. No cropping, no resizing, no file types to worry '
-        + 'about. If it\u2019s too small to print well, we\u2019ll tell you before you pay a dime.');
+      : 'Crop the face on this page, then email the photo after you order. Straight off your '
+        + 'phone is fine. If it\u2019s too small to print well, we\u2019ll tell you before you pay a dime.');
 
     set('faq-send-q', up ? 'How do I send you the photo?' : 'How do I get you the photo?');
     set('faq-send-a', up
-      ? 'You attach it to the order itself. Pick the mug, upload your photo on that page, and '
-        + 'it arrives with the order \u2014 nothing to email, nothing to chase. Straight off your '
-        + 'phone is fine.'
-      : 'Order the mug, then email the photo over and we\u2019ll take it from there. Straight off '
-        + 'your phone is fine \u2014 don\u2019t bother cropping or resizing it first.');
+      ? 'Crop the face here so we can see where it sits, then attach the same photo on the '
+        + 'Shopify page. It arrives with the order. Straight off your phone is fine.'
+      : 'Crop the face here so we can see where it sits, then email the photo after you order. '
+        + 'Straight off your phone is fine.');
 
     var noteField = $('cart-note-field'), noteAlt = $('cart-note-alt');
     if (noteField) noteField.hidden = up;
@@ -3848,6 +4119,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   /* ══ Wiring ══ */
   function start() {
     mountPhotos();
+    window.addEventListener('resize', function () { if (ownPhoto) syncCropView(); });
     renderMugSlot();
     wireMugSlot();
     wirePhotoDrag();
@@ -3859,11 +4131,15 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     });
     applyConfig();
     buildVariantFields();
+    cart.forEach(function (l) { if (l.key === 'mug' && l.ask && !faceAsk) faceAsk = l.ask; });
     renderShop();
     renderCart();
 
     var note = lsGet(LS_NOTE);
     if (note && $('cart-note')) $('cart-note').value = note;
+    if (cleanAsk() && $('cart-note') && $('cart-note').value.indexOf(cleanAsk()) === -1) applyAskToNote();
+    else applyAskToNote.prev = cleanAsk();
+    syncAskPreview();
 
     var dialogs = [$('cart-dlg'), $('connect-dlg'), $('gate-dlg')];
     $('cart-btn').onclick = openCart;
