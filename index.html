@@ -188,7 +188,7 @@ section{scroll-margin-top:92px}
 }
 .order-bar .flow-n{background:var(--red)}
 .order-bar .flow-b{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:14px;row-gap:4px;align-items:center;padding-top:0}
-.order-bar .proof-head,.order-bar .price-extra{grid-column:1 / -1}
+.order-bar .proof-head,.order-bar .price-extra,.order-bar .order-ask{grid-column:1 / -1}
 .order-bar .single-price{margin:0}
 .order-bar .single-price b{font-size:2.35rem}
 .order-bar .single-buy{margin-top:0;flex-wrap:nowrap}
@@ -300,6 +300,20 @@ section{scroll-margin-top:92px}
 .mug-svg .face-name{fill:var(--ink);font-family:Outfit,"Helvetica Neue",Arial,sans-serif;font-weight:700}
 .mug-svg .face-line{fill:var(--ink);font-family:Caveat,cursive;font-weight:600}
 .mug-svg .face-edge{stroke:var(--surface);fill:none}
+.face-ask{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.face-ask label{font-weight:700;font-size:.9375rem}
+.face-ask textarea{
+  font:inherit;font-weight:600;font-size:1rem;line-height:1.4;color:var(--ink);width:100%;
+  padding:12px 14px;border-radius:var(--r-sm);border:2px solid var(--field);background:var(--surface);
+  resize:vertical;min-height:4.6em;
+}
+.face-ask textarea:focus-visible{border-color:var(--red-deep)}
+.ask-preview{
+  margin:0;max-width:36ch;padding:0 12px;text-align:center;
+  font-size:.875rem;line-height:1.4;font-weight:600;color:var(--ink);
+}
+.ask-k{display:block;margin-bottom:2px;font-size:.75rem;font-weight:700;color:var(--ink-3)}
+.order-ask{margin:0;font-size:.9375rem;line-height:1.4;color:var(--ink);font-weight:600}
 .price-extra{margin:0;font-size:.9375rem;font-weight:700;color:var(--ink);line-height:1.4}
 .nudge{
   font-size:.9375rem;font-weight:500;color:var(--ink-2);
@@ -432,20 +446,22 @@ section{scroll-margin-top:92px}
    --head-h is the sticky header's height, measured in the first script. */
 @media (max-width:920px){
   .mug-dock{
-    display:flex;justify-content:center;align-items:flex-end;
+    display:flex;flex-direction:column;justify-content:flex-end;align-items:center;
     position:sticky;top:var(--head-h,96px);z-index:40;
     align-self:stretch;width:100%;
     background-color:transparent;
   }
+  .ask-preview{max-width:34ch;padding:2px 16px 8px}
   .mug-dock.is-stuck{
     background-color:var(--ground);
     box-shadow:0 16px 22px -20px rgba(22,19,17,.7);
   }
-  .bg-drop,.bg-drop-btn,.bg-drop-opt,.face-stage,.face-fields input,.proof-tools,.proof-nudge button,
+  .bg-drop,.bg-drop-btn,.bg-drop-opt,.face-stage,.face-fields input,.face-ask textarea,.proof-tools,.proof-nudge button,
   #pattern-size,#photo-zoom,#photo-margin{
     scroll-margin-top:calc(var(--head-h, 96px) + 220px);
     scroll-margin-bottom:12px;
   }
+  .face-ask textarea{scroll-margin-top:calc(var(--head-h, 96px) + 320px)}
 }
 @media (max-width:920px) and (min-width:721px){
   .mug-dock .mug-frame{width:auto;max-height:220px;margin-inline:auto}
@@ -1096,6 +1112,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
           <rect class="s-rule2 mug-drawn" id="panel-edge" x="178" y="146" width="140" height="172" rx="7" fill="none" stroke-width="1.6" opacity=".8"/>
         </svg>
       </div>
+      <p class="ask-preview" id="photo-ask" hidden><span class="ask-k">Your note</span><span id="photo-ask-text"></span></p>
       </div>
 
       <div class="stage-foot">
@@ -2176,6 +2193,14 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     var extra = el('p', 'price-extra');
     extra.id = 'price-extra';
     step3b.appendChild(extra);
+    var askEcho = el('p', 'order-ask');
+    askEcho.id = 'order-ask';
+    askEcho.hidden = true;
+    askEcho.appendChild(el('span', 'ask-k', 'Your note'));
+    var askEchoText = el('span', null, '');
+    askEchoText.id = 'order-ask-text';
+    askEcho.appendChild(askEchoText);
+    step3b.appendChild(askEcho);
 
     var buy = el('div', 'single-buy');
     var qty = document.createElement('select');
@@ -2551,6 +2576,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         ? 'Your face on ' + chosenBg.name + '. The pattern stays behind the circle.'
         : chosenBg.name + ' wraps the mug. Your face sits on the front.';
     }
+    syncAskPreview();
     var opts = $('bg-options');
     if (opts) opts.hidden = false;
     var note = $('bg-note');
@@ -2609,6 +2635,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   var FACE = { cx: 248, cy: 214, r: 38 };
   var faceName = '';
   var faceLine = '';
+  var faceAsk = '';
 
   /**
    * Where the photo sits relative to a circle of the given radius.
@@ -2642,6 +2669,56 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     return [faceName, faceLine].map(function (s) {
       return String(s || '').replace(/\s+/g, ' ').trim();
     }).filter(Boolean).join(' / ');
+  }
+
+  /** The buyer's own words about what to keep and what to take out. */
+  function cleanAsk() {
+    return String(faceAsk || '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
+
+  /** Shows those words under the mug and on the order, without touching the photo. */
+  function syncAskPreview() {
+    var clean = cleanAsk();
+    var on = document.querySelector('.memory.is-on');
+    var yours = !!(on && on.getAttribute('data-key') === 'yours' && ownPhoto);
+    var text = $('photo-ask-text');
+    var preview = $('photo-ask');
+    if (text) text.textContent = clean;
+    if (preview) preview.hidden = !clean || !yours;
+    var echo = $('order-ask');
+    var echoText = $('order-ask-text');
+    if (echoText) echoText.textContent = clean;
+    if (echo) echo.hidden = !clean;
+  }
+
+  /**
+   * Keeps the cart note equal to the prompt plus anything else typed there.
+   * The note is what already rides on the order, so this does not add a new field.
+   */
+  function applyAskToNote() {
+    var noteEl = $('cart-note');
+    if (!noteEl) return;
+    var ask = cleanAsk();
+    var prev = applyAskToNote.prev || '';
+    var cur = noteEl.value.replace(/\s+$/, '');
+    if (prev && cur.indexOf(prev) === 0) cur = cur.slice(prev.length).replace(/^\n+/, '');
+    else if (prev && cur.indexOf(prev) !== -1) cur = cur.replace(prev, '');
+    cur = cur.replace(/\n{3,}/g, '\n\n').trim();
+    if (ask) cur = cur ? (ask + '\n' + cur) : ask;
+    if (noteEl.value !== cur) noteEl.value = cur;
+    applyAskToNote.prev = ask;
+    lsSet(LS_NOTE, cur);
+  }
+
+  function publishAsk() {
+    syncAskPreview();
+    var clean = cleanAsk();
+    var dirty = false;
+    cart.forEach(function (l) {
+      if (l.key === 'mug' && l.ask !== clean) { l.ask = clean; dirty = true; }
+    });
+    if (dirty) save();
+    applyAskToNote();
   }
 
   function placeFaceImage(img, frame, cx, cy) {
@@ -2952,6 +3029,20 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     center.onclick = function () { centerPhoto(); };
     zoomRow.appendChild(zlab); zoomRow.appendChild(zoom); zoomRow.appendChild(center);
     cropB.appendChild(zoomRow);
+    var askBox = el('div', 'face-ask');
+    var askLab = el('label', null, 'What to keep in focus');
+    askLab.setAttribute('for', 'photo-ask-input');
+    var askIn = document.createElement('textarea');
+    askIn.id = 'photo-ask-input';
+    askIn.rows = 3;
+    askIn.maxLength = 400;
+    askIn.placeholder = "Focus on the dog's face. Remove the couch and the other dog.";
+    askIn.value = faceAsk;
+    askIn.addEventListener('input', function () { faceAsk = askIn.value; publishAsk(); });
+    askBox.appendChild(askLab);
+    askBox.appendChild(el('p', 'proof-note', 'Say what to leave in, and what to take out. This stays on your order.'));
+    askBox.appendChild(askIn);
+    cropB.appendChild(askBox);
     cropStep.appendChild(cropB);
     wrap.appendChild(cropStep);
 
@@ -3188,11 +3279,13 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       line.background = background;
       line.bgSize = bgSize;
       line.words = faceWords();
+      line.ask = cleanAsk();
     } else {
       cart.push({ key:p.key, title:p.title, price:price, image:p.image || '', qty:qty,
-        background:background, bgSize:bgSize, words:faceWords() });
+        background:background, bgSize:bgSize, words:faceWords(), ask:cleanAsk() });
     }
     save();
+    applyAskToNote();
   }
 
   function renderCart() {
@@ -3225,6 +3318,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       var main = el('div', 'line-main');
       main.appendChild(el('b', null, l.title));
       if (l.words) main.appendChild(el('span', 'line-sub', l.words));
+      if (l.ask) main.appendChild(el('span', 'line-sub', l.ask));
       if (l.background) {
         var sub = l.background + ', $' + BG_EXTRA;
         if (l.bgSize) sub += ', size ' + l.bgSize + '%';
@@ -4037,11 +4131,15 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     });
     applyConfig();
     buildVariantFields();
+    cart.forEach(function (l) { if (l.key === 'mug' && l.ask && !faceAsk) faceAsk = l.ask; });
     renderShop();
     renderCart();
 
     var note = lsGet(LS_NOTE);
     if (note && $('cart-note')) $('cart-note').value = note;
+    if (cleanAsk() && $('cart-note') && $('cart-note').value.indexOf(cleanAsk()) === -1) applyAskToNote();
+    else applyAskToNote.prev = cleanAsk();
+    syncAskPreview();
 
     var dialogs = [$('cart-dlg'), $('connect-dlg'), $('gate-dlg')];
     $('cart-btn').onclick = openCart;
