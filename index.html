@@ -308,6 +308,12 @@ section{scroll-margin-top:92px}
   resize:vertical;min-height:4.6em;
 }
 .face-ask textarea:focus-visible{border-color:var(--red-deep)}
+.face-ask .btn{align-self:flex-start}
+.ask-confirm{
+  margin:0;padding:12px 14px;border-radius:var(--r-sm);
+  background:var(--red-soft);border:2px solid var(--red);color:var(--ink);
+}
+.ask-confirm p{margin:0;font-size:1rem;font-weight:600;line-height:1.45;white-space:pre-wrap}
 .ask-preview{
   margin:0;max-width:36ch;padding:0 12px;text-align:center;
   font-size:.875rem;line-height:1.4;font-weight:600;color:var(--ink);
@@ -456,7 +462,7 @@ section{scroll-margin-top:92px}
     background-color:var(--ground);
     box-shadow:0 16px 22px -20px rgba(22,19,17,.7);
   }
-  .bg-drop,.bg-drop-btn,.bg-drop-opt,.face-stage,.face-fields input,.face-ask textarea,.proof-tools,.proof-nudge button,
+  .bg-drop,.bg-drop-btn,.bg-drop-opt,.face-stage,.face-fields input,.face-ask textarea,.ask-confirm,#face-curve,.proof-tools,.proof-nudge button,
   #pattern-size,#photo-zoom,#photo-margin{
     scroll-margin-top:calc(var(--head-h, 96px) + 220px);
     scroll-margin-bottom:12px;
@@ -1112,7 +1118,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
           <rect class="s-rule2 mug-drawn" id="panel-edge" x="178" y="146" width="140" height="172" rx="7" fill="none" stroke-width="1.6" opacity=".8"/>
         </svg>
       </div>
-      <p class="ask-preview" id="photo-ask" hidden><span class="ask-k">Your note</span><span id="photo-ask-text"></span></p>
+      <p class="ask-preview" id="photo-ask" hidden><span class="ask-k">Received</span><span id="photo-ask-text"></span></p>
       </div>
 
       <div class="stage-foot">
@@ -2196,7 +2202,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     var askEcho = el('p', 'order-ask');
     askEcho.id = 'order-ask';
     askEcho.hidden = true;
-    askEcho.appendChild(el('span', 'ask-k', 'Your note'));
+    askEcho.appendChild(el('span', 'ask-k', 'Received'));
     var askEchoText = el('span', null, '');
     askEchoText.id = 'order-ask-text';
     askEcho.appendChild(askEchoText);
@@ -2635,7 +2641,10 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   var FACE = { cx: 248, cy: 214, r: 38 };
   var faceName = '';
   var faceLine = '';
+  /* 0 is a flat line. 1 is a gentle arc that follows the circle. */
+  var faceCurve = 0;
   var faceAsk = '';
+  var faceAskSent = '';
 
   /**
    * Where the photo sits relative to a circle of the given radius.
@@ -2671,24 +2680,49 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     }).filter(Boolean).join(' / ');
   }
 
-  /** The buyer's own words about what to keep and what to take out. */
-  function cleanAsk() {
-    return String(faceAsk || '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  /** The name, the line under it, and the arc, kept on an order already started. */
+  function rememberLettering() {
+    var words = faceWords();
+    var curve = Math.round(faceCurve * 100);
+    var dirty = false;
+    cart.forEach(function (l) {
+      if (l.key !== 'mug') return;
+      if (l.words !== words || (l.curve || 0) !== curve) {
+        l.words = words;
+        l.curve = curve;
+        dirty = true;
+      }
+    });
+    if (dirty) save();
   }
 
-  /** Shows those words under the mug and on the order, without touching the photo. */
+  /** The buyer's own words about what to keep and what to take out. */
+  function tidyAsk(raw) {
+    return String(raw || '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
+  function cleanAsk() { return tidyAsk(faceAsk); }
+  /** Only what they submitted. Typing alone does not change this. */
+  function sentAsk() { return tidyAsk(faceAskSent); }
+
+  /** Shows the submitted words under the mug, in the confirmation, and on the order. */
   function syncAskPreview() {
-    var clean = cleanAsk();
+    var clean = sentAsk();
     var on = document.querySelector('.memory.is-on');
     var yours = !!(on && on.getAttribute('data-key') === 'yours' && ownPhoto);
     var text = $('photo-ask-text');
     var preview = $('photo-ask');
     if (text) text.textContent = clean;
     if (preview) preview.hidden = !clean || !yours;
+    var box = $('ask-confirm');
+    var boxText = $('ask-confirm-text');
+    if (boxText) boxText.textContent = clean;
+    if (box) box.hidden = !clean;
     var echo = $('order-ask');
     var echoText = $('order-ask-text');
     if (echoText) echoText.textContent = clean;
     if (echo) echo.hidden = !clean;
+    var btn = $('ask-submit');
+    if (btn) btn.textContent = (clean && cleanAsk() !== clean) ? 'Submit again' : 'Submit note';
   }
 
   /**
@@ -2698,7 +2732,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   function applyAskToNote() {
     var noteEl = $('cart-note');
     if (!noteEl) return;
-    var ask = cleanAsk();
+    var ask = sentAsk();
     var prev = applyAskToNote.prev || '';
     var cur = noteEl.value.replace(/\s+$/, '');
     if (prev && cur.indexOf(prev) === 0) cur = cur.slice(prev.length).replace(/^\n+/, '');
@@ -2711,8 +2745,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   }
 
   function publishAsk() {
+    faceAskSent = cleanAsk();
     syncAskPreview();
-    var clean = cleanAsk();
+    var clean = sentAsk();
     var dirty = false;
     cart.forEach(function (l) {
       if (l.key === 'mug' && l.ask !== clean) { l.ask = clean; dirty = true; }
@@ -2787,21 +2822,55 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       'stroke-width': '1.5', 'class': 'face-edge'
     }));
     holder.appendChild(face);
-    function putText(str, y, cls, size, maxW) {
+    /* How far the middle of a line lifts off a straight chord, in art units.
+       Capped so the arc stays gentle and inside the print. */
+    function arcBend(halfW, up) {
+      var t = Math.max(0, Math.min(1, faceCurve));
+      if (t <= 0 || halfW < 1) return 0;
+      var cap = up ? 16 : 14;
+      return Math.min(cap, Math.max(12, halfW * 0.48)) * t;
+    }
+    function bowPath(y, halfW, bend, up) {
+      var x1 = FACE.cx - halfW, x2 = FACE.cx + halfW;
+      if (bend < 0.4) {
+        return 'M' + x1.toFixed(2) + ',' + y.toFixed(2) + ' L' + x2.toFixed(2) + ',' + y.toFixed(2);
+      }
+      /* Keep the middle where the flat line sits, and let the ends
+         follow the circle, so the arc does not climb out of the print. */
+      var endY = up ? y + bend : y - bend;
+      var R = (halfW * halfW + bend * bend) / (2 * bend);
+      var yy = endY.toFixed(2);
+      return 'M' + x1.toFixed(2) + ',' + yy + ' A' + R.toFixed(2) + ',' + R.toFixed(2) +
+        ' 0 0 ' + (up ? '1' : '0') + ' ' + x2.toFixed(2) + ',' + yy;
+    }
+    function putText(str, y, cls, size, maxW, up) {
       var clean = String(str || '').replace(/\s+/g, ' ').trim();
       if (!clean) return;
-      var t = svgEl('text', {
-        x: String(FACE.cx), y: String(y),
-        'text-anchor': 'middle', 'font-size': String(size), 'class': cls
-      });
-      t.textContent = clean;
       var width = Math.min(maxW, Math.max(size * 1.4, clean.length * size * 0.52));
-      t.setAttribute('textLength', width.toFixed(1));
-      t.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+      var half = width / 2;
+      var bend = arcBend(half, up);
+      if (bend < 0.4) {
+        var flat = svgEl('text', {
+          x: String(FACE.cx), y: String(y),
+          'text-anchor': 'middle', 'font-size': String(size), 'class': cls
+        });
+        flat.textContent = clean;
+        flat.setAttribute('textLength', width.toFixed(1));
+        flat.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+        holder.appendChild(flat);
+        return;
+      }
+      var id = cls + '-arc';
+      holder.appendChild(svgEl('path', { id: id, d: bowPath(y, half, bend, up), fill: 'none' }));
+      var t = svgEl('text', { 'font-size': String(size), 'class': cls, 'text-anchor': 'middle' });
+      var tp = svgEl('textPath', { href: '#' + id, startOffset: '50%' });
+      tp.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#' + id);
+      tp.textContent = clean;
+      t.appendChild(tp);
       holder.appendChild(t);
     }
-    putText(faceName, 166, 'face-name', 13, 100);
-    putText(faceLine, 274, 'face-line', 22, 92);
+    putText(faceName, 166, 'face-name', 13, 100, true);
+    putText(faceLine, 274, 'face-line', 22, 92, false);
     parent.appendChild(holder);
     syncPhotoControls();
     syncSceneChrome();
@@ -2847,6 +2916,8 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     var bits = ['circle on the front'];
     var words = faceWords();
     if (words) bits.push(words);
+    var curvePct = Math.round(faceCurve * 100);
+    if (curvePct) bits.push('arc ' + curvePct + '%');
     var z = Math.round((ownPhoto.zoom || 1) * 100);
     var ox = Math.round((ownPhoto.ox || 0) * 100), oy = Math.round((ownPhoto.oy || 0) * 100);
     bits.push('zoom ' + z + '%');
@@ -2891,6 +2962,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     var slider = $('face-zoom');
     if (slider && ownPhoto && document.activeElement !== slider) {
       slider.value = String(Math.round((ownPhoto.zoom || 1) * 100));
+    }
+    var curve = $('face-curve');
+    if (curve && document.activeElement !== curve) {
+      curve.value = String(Math.round(faceCurve * 100));
+      curve.setAttribute('aria-valuetext', faceCurve ? 'Arc ' + curve.value : 'Flat');
     }
     syncWrapAdmin();
   }
@@ -3038,10 +3114,24 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     askIn.maxLength = 400;
     askIn.placeholder = "Focus on the dog's face. Remove the couch and the other dog.";
     askIn.value = faceAsk;
-    askIn.addEventListener('input', function () { faceAsk = askIn.value; publishAsk(); });
+    askIn.addEventListener('input', function () { faceAsk = askIn.value; syncAskPreview(); });
+    var askBtn = el('button', 'btn btn--fill btn--sm', 'Submit note');
+    askBtn.type = 'button';
+    askBtn.id = 'ask-submit';
+    askBtn.addEventListener('click', function () { publishAsk(); });
+    var asked = el('div', 'ask-confirm');
+    asked.id = 'ask-confirm';
+    asked.hidden = true;
+    asked.setAttribute('role', 'status');
+    asked.appendChild(el('span', 'ask-k', 'Received'));
+    var askedText = el('p');
+    askedText.id = 'ask-confirm-text';
+    asked.appendChild(askedText);
     askBox.appendChild(askLab);
-    askBox.appendChild(el('p', 'proof-note', 'Say what to leave in, and what to take out. This stays on your order.'));
+    askBox.appendChild(el('p', 'proof-note', 'Say what to leave in, and what to take out, then submit it.'));
     askBox.appendChild(askIn);
+    askBox.appendChild(askBtn);
+    askBox.appendChild(asked);
     cropB.appendChild(askBox);
     cropStep.appendChild(cropB);
     wrap.appendChild(cropStep);
@@ -3061,17 +3151,36 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     nameIn.id = 'face-name'; nameIn.type = 'text'; nameIn.maxLength = 24;
     nameIn.autocomplete = 'off'; nameIn.placeholder = "Lincoln's";
     nameIn.value = faceName;
-    nameIn.addEventListener('input', function () { faceName = nameIn.value; paintOwnPhoto(ownPhoto && ownPhoto.dataUri); });
+    nameIn.addEventListener('input', function () { faceName = nameIn.value; paintOwnPhoto(ownPhoto && ownPhoto.dataUri); rememberLettering(); });
     var lineLab = el('label', null, 'Under the face');
     lineLab.setAttribute('for', 'face-line');
     var lineIn = document.createElement('input');
     lineIn.id = 'face-line'; lineIn.type = 'text'; lineIn.maxLength = 18;
     lineIn.autocomplete = 'off'; lineIn.placeholder = 'Mom';
     lineIn.value = faceLine;
-    lineIn.addEventListener('input', function () { faceLine = lineIn.value; paintOwnPhoto(ownPhoto && ownPhoto.dataUri); });
+    lineIn.addEventListener('input', function () { faceLine = lineIn.value; paintOwnPhoto(ownPhoto && ownPhoto.dataUri); rememberLettering(); });
     fields.appendChild(nameLab); fields.appendChild(nameIn);
     fields.appendChild(lineLab); fields.appendChild(lineIn);
     wordB.appendChild(fields);
+    wordB.appendChild(el('p', 'proof-note', 'Flat, or a gentle arc around the circle.'));
+    var curveRow = el('div', 'proof-zoom face-zoom');
+    var curveLab = el('label', null, 'Curve');
+    curveLab.setAttribute('for', 'face-curve');
+    var curve = document.createElement('input');
+    curve.type = 'range'; curve.id = 'face-curve';
+    curve.min = '0'; curve.max = '100'; curve.step = '1';
+    curve.value = String(Math.round(faceCurve * 100));
+    curve.setAttribute('aria-valuemin', '0');
+    curve.setAttribute('aria-valuemax', '100');
+    curve.setAttribute('aria-valuetext', faceCurve ? 'Arc ' + curve.value : 'Flat');
+    curve.addEventListener('input', function () {
+      faceCurve = Number(curve.value) / 100;
+      curve.setAttribute('aria-valuetext', faceCurve ? 'Arc ' + curve.value : 'Flat');
+      paintOwnPhoto(ownPhoto && ownPhoto.dataUri);
+      rememberLettering();
+    });
+    curveRow.appendChild(curveLab); curveRow.appendChild(curve);
+    wordB.appendChild(curveRow);
     wordStep.appendChild(wordB);
     wrap.appendChild(wordStep);
 
@@ -3279,10 +3388,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       line.background = background;
       line.bgSize = bgSize;
       line.words = faceWords();
-      line.ask = cleanAsk();
+      line.curve = Math.round(faceCurve * 100);
+      line.ask = sentAsk();
     } else {
       cart.push({ key:p.key, title:p.title, price:price, image:p.image || '', qty:qty,
-        background:background, bgSize:bgSize, words:faceWords(), ask:cleanAsk() });
+        background:background, bgSize:bgSize, words:faceWords(), curve:Math.round(faceCurve * 100), ask:sentAsk() });
     }
     save();
     applyAskToNote();
@@ -3317,7 +3427,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
       var main = el('div', 'line-main');
       main.appendChild(el('b', null, l.title));
-      if (l.words) main.appendChild(el('span', 'line-sub', l.words));
+      if (l.words) {
+        main.appendChild(el('span', 'line-sub', l.words + (l.curve ? ', arc ' + l.curve + '%' : '')));
+      } else if (l.curve) {
+        main.appendChild(el('span', 'line-sub', 'Arc ' + l.curve + '%'));
+      }
       if (l.ask) main.appendChild(el('span', 'line-sub', l.ask));
       if (l.background) {
         var sub = l.background + ', $' + BG_EXTRA;
@@ -4131,14 +4245,19 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     });
     applyConfig();
     buildVariantFields();
-    cart.forEach(function (l) { if (l.key === 'mug' && l.ask && !faceAsk) faceAsk = l.ask; });
+    cart.forEach(function (l) {
+      if (l.key === 'mug' && l.ask) {
+        if (!faceAskSent) faceAskSent = l.ask;
+        if (!faceAsk) faceAsk = l.ask;
+      }
+    });
     renderShop();
     renderCart();
 
     var note = lsGet(LS_NOTE);
     if (note && $('cart-note')) $('cart-note').value = note;
-    if (cleanAsk() && $('cart-note') && $('cart-note').value.indexOf(cleanAsk()) === -1) applyAskToNote();
-    else applyAskToNote.prev = cleanAsk();
+    if (sentAsk() && $('cart-note') && $('cart-note').value.indexOf(sentAsk()) === -1) applyAskToNote();
+    else applyAskToNote.prev = sentAsk();
     syncAskPreview();
 
     var dialogs = [$('cart-dlg'), $('connect-dlg'), $('gate-dlg')];
