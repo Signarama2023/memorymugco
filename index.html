@@ -2,7 +2,7 @@
 <title>Memory Mug Company</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,560;0,9..144,640;1,9..144,560&family=Outfit:wght@400;500;600;700&family=Caveat:wght@600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,560;0,9..144,640;1,9..144,560&family=Outfit:wght@400;500;600;700&family=Caveat:wght@600&family=Libre+Baskerville:wght@700&family=Lilita+One&family=Fredoka:wght@600&display=swap">
 
 <style>
 /* ── Tokens ─────────────────────────────────────────────── */
@@ -303,8 +303,19 @@ section{scroll-margin-top:92px}
   padding:12px 14px;border-radius:var(--r-sm);border:2px solid var(--field);background:var(--surface);
 }
 .face-fields input:focus-visible{border-color:var(--red-deep)}
-.mug-svg .face-name{fill:var(--ink);font-family:Outfit,"Helvetica Neue",Arial,sans-serif;font-weight:700}
-.mug-svg .face-line{fill:var(--ink);font-family:Caveat,cursive;font-weight:600}
+.mug-svg .face-name,.mug-svg .face-line{fill:var(--ink)}
+.font-picks{display:flex;flex-wrap:wrap;gap:6px}
+.font-pick{
+  font-size:1rem;line-height:1.1;padding:8px 12px;border-radius:var(--r-sm);
+  border:2px solid var(--field);background:var(--surface);color:var(--ink);cursor:pointer;
+}
+.font-pick.is-on{border-color:var(--ink);background:var(--red-soft);color:var(--red-deep)}
+.font-pick:focus-visible{outline:2px solid var(--red-deep);outline-offset:2px}
+.font-simple{font-family:Outfit,"Helvetica Neue",Arial,sans-serif;font-weight:700}
+.font-serif{font-family:"Libre Baskerville",Georgia,serif;font-weight:700}
+.font-script{font-family:Caveat,cursive;font-weight:600}
+.font-display{font-family:"Lilita One",Outfit,sans-serif;font-weight:400}
+.font-round{font-family:Fredoka,Outfit,sans-serif;font-weight:600}
 .mug-svg .face-edge{stroke:var(--surface);fill:none}
 .face-ask{display:flex;flex-direction:column;gap:6px;margin-top:4px}
 .face-ask label{font-weight:700;font-size:.9375rem}
@@ -468,7 +479,7 @@ section{scroll-margin-top:92px}
     background-color:var(--ground);
     box-shadow:0 16px 22px -20px rgba(22,19,17,.7);
   }
-  .bg-drop,.bg-drop-btn,.bg-drop-opt,.face-stage,.face-fields input,.face-ask textarea,.ask-confirm,#face-curve,#trace-mode,.proof-tools,.proof-nudge button,
+  .bg-drop,.bg-drop-btn,.bg-drop-opt,.face-stage,.face-fields input,.face-ask textarea,.ask-confirm,#face-curve,.font-pick,#trace-mode,.proof-tools,.proof-nudge button,
   #pattern-size,#photo-zoom,#photo-margin{
     scroll-margin-top:calc(var(--head-h, 96px) + 220px);
     scroll-margin-bottom:12px;
@@ -2649,6 +2660,28 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   var faceLine = '';
   /* 0 is a flat line. 1 is a gentle arc that follows the circle. */
   var faceCurve = 0;
+  /* One face for both lines. Simple is the sans the name already used. */
+  var LETTER_FONTS = [
+    { id: 'simple', label: 'Simple', name: 'Outfit', spec: '700 16px Outfit' },
+    { id: 'serif', label: 'Serif', name: 'Libre Baskerville', spec: '700 16px "Libre Baskerville"' },
+    { id: 'script', label: 'Script', name: 'Caveat', spec: '600 16px Caveat' },
+    { id: 'display', label: 'Display', name: 'Lilita One', spec: '400 16px "Lilita One"' },
+    { id: 'round', label: 'Rounded', name: 'Fredoka', spec: '600 16px Fredoka' }
+  ];
+  var faceFont = 'simple';
+  function fontChoice() {
+    var found = LETTER_FONTS[0];
+    LETTER_FONTS.forEach(function (f) { if (f.id === faceFont) found = f; });
+    return found;
+  }
+  /* The face buttons sit hidden until a photo is chosen, and a hidden element
+     does not make the browser fetch its font. Ask for each face up front. */
+  function preloadLetterFonts() {
+    if (!document.fonts || !document.fonts.load) return;
+    LETTER_FONTS.forEach(function (f) {
+      document.fonts.load(f.spec).catch(function () {});
+    });
+  }
   var faceAsk = '';
   var faceAskSent = '';
   /* Outline on the source photo, as fractions of its width and height.
@@ -2697,12 +2730,14 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   function rememberLettering() {
     var words = faceWords();
     var curve = Math.round(faceCurve * 100);
+    var fontName = fontChoice().name;
     var dirty = false;
     cart.forEach(function (l) {
       if (l.key !== 'mug') return;
-      if (l.words !== words || (l.curve || 0) !== curve) {
+      if (l.words !== words || (l.curve || 0) !== curve || l.font !== fontName) {
         l.words = words;
         l.curve = curve;
+        l.font = fontName;
         dirty = true;
       }
     });
@@ -3082,10 +3117,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       var width = Math.min(maxW, Math.max(size * 1.4, clean.length * size * 0.52));
       var half = width / 2;
       var bend = arcBend(half, up);
+      var fontCls = cls + ' font-' + fontChoice().id;
       if (bend < 0.4) {
         var flat = svgEl('text', {
           x: String(FACE.cx), y: String(y),
-          'text-anchor': 'middle', 'font-size': String(size), 'class': cls
+          'text-anchor': 'middle', 'font-size': String(size), 'class': fontCls
         });
         flat.textContent = clean;
         flat.setAttribute('textLength', width.toFixed(1));
@@ -3095,7 +3131,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       }
       var id = cls + '-arc';
       holder.appendChild(svgEl('path', { id: id, d: bowPath(y, half, bend, up), fill: 'none' }));
-      var t = svgEl('text', { 'font-size': String(size), 'class': cls, 'text-anchor': 'middle' });
+      var t = svgEl('text', { 'font-size': String(size), 'class': fontCls, 'text-anchor': 'middle' });
       var tp = svgEl('textPath', { href: '#' + id, startOffset: '50%' });
       tp.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#' + id);
       tp.textContent = clean;
@@ -3155,6 +3191,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     var bits = ['circle on the front'];
     var words = faceWords();
     if (words) bits.push(words);
+    bits.push(fontChoice().name);
     var curvePct = Math.round(faceCurve * 100);
     if (curvePct) bits.push('arc ' + curvePct + '%');
     if (currentTrace()) bits.push('outline traced');
@@ -3445,6 +3482,35 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     fields.appendChild(nameLab); fields.appendChild(nameIn);
     fields.appendChild(lineLab); fields.appendChild(lineIn);
     wordB.appendChild(fields);
+    wordB.appendChild(el('p', 'proof-note', 'Both lines use this face.'));
+    var picks = el('div', 'font-picks');
+    picks.id = 'font-picks';
+    picks.setAttribute('role', 'radiogroup');
+    picks.setAttribute('aria-label', 'Lettering');
+    LETTER_FONTS.forEach(function (f) {
+      var b = el('button', 'font-pick font-' + f.id, f.label);
+      b.type = 'button';
+      b.setAttribute('role', 'radio');
+      b.setAttribute('data-font', f.id);
+      b.setAttribute('aria-checked', f.id === faceFont ? 'true' : 'false');
+      if (f.id === faceFont) b.classList.add('is-on');
+      b.addEventListener('click', function () {
+        faceFont = f.id;
+        Array.prototype.forEach.call(picks.querySelectorAll('.font-pick'), function (other) {
+          var on = other.getAttribute('data-font') === faceFont;
+          other.classList.toggle('is-on', on);
+          other.setAttribute('aria-checked', on ? 'true' : 'false');
+        });
+        var paint = function () {
+          paintOwnPhoto(ownPhoto && ownPhoto.dataUri);
+          rememberLettering();
+        };
+        paint();
+        if (document.fonts && document.fonts.load) document.fonts.load(f.spec).then(paint).catch(function () {});
+      });
+      picks.appendChild(b);
+    });
+    wordB.appendChild(picks);
     wordB.appendChild(el('p', 'proof-note', 'Flat, or a gentle arc around the circle.'));
     var curveRow = el('div', 'proof-zoom face-zoom');
     var curveLab = el('label', null, 'Curve');
@@ -3706,10 +3772,12 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       line.bgSize = bgSize;
       line.words = faceWords();
       line.curve = Math.round(faceCurve * 100);
+      line.font = fontChoice().name;
       line.ask = sentAsk();
     } else {
       cart.push({ key:p.key, title:p.title, price:price, image:p.image || '', qty:qty,
-        background:background, bgSize:bgSize, words:faceWords(), curve:Math.round(faceCurve * 100), ask:sentAsk() });
+        background:background, bgSize:bgSize, words:faceWords(), curve:Math.round(faceCurve * 100),
+        font:fontChoice().name, ask:sentAsk() });
     }
     save();
     applyAskToNote();
@@ -3744,10 +3812,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
       var main = el('div', 'line-main');
       main.appendChild(el('b', null, l.title));
-      if (l.words) {
-        main.appendChild(el('span', 'line-sub', l.words + (l.curve ? ', arc ' + l.curve + '%' : '')));
-      } else if (l.curve) {
-        main.appendChild(el('span', 'line-sub', 'Arc ' + l.curve + '%'));
+      if (l.words || l.font || l.curve) {
+        var letter = l.words || '';
+        if (l.font) letter = letter ? letter + ', ' + l.font : l.font;
+        if (l.curve) letter = letter ? letter + ', arc ' + l.curve + '%' : 'Arc ' + l.curve + '%';
+        main.appendChild(el('span', 'line-sub', letter));
       }
       if (l.ask) main.appendChild(el('span', 'line-sub', l.ask));
       if (l.background) {
@@ -4561,6 +4630,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       });
     });
     applyConfig();
+    preloadLetterFonts();
     buildVariantFields();
     cart.forEach(function (l) {
       if (l.key === 'mug' && l.ask) {
