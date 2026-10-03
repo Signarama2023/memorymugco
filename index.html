@@ -2,7 +2,7 @@
 <title>Memory Mug Company</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500;1,600&family=Caveat:wght@400;600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,560;0,9..144,640;1,9..144,560&family=Outfit:wght@400;500;600;700&family=Caveat:wght@600&display=swap">
 
 <style>
 /* ── Tokens ─────────────────────────────────────────────── */
@@ -43,16 +43,18 @@
 
   --shadow:rgba(22,19,17,.10);
   --shadow-2:rgba(22,19,17,.22);
+  --glow:#F6CBB6;
+  --glow-2:#F6E2AE;
 
   --wrap:1120px;
   --gutter:20px;
-  --r-sm:3px;
-  --r-md:5px;
-  --r-lg:8px;
+  --r-sm:12px;
+  --r-md:18px;
+  --r-lg:28px;
   --r-pill:999px;
 
-  --f-display:"Lora","Iowan Old Style",Georgia,serif;
-  --f-body:"DM Sans","Helvetica Neue",Arial,sans-serif;
+  --f-display:"Fraunces","Iowan Old Style",Georgia,serif;
+  --f-body:"Outfit","Helvetica Neue",Arial,sans-serif;
 }
 /* ── Base ───────────────────────────────────────────────── */
 :root{color-scheme:light}
@@ -60,11 +62,15 @@
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 body{
   margin:0;
-  background:var(--ground);
+  background-color:var(--ground);
+  background-image:
+    radial-gradient(820px 420px at 8% -8%, var(--glow) 0%, transparent 62%),
+    radial-gradient(640px 360px at 100% 0%, var(--glow-2) 0%, transparent 58%);
+  background-repeat:no-repeat;
   color:var(--ink);
   font-family:var(--f-body);
-  font-size:1.075rem;
-  line-height:1.65;
+  font-size:1.0625rem;
+  line-height:1.6;
   -webkit-font-smoothing:antialiased;
 }
 h1,h2,h3{font-family:var(--f-display);font-weight:500;line-height:1.08;margin:0;text-wrap:balance;letter-spacing:-.022em}
@@ -96,10 +102,11 @@ section{scroll-margin-top:92px}
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:9px;
   font-family:var(--f-body);font-weight:700;font-size:1rem;
-  padding:15px 30px;border-radius:var(--r-sm);border:2px solid transparent;
+  padding:14px 22px;border-radius:14px;border:2px solid transparent;
   text-decoration:none;cursor:pointer;
   transition:transform .16s ease,background .16s ease,color .16s ease,border-color .16s ease,box-shadow .16s ease;
 }
+.btn-short{display:none}
 /* Primary CTA is a solid rust fill. White on #C12F1A is about 5.7:1. */
 .btn--fill{background:var(--red);color:#FFFFFF;border-color:var(--red);box-shadow:0 10px 18px -12px rgba(193,47,26,.9)}
 .btn--fill:hover{background:var(--red-deep);border-color:var(--red-deep);color:#FFFFFF;transform:translateY(-1px);box-shadow:0 14px 22px -12px rgba(122,30,18,.85)}
@@ -110,17 +117,17 @@ section{scroll-margin-top:92px}
 .btn--sm{padding:11px 16px;font-size:.9375rem}
 
 /* ── Announcement + header ──────────────────────────────── */
-.promo{background:var(--ink);color:#FFFFFF;text-align:center}
-.promo p{padding-block:11px;font-weight:700;font-size:.9375rem}
+.promo{background-color:var(--red-deep);background-image:linear-gradient(90deg,var(--red-deep),var(--red));color:#FFFFFF;text-align:center}
+.promo p{padding-block:6px;font-weight:600;font-size:.875rem;letter-spacing:.01em}
 .promo .fl{padding-inline:7px}
 .site-header{
   position:sticky;top:env(safe-area-inset-top,0px);z-index:50;
-  background:var(--ground);
-  background:color-mix(in srgb,var(--ground) 92%,transparent);
-  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  background:var(--surface);
+  background:color-mix(in srgb,var(--surface) 90%,transparent);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
   border-bottom:1px solid var(--rule);
 }
-.header-row{display:flex;align-items:center;gap:14px;padding-block:10px}
+.header-row{display:flex;align-items:center;gap:14px;padding-block:8px}
 .brand{display:flex;align-items:center;gap:11px;text-decoration:none;margin-right:auto;min-width:0}
 .brand-mark{flex:none;color:var(--red)}
 .brand-text{display:flex;flex-direction:column;line-height:1.1}
@@ -132,11 +139,24 @@ section{scroll-margin-top:92px}
   padding-block:12px;border-bottom:2.5px solid transparent;transition:color .15s ease,border-color .15s ease;
 }
 .site-nav a:hover{color:var(--red-ink);border-color:var(--red)}
-@media (max-width:900px){.site-nav{display:none}}
+.site-nav a[aria-current="true"]{color:var(--ink);border-bottom-color:var(--red)}
+@media (max-width:860px){
+  .header-row{flex-wrap:wrap;row-gap:0}
+  .site-nav{order:5;flex:1 0 100%;gap:18px}
+  .site-nav a{padding-block:8px;font-size:.92rem}
+}
 @media (max-width:720px){
   .brand-sub{display:none}
   .header-row{gap:8px}
-  .header-row .btn--sm{padding:10px 12px;font-size:.875rem}
+  .header-row .btn--sm{padding:10px 14px;font-size:.875rem}
+}
+@media (max-width:420px){
+  .btn-long{display:none}
+  .btn-short{display:inline}
+  .order-bar .flow-b{grid-template-columns:minmax(0,1fr)}
+  .order-bar .single-buy{flex-wrap:wrap;flex-direction:column;align-items:stretch}
+  .order-bar .single-buy .btn,.order-bar .single-buy select{width:100%}
+  .order-bar .proof-head,.order-bar .price-extra{grid-column:auto}
 }
 @media (max-width:380px){
   :root{--gutter:12px}
@@ -146,19 +166,40 @@ section{scroll-margin-top:92px}
 }
 
 /* ── Hero ───────────────────────────────────────────────── */
-.hero{padding-block:clamp(12px,2vw,22px) clamp(28px,4vw,48px)}
-.hero-head{margin:0 0 clamp(14px,2vw,22px);display:flex;flex-direction:column;gap:12px;text-align:left;min-width:0;max-width:40rem}
+.hero{padding-block:clamp(8px,1.4vw,16px) clamp(36px,5vw,64px)}
+.hero-head{margin:0;display:flex;flex-direction:column;gap:6px;text-align:left;min-width:0;width:100%}
+.hero-head .eyebrow{margin:0}
+.hero .lede{max-width:36ch}
 .buy{
-  background:var(--surface);border:1px solid var(--rule-2);border-radius:var(--r-lg);
-  padding:clamp(16px,2vw,22px);display:flex;flex-direction:column;gap:10px;align-self:stretch;min-width:0;
-  box-shadow:0 18px 40px -28px rgba(22,19,17,.55);
+  background:var(--surface);border:0;border-radius:var(--r-lg);
+  padding:clamp(16px,2vw,22px);display:flex;flex-direction:column;gap:14px;align-self:stretch;min-width:0;
+  box-shadow:0 28px 60px -40px rgba(48,22,14,.55), 0 0 0 1px var(--rule);
 }
+.buy-head{display:flex;flex-direction:column;gap:4px}
+.flow-step{display:grid;grid-template-columns:32px minmax(0,1fr);gap:10px;align-items:start;min-width:0}
+.flow-b,.proof,.order-bar,.single-buy{min-width:0}
+.flow-n{
+  width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:var(--ink);color:#FFFFFF;font-weight:700;font-size:.85rem;line-height:1;
+}
+.flow-b{display:flex;flex-direction:column;gap:8px;min-width:0;padding-top:3px}
+.order-bar{
+  background:var(--red-soft);border-radius:var(--r-md);padding:12px 12px 14px;margin-top:2px;
+}
+.order-bar .flow-n{background:var(--red)}
+.order-bar .flow-b{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:14px;row-gap:4px;align-items:center;padding-top:0}
+.order-bar .proof-head,.order-bar .price-extra{grid-column:1 / -1}
+.order-bar .single-price{margin:0}
+.order-bar .single-price b{font-size:2.35rem}
+.order-bar .single-buy{margin-top:0;flex-wrap:nowrap}
+.order-bar .single-buy .btn{white-space:nowrap;padding:12px 16px}
+.order-bar .single-buy select{flex:0 0 auto}
 .buy h2{font-size:clamp(1.35rem,2vw,1.6rem)}
 .buy-facts{font-size:.9375rem;font-weight:700;color:var(--ink-2)}
 .buy-facts i{font-style:normal;color:var(--ink-3);padding-inline:5px}
 .proof{
-  border:1px solid var(--rule-2);border-radius:var(--r-sm);padding:12px;
-  display:flex;flex-direction:column;gap:8px;background:var(--ground);
+  border:0;border-radius:0;padding:0;
+  display:flex;flex-direction:column;gap:16px;background:transparent;
 }
 .proof-head{font-weight:700;font-size:.9375rem}
 .proof-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -166,10 +207,10 @@ section{scroll-margin-top:92px}
 .proof-pick{
   display:inline-flex;align-items:center;justify-content:center;
   font-family:var(--f-body);font-weight:700;font-size:.9375rem;cursor:pointer;
-  padding:11px 18px;border-radius:var(--r-sm);border:2px solid var(--ink);
-  background:var(--surface);color:var(--ink);
+  padding:12px 18px;border-radius:14px;border:2px solid var(--red);
+  background:var(--red);color:#FFFFFF;
 }
-.proof-pick:hover{background:var(--ink);color:#FFFFFF}
+.proof-pick:hover{background:var(--red-deep);border-color:var(--red-deep);color:#FFFFFF}
 .proof-name{font-size:.9375rem;color:var(--ink-2);word-break:break-all;flex:1 1 120px;min-width:0}
 .proof-drop{background:none;border:0;padding:6px 0;font:inherit;font-size:.9375rem;font-weight:500;
   color:var(--ink-3);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
@@ -199,21 +240,23 @@ section{scroll-margin-top:92px}
 
 .proof-note{font-size:.9375rem;color:var(--ink-2);line-height:1.55}
 .proof-note b{color:var(--ink)}
-.bg-sets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 10px}
-@media (min-width:480px){
-  .bg-sets{grid-template-columns:repeat(4,minmax(0,1fr))}
+.bg-sets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (min-width:560px){
+  .bg-sets{grid-template-columns:repeat(5,minmax(0,1fr))}
 }
 .bg-set{display:flex;flex-direction:column;gap:4px}
 .bg-k{margin:0;font-size:.8125rem;font-weight:700;color:var(--ink-2)}
 .bg-row{display:flex;gap:8px;flex-wrap:wrap}
 .bg-pick{
-  flex:1 1 72px;max-width:92px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;
+  flex:none;width:100%;max-width:none;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;
   font-family:var(--f-body);font-weight:700;font-size:.8125rem;line-height:1.2;color:var(--ink);
-  background:var(--surface);border:2px solid var(--rule-2);border-radius:var(--r-sm);
-  padding:4px 4px 7px;cursor:pointer;
+  background:var(--surface);border:2px solid var(--rule-2);border-radius:14px;
+  padding:6px 4px 8px;cursor:pointer;
 }
+.bg-g{font-weight:500;font-size:.75rem;color:var(--ink-3)}
+.bg-pick.is-on .bg-g{color:var(--red-deep)}
 .bg-pick svg,.bg-none{
-  width:100%;height:48px;border-radius:3px;display:block;
+  width:100%;height:58px;border-radius:8px;display:block;
 }
 .bg-none{
   display:flex;align-items:center;justify-content:center;
@@ -244,12 +287,20 @@ section{scroll-margin-top:92px}
   font-size:.9375rem;color:var(--ink-2);line-height:1.55;
   background:var(--surface-2);border-radius:var(--r-md);padding:12px 14px;
 }
-.hero-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:clamp(18px,3vw,40px);align-items:start}
-@media (max-width:920px){
-  .hero-grid{grid-template-columns:minmax(0,1fr);gap:10px}
-  .hero-head{margin-bottom:8px}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(320px,.95fr);gap:clamp(16px,2.4vw,32px);align-items:start}
+@media (min-width:921px) and (max-height:860px){
+  .mug-frame{max-height:430px;width:auto}
 }
-.hero h1{font-size:clamp(2.65rem,4.4vw,4.05rem);line-height:.98;letter-spacing:-.03em;font-weight:500}
+@media (max-width:920px){
+  .hero-grid{display:flex;flex-direction:column;gap:12px}
+  .stage{display:contents}
+  .hero-head{order:1}
+  .mug-frame{order:2;align-self:center}
+  .buy{order:3}
+  .stage-foot{order:4}
+  section{scroll-margin-top:124px}
+}
+.hero h1{font-size:clamp(1.9rem,2.6vw,2.85rem);line-height:1.02;letter-spacing:-.03em;font-weight:560}
 .hero h1 em{font-style:italic;font-weight:500;color:var(--red-ink)}
 .hero-copy{display:flex;flex-direction:column;gap:20px;min-width:0}
 .hero-actions{display:flex;flex-wrap:wrap;gap:13px;align-items:center}
@@ -270,11 +321,18 @@ section{scroll-margin-top:92px}
 }
 .stage-foot{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
 @media (max-width:920px){
-  .stage{justify-content:flex-start;min-height:0;gap:8px}
-  .stage-foot{gap:6px}
+  .stage{display:contents}
+  .hero-head{order:1}
+  .mug-frame{order:2;align-self:center}
+  .stage-foot{order:3;gap:6px}
+  .buy{order:4}
 }
-.mug-frame{width:100%;max-width:640px;aspect-ratio:240/248}
-.mug-frame svg{display:block;width:100%;height:100%;filter:drop-shadow(0 18px 22px rgba(48,28,18,.16))}
+.mug-frame{position:relative;width:100%;max-width:560px;aspect-ratio:240/248}
+.mug-frame::before{
+  content:"";position:absolute;left:14%;right:16%;top:10%;bottom:12%;z-index:0;pointer-events:none;
+  background:radial-gradient(circle, var(--surface) 0%, var(--glow) 46%, transparent 72%);
+}
+.mug-frame svg{position:relative;z-index:1;display:block;width:100%;height:100%;filter:drop-shadow(0 22px 28px rgba(48,28,18,.18))}
 /* SVG presentation attributes can't read custom properties, so paint via CSS. */
 .mug-svg .f-ink{fill:var(--ink)}
 .mug-svg .f-surf{fill:var(--surface)}
@@ -313,9 +371,13 @@ section{scroll-margin-top:92px}
   100%{opacity:0;transform:translateY(-13px)}
 }
 .chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:center}
+@media (max-width:920px){
+  .chips{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;width:100%;max-width:100%}
+  .chip{flex:none}
+}
 .chip{
-  font-family:var(--f-body);font-weight:700;font-size:.875rem;
-  padding:8px 12px;border-radius:var(--r-sm);border:1px solid var(--rule-2);
+  font-family:var(--f-body);font-weight:600;font-size:.875rem;
+  padding:8px 14px;border-radius:var(--r-pill);border:1px solid var(--rule-2);
   background:var(--surface);color:var(--ink-2);cursor:pointer;
   transition:background .15s ease,color .15s ease,border-color .15s ease;
 }
@@ -325,26 +387,29 @@ section{scroll-margin-top:92px}
 .chip--more{border-style:dashed;color:var(--ink-3)}
 .stage-caption{font-size:.9375rem;color:var(--ink-2);text-align:center;max-width:42ch;min-height:2.6em}
 @media (max-width:720px){
-  .hero{padding-block:4px 16px}
-  .hero-grid{gap:10px}
-  .hero-head{gap:6px}
-  .hero h1{font-size:clamp(2.05rem,8.2vw,2.65rem)}
-  .stage{gap:6px}
-  .stage-caption{min-height:0}
-  .mug-frame{max-width:100%}
+  .hero{padding-block:4px 28px}
+  .hero h1{font-size:clamp(1.55rem,6.6vw,1.85rem)}
+  .hero .lede{font-size:1rem;line-height:1.45}
+  .stage-caption{min-height:0;font-size:.875rem;line-height:1.35}
+  .mug-frame{width:auto;max-height:210px;margin-inline:auto}
 }
-/* A short phone has room for the mug and both lines under it. Capping the
-   frame keeps those lines whole; the page still scrolls to the price. */
-@media (max-width:720px) and (max-height:760px){
-  .mug-frame{width:auto;max-height:156px}
+@media (max-width:720px) and (min-height:800px){
+  .mug-frame{max-height:200px}
+}
+@media (max-width:720px) and (max-height:720px){
+  .mug-frame{max-height:180px}
 }
 
 /* ── Ticker ─────────────────────────────────────────────── */
-.ticker{background:var(--ink);color:#F6F1EA;border:0}
-.ticker-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;padding-block:22px}
-.ticker-cell{display:flex;flex-direction:column;gap:3px;align-items:center;text-align:center}
-.ticker-k{font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#D9CFC3}
-.ticker-v{font-family:var(--f-display);font-weight:600;font-size:1.35rem;letter-spacing:-.02em;color:#FFFFFF}
+.ticker{background:transparent;color:var(--ink);border:0}
+.ticker-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding-block:4px 8px}
+.ticker-cell{
+  display:flex;flex-direction:column;gap:3px;align-items:center;text-align:center;
+  background:var(--surface);border-radius:var(--r-md);padding:16px 10px;
+  box-shadow:0 0 0 1px var(--rule);
+}
+.ticker-k{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.ticker-v{font-family:var(--f-display);font-weight:600;font-size:1.28rem;letter-spacing:-.02em;color:var(--ink)}
 @media (max-width:760px){.ticker-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}}
 
 /* ── Catalog ──────────────────────────────────────────── */
@@ -382,11 +447,14 @@ section{scroll-margin-top:92px}
 /* ── Steps ──────────────────────────────────────────────── */
 .steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(22px,3.5vw,38px)}
 @media (max-width:840px){.steps{grid-template-columns:minmax(0,1fr);gap:28px}}
-.step{display:flex;flex-direction:column;gap:11px;padding-top:18px;border-top:2px solid var(--red)}
+.step{
+  display:flex;flex-direction:column;gap:10px;padding:22px 20px;
+  background:var(--surface);border-radius:var(--r-lg);box-shadow:0 0 0 1px var(--rule);
+}
 .step-n{
-  width:42px;height:42px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;
+  width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   font-family:var(--f-display);font-weight:600;font-size:1.35rem;
-  background:var(--red);color:#FFFFFF;border:0;margin-bottom:4px;
+  background:var(--red);color:#FFFFFF;border:0;margin-bottom:2px;
 }
 .step h3{font-size:1.38rem}
 .step p{font-size:.99rem;color:var(--ink-2)}
@@ -493,7 +561,7 @@ section{scroll-margin-top:92px}
 .single-body h3{font-size:clamp(1.4rem,2.4vw,1.85rem)}
 .single-blurb{font-size:1rem;color:var(--ink-2)}
 .single-price{display:flex;align-items:baseline;gap:9px;font-variant-numeric:tabular-nums}
-.single-price b{font-family:var(--f-display);font-weight:600;font-size:clamp(2.7rem,4vw,3.45rem);line-height:1;color:var(--red-ink);letter-spacing:-.03em}
+.single-price b{font-family:var(--f-display);font-weight:600;font-size:clamp(2.3rem,3.4vw,3rem);line-height:1;color:var(--red-ink);letter-spacing:-.03em}
 .single-price span{font-size:.9rem;font-weight:700;color:var(--ink-3)}
 .single-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
 .single-list li{font-size:.95rem;color:var(--ink-2);display:flex;gap:11px;line-height:1.5}
@@ -517,9 +585,12 @@ section{scroll-margin-top:92px}
 }
 .owner-link:hover{border-color:var(--red);color:var(--red-ink)}
 .shop-msg{
-  border:1px solid var(--rule-2);border-radius:var(--r-lg);padding:16px 18px;
-  text-align:center;color:var(--ink-2);font-size:.95rem;background:var(--surface);
+  border:0;border-left:4px solid var(--red);border-radius:0 var(--r-md) var(--r-md) 0;padding:14px 16px;
+  text-align:left;color:var(--ink-2);font-size:.95rem;background:var(--surface);
+  box-shadow:0 0 0 1px var(--rule);
 }
+#checkout-status{display:flex;flex-direction:column;align-items:stretch;gap:10px}
+#checkout-status .btn{align-self:flex-start}
 .shop-msg b{display:block;font-family:var(--f-display);font-size:1.1rem;color:var(--ink);margin-bottom:5px}
 
 /* ── Cart button ────────────────────────────────────────── */
@@ -674,11 +745,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       </span>
     </a>
     <nav class="site-nav" aria-label="Main">
-      <a href="#mugs">What Goes On It</a>
-      <a href="#how">How It Works</a>
-      <a href="#craft">Why It Lasts</a>
-      <a href="#order">Order</a>
-      <a href="#faq">FAQ</a>
+      <a href="#order">Design</a>
+      <a href="#how">How it works</a>
+      <a href="#faq">Questions</a>
     </nav>
     <button type="button" class="cart-btn" id="cart-btn" aria-label="Open your order">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -687,27 +756,27 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       </svg>
       <span class="cart-count" id="cart-count" hidden>0</span>
     </button>
-    <a class="btn btn--fill btn--sm" href="#start">Make my mug</a>
+    <a class="btn btn--fill btn--sm" href="#order"><span class="btn-long">Start order</span><span class="btn-short">Order</span></a>
   </div>
 </header>
 
 <main id="top">
 
 <!-- ══ HERO ════════════════════════════════════════════════ -->
-<section class="wrap hero">
-  <div class="hero-head">
-    <p class="eyebrow">Custom photo mugs · By <span data-cfg="operatorName">H3 Customs</span></p>
-    <h1>Put your <em>favorite people</em> on a mug.</h1>
-    <p class="lede">
-      Turn a photo you already have into a gift they'll reach for every morning.
-    </p>
-  </div>
-  <div class="hero-grid" id="order">
+<section class="wrap hero" id="order">
+  <div class="hero-grid">
     <div class="stage">
+      <div class="hero-head">
+        <p class="eyebrow">Custom photo mugs · By <span data-cfg="operatorName">H3 Customs</span></p>
+        <h1>Put your <em>favorite people</em> on a mug.</h1>
+        <p class="lede">
+          Choose a photo, add a background if you want one, and put the mug on your order.
+        </p>
+      </div>
       <div class="mug-frame">
         <svg class="mug-svg" viewBox="158 110 240 248" role="img" aria-labelledby="mug-title mug-desc">
-          <title id="mug-title">A ceramic mug printed with a family photo</title>
-          <desc id="mug-desc">A white 15 oz mug with an example family photograph printed across the front. The picture is an example — your photo goes on yours.</desc>
+          <title id="mug-title">A white ceramic mug with an example design</title>
+          <desc id="mug-desc">A white 15 oz mug with an illustrated example on the front. Your photo goes on yours.</desc>
 
           <defs>
             <linearGradient id="ceramic" x1="0" y1="0" x2="1" y2="0">
@@ -960,9 +1029,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
                 <path d="M234 190h18v15a9 9 0 0 1-9 9h0a9 9 0 0 1-9-9Z"/>
                 <path d="M252 194h4a5 5 0 0 1 0 10h-4"/>
               </g>
-              <text fill="#C12F1A" x="248" y="236" font-family="DM Sans, sans-serif" font-size="11" font-weight="700" text-anchor="middle" textLength="54" lengthAdjust="spacingAndGlyphs">THE CREW</text>
+              <text fill="#C12F1A" x="248" y="236" font-family="Outfit, sans-serif" font-size="11" font-weight="700" text-anchor="middle" textLength="54" lengthAdjust="spacingAndGlyphs">THE CREW</text>
               <path d="M226 244h44" stroke="#F6E7D4" stroke-width="1.2" opacity=".45"/>
-              <text fill="#F6E7D4" x="248" y="258" font-family="DM Sans, sans-serif" font-size="9" text-anchor="middle" textLength="42" lengthAdjust="spacingAndGlyphs">EST. 2019</text>
+              <text fill="#F6E7D4" x="248" y="258" font-family="Outfit, sans-serif" font-size="9" text-anchor="middle" textLength="42" lengthAdjust="spacingAndGlyphs">EST. 2019</text>
             </g>
            </g>
           </g>
@@ -981,11 +1050,10 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         <button type="button" class="chip" id="chip-family" data-key="family" aria-pressed="true">Family</button>
         <button type="button" class="chip" id="chip-art" data-key="art" aria-pressed="false">Kid's art</button>
         <button type="button" class="chip" id="chip-pet" data-key="pet" aria-pressed="false">The dog</button>
-        <button type="button" class="chip chip--extra" id="chip-hand" data-key="hand" aria-pressed="false" hidden>Handwriting</button>
-        <button type="button" class="chip chip--extra" id="chip-recipe" data-key="recipe" aria-pressed="false" hidden>Recipe</button>
-        <button type="button" class="chip chip--extra" id="chip-team" data-key="team" aria-pressed="false" hidden>The crew</button>
+        <button type="button" class="chip" id="chip-hand" data-key="hand" aria-pressed="false">Handwriting</button>
+        <button type="button" class="chip" id="chip-recipe" data-key="recipe" aria-pressed="false">Recipe</button>
+        <button type="button" class="chip" id="chip-team" data-key="team" aria-pressed="false">The crew</button>
         <button type="button" class="chip" id="chip-yours" data-key="yours" aria-pressed="false" hidden>Your photo</button>
-        <button type="button" class="chip chip--more" id="more-ideas" aria-expanded="false" aria-controls="chip-hand chip-recipe chip-team">More ideas</button>
       </div>
       <p class="stage-caption" id="mug-caption" aria-live="polite">
         The whole crew, wrapped the entire way around. Yes, the dog counts as family.
@@ -1011,63 +1079,6 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   </div>
 </div>
 
-<!-- Example photos are local files under assets/examples/.
-     Credits are in assets/examples/CREDITS.md, not on the page.
-     family.jpg Eric Moura, Pexels 35858303.
-     art.jpg Allan Mas, Pexels 5622348.
-     dog.jpg Pauline Loroy, Unsplash U3aF7hgUSrk.
-     handwriting.jpg cottonbro studio, Pexels 8369519.
-     recipe.jpg Daniel & Hannah Snipes, Pexels 29834258.
-     crew.jpg César O'neill, Pexels 31517419. -->
-<!-- ══ CATALOG ═══════════════════════════════════════════ -->
-<section class="band wrap" id="mugs">
-  <div class="section-head">
-    <p class="eyebrow">The lineup</p>
-    <h2 class="h2">Six things people put on them</h2>
-    <p class="lede">
-      You don't need a design, a logo, or any idea what you're doing. You need a picture
-      you already have on your phone. That's genuinely the whole list of requirements.
-    </p>
-  </div>
-
-  <div class="cat-grid">
-    <article class="cat">
-      <div class="cat-frame"><img class="cat-photo cat-photo--family" data-photo="family" src="assets/examples/family.jpg" alt="Example family photograph" width="800" height="600"></div>
-      <h3>The family photo</h3>
-      <p>The one where everybody is actually looking at the camera. Wrapped the whole way around, so it looks good from wherever you're sitting.</p>
-    </article>
-
-    <article class="cat">
-      <div class="cat-frame"><img class="cat-photo cat-photo--art" data-photo="art" src="assets/examples/art.jpg" alt="Example photograph of a child drawing" width="800" height="600"></div>
-      <h3>Your kid's masterpiece</h3>
-      <p>The crayon drawing that's been on the fridge since March. Grandparents completely lose it over these — fair warning.</p>
-    </article>
-
-    <article class="cat">
-      <div class="cat-frame"><img class="cat-photo cat-photo--dog" data-photo="pet" src="assets/examples/dog.jpg" alt="Example photograph of a dog" width="800" height="600"></div>
-      <h3>The dog. Obviously.</h3>
-      <p>We knock the background out so it's just your dog's face, six inches tall, staring at you before coffee. Add the name underneath — everyone does.</p>
-    </article>
-
-    <article class="cat">
-      <div class="cat-frame"><img class="cat-photo cat-photo--hand" data-photo="hand" src="assets/examples/handwriting.jpg" alt="Example photograph of handwriting" width="800" height="600"></div>
-      <h3>Somebody's handwriting</h3>
-      <p>A birthday card, a note off the fridge, a signature. We keep the pen pressure and the shaky letters — that's the part that gets people.</p>
-    </article>
-
-    <article class="cat">
-      <div class="cat-frame"><img class="cat-photo cat-photo--recipe" data-photo="recipe" src="assets/examples/recipe.jpg" alt="Example photograph of a handwritten recipe" width="800" height="600"></div>
-      <h3>The family recipe</h3>
-      <p>The cobbler, the gravy, the thing nobody else can get right. Printed big enough to actually read while it's sitting on the counter.</p>
-    </article>
-
-    <article class="cat">
-      <div class="cat-frame"><img class="cat-photo cat-photo--crew" data-photo="team" src="assets/examples/crew.jpg" alt="Example photograph of a group of people" width="800" height="600"></div>
-      <h3>Your logo or your crew</h3>
-      <p>Shop mugs, closing gifts, the whole team's names on the back. Send whatever logo file you've got and we'll clean it up for print.</p>
-    </article>
-  </div>
-</section>
 
 <!-- ══ HOW IT WORKS ════════════════════════════════════════ -->
 <section class="band band--tint" id="how">
@@ -1075,6 +1086,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     <div class="section-head">
       <p class="eyebrow">How it works</p>
       <h2 class="h2">Three steps, and one of them is just saying yes</h2>
+      <p class="lede">The order card above is the whole path. This is what happens after you send the photo.</p>
     </div>
     <div class="steps">
       <div class="step">
@@ -1142,33 +1154,6 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   </div>
 </section>
 
-<!-- ══ OCCASIONS ═══════════════════════════════════════════ -->
-<section class="band">
-  <div class="wrap">
-    <div class="section-head">
-      <p class="eyebrow">Made for</p>
-      <h2 class="h2">Why people actually order one</h2>
-      <p class="lede">
-        Nobody wakes up wanting a mug. They want to hand a specific person a specific
-        Tuesday morning. These are the ones that come through the shop most.
-      </p>
-    </div>
-    <div class="occasions">
-      <span class="occ">Mother's Day</span>
-      <span class="occ">Grandparents, always</span>
-      <span class="occ">Father's Day</span>
-      <span class="occ">The dog's birthday</span>
-      <span class="occ">Housewarmings</span>
-      <span class="occ">Teacher gifts</span>
-      <span class="occ">New baby</span>
-      <span class="occ">Retirement parties</span>
-      <span class="occ">Weddings &amp; showers</span>
-      <span class="occ">Long-distance grandkids</span>
-      <span class="occ">Office gift exchange</span>
-      <span class="occ">Just because it's funny</span>
-    </div>
-  </div>
-</section>
 
 <!-- ══ FAQ ═════════════════════════════════════════════════ -->
 <section class="band band--alt" id="faq">
@@ -1250,34 +1235,17 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 <section class="band closer" id="start">
   <div class="wrap closer-grid">
     <div class="closer-copy">
-      <p class="eyebrow">Make my mug</p>
-      <h2>You've already got the photo. That's the hard part done.</h2>
+      <p class="eyebrow">If checkout is not open yet</p>
+      <h2>Email the photo and we'll start the mug.</h2>
       <p class="lede">
-        Send it over and we'll come back with a proof within one business day. No account to
-        make, no checkout until you've seen exactly what you're getting.
+        Payment runs on Shopify once the shop is connected. Until then, write to us and
+        attach the picture. We send a proof before anything is printed.
       </p>
     </div>
-
-    <div>
-      <form class="signup" id="start-form" novalidate>
-        <label for="start-email">Where should we send the proof?</label>
-        <div class="signup-row">
-          <input id="start-email" name="email" type="email" autocomplete="email" placeholder="you@email.com" required>
-          <button class="btn btn--fill" type="submit">Send my photo</button>
-        </div>
-        <p class="signup-fine">
-          We'll write back from the shop and you can attach the photo right to that email.
-          No list, no newsletter, no handing your address to anybody.
-        </p>
-      </form>
-
-      <div class="signup-done" id="start-done" hidden>
-        <span class="tick" aria-hidden="true">✓</span>
-        <div>
-          <b>Got it!</b>
-          <p id="start-done-msg">Reply to the email we just sent and attach your photo — we'll have a proof back to you within one business day.</p>
-        </div>
-      </div>
+    <div class="signup">
+      <p>Write to <a href="mailto:hello@memorymugco.com" data-cfg-mail="supportEmail"><span data-cfg="supportEmail">hello@memorymugco.com</span></a> and attach the photo.</p>
+      <a class="btn btn--fill" href="mailto:hello@memorymugco.com" data-cfg-mail="supportEmail">Email the shop</a>
+      <p class="signup-fine">Or build the mug above and add it to your order. Nothing is charged on this page.</p>
     </div>
   </div>
 </section>
@@ -1299,15 +1267,14 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       <div class="foot-links">
         <div class="foot-col">
           <h4>Shop</h4>
-          <a href="#mugs">What goes on it</a>
-          <a href="#order">The mug &amp; price</a>
-          <a href="#start">Start an order</a>
+          <a href="#order">Design your mug</a>
+          <a href="#how">How it works</a>
+          <a href="#faq">Questions</a>
         </div>
         <div class="foot-col">
           <h4>Details</h4>
-          <a href="#how">How it works</a>
           <a href="#craft">Why it lasts</a>
-          <a href="#faq">FAQ</a>
+          <a href="#start">Email the shop</a>
         </div>
         <div class="foot-col">
           <h4>Reach us</h4>
@@ -1349,7 +1316,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       </p>
       <p class="nudge" id="cart-nudge" hidden></p>
       <div class="cart-total"><span>Subtotal</span><b id="cart-total">$0.00</b></div>
-      <p class="signup-fine">Shipping and tax are calculated on the Shopify page.</p>
+      <p class="signup-fine" id="cart-pay-note">Shipping and tax are calculated on the Shopify page.</p>
       <div id="checkout-status"></div>
       <button type="button" class="btn btn--fill" id="checkout-btn">Continue to payment</button>
     </div>
@@ -1511,9 +1478,8 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
       <p class="admin-sec">Every other photograph</p>
       <p class="hint" style="margin-top:-6px">
-        Family, kid's art, the dog, handwriting, the recipe, and the crew each show on the
-        mug and in the lineup. Replace one and both places update. Clear one and the built-in
-        picture comes back.
+        Optional. A photo here replaces the drawing on the mug for that style.
+        Leave a slot empty and the drawing stays.
         Big files are shrunk to 900px automatically so the page stays quick.
         The brand mark, the cart, and the small arrows are drawn in the page, not image files,
         and there is no favicon to replace.
@@ -1666,33 +1632,22 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   /* No auto-rotation: the designs change only when someone picks one.
      Moving the product while a buyer is reading it costs more than it shows. */
 
-  /* ── Start form ────────────────────────────────────── */
-  var form = document.getElementById('start-form');
-  var done = document.getElementById('start-done');
-  var doneMsg = document.getElementById('start-done-msg');
-  var email = document.getElementById('start-email');
-
-  if (form && done && email) {
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      var value = email.value.trim();
-      if (!value || value.indexOf('@') < 1 || value.indexOf('.', value.indexOf('@')) < 0) {
-        email.focus();
-        email.setAttribute('aria-invalid', 'true');
-        return;
-      }
-      email.removeAttribute('aria-invalid');
-      if (doneMsg) {
-        doneMsg.textContent =
-          'Reply to the email heading to ' + value +
-          ' and attach your photo — we’ll have a proof back to you within one business day.';
-      }
-      form.hidden = true;
-      done.hidden = false;
-      done.setAttribute('tabindex', '-1');
-      done.focus();
+  /* Marks the section in view so a buyer can tell where they are. */
+  var navLinks = Array.prototype.slice.call(document.querySelectorAll('.site-nav a'));
+  var sections = ['order', 'how', 'faq'].map(function (id) {
+    return document.getElementById(id);
+  }).filter(Boolean);
+  function markNav() {
+    var y = window.scrollY + 140;
+    var current = sections.length ? sections[0].id : '';
+    sections.forEach(function (s) { if (s.offsetTop <= y) current = s.id; });
+    navLinks.forEach(function (a) {
+      if (a.getAttribute('href') === '#' + current) a.setAttribute('aria-current', 'true');
+      else a.removeAttribute('aria-current');
     });
   }
+  window.addEventListener('scroll', markNav, { passive: true });
+  markNav();
 })();
 </script>
 
@@ -1800,15 +1755,15 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     [0.260, 0.790], [0.240, 0.710], [0.228, 0.560], [0.218, 0.400], [0.212, 0.258]
   ];
 
-  /* Photos of real finished mugs. A URL or a data: URI; blank leaves the drawing.
-     Credits for the files below live in assets/examples/CREDITS.md, not on the page. */
+  /* Optional photos that can replace a drawing on the mug. Blank keeps the
+     drawing. The customer page does not ship photographs of real people. */
   var EXAMPLE_PHOTOS = {
-    family: 'assets/examples/family.jpg',
-    art: 'assets/examples/art.jpg',
-    pet: 'assets/examples/dog.jpg',
-    hand: 'assets/examples/handwriting.jpg',
-    recipe: 'assets/examples/recipe.jpg',
-    team: 'assets/examples/crew.jpg'
+    family: '',
+    art: '',
+    pet: '',
+    hand: '',
+    recipe: '',
+    team: ''
   };
   /* ADMIN-CONFIG-END */
 
@@ -1834,9 +1789,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     hand:[190,152,116,140], recipe:[190,152,116,140], team:[190,152,116,140]
   };
   var PHOTO_LABEL = {
-    family:'Family — mug and lineup', art:"Kid's art — mug and lineup",
-    pet:'The dog — mug and lineup', hand:'Handwriting — mug and lineup',
-    recipe:'Recipe — mug and lineup', team:'The crew — mug and lineup'
+    family:'Family — on the mug', art:"Kid's art — on the mug",
+    pet:'The dog — on the mug', hand:'Handwriting — on the mug',
+    recipe:'Recipe — on the mug', team:'The crew — on the mug'
   };
 
   var LS_CFG = 'mmc.config.v3', LS_CART = 'mmc.cart.v3', LS_NOTE = 'mmc.note.v3';
@@ -2118,34 +2073,34 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     var p = c.products[0];
     box.innerHTML = '';
 
-    box.appendChild(el('h2', null, p.title));
-
+    var head = el('div', 'buy-head');
+    head.appendChild(el('h2', null, p.title));
     var facts = el('p', 'buy-facts');
     ['15 oz', 'White ceramic', 'Your photo'].forEach(function (f, i) {
       if (i) facts.appendChild(el('i', null, '·'));
       facts.appendChild(document.createTextNode(f));
     });
-    box.appendChild(facts);
+    head.appendChild(facts);
+    box.appendChild(head);
+
+    box.appendChild(buildProofPicker());
+
+    var step3 = el('div', 'flow-step order-bar');
+    var n3 = el('span', 'flow-n', '3');
+    n3.setAttribute('aria-hidden', 'true');
+    step3.appendChild(n3);
+    var step3b = el('div', 'flow-b');
+    step3b.appendChild(el('p', 'proof-head', 'Your order'));
 
     var price = el('p', 'single-price');
     var priceB = el('b', null, money(unitPrice(p)));
     priceB.id = 'mug-price';
     price.appendChild(priceB);
-    price.appendChild(el('span', null, 'each'));
-    box.appendChild(price);
+    price.appendChild(el('span', null, 'total'));
+    step3b.appendChild(price);
     var extra = el('p', 'price-extra');
     extra.id = 'price-extra';
-    box.appendChild(extra);
-
-    /* The photo control sits with the price, above the longer list, so it is
-       on the first screen instead of running off the bottom of the card. */
-    box.appendChild(buildProofPicker());
-
-    if (p.includes.length) {
-      var ul = el('ul', 'single-list');
-      p.includes.forEach(function (line) { ul.appendChild(el('li', null, line)); });
-      box.appendChild(ul);
-    }
+    step3b.appendChild(extra);
 
     var buy = el('div', 'single-buy');
     var qty = document.createElement('select');
@@ -2161,7 +2116,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     btn.type = 'button';
     btn.onclick = function () { add(p, Number(qty.value)); openCart(); };
     buy.appendChild(btn);
-    box.appendChild(buy);
+    step3b.appendChild(buy);
+    step3.appendChild(step3b);
+    box.appendChild(step3);
 
     var nudge = el('p', 'nudge');
     nudge.id = 'buy-nudge';
@@ -2170,13 +2127,21 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       var unit = unitPrice(p);
       if (priceB) priceB.textContent = money(unit);
       if (extra) {
-        extra.hidden = !chosenBg;
-        extra.textContent = chosenBg ? chosenBg.name + ', $' + BG_EXTRA : '';
+        extra.hidden = false;
+        extra.textContent = chosenBg
+          ? money(p.price) + ' mug + $' + BG_EXTRA + ' ' + chosenBg.name + ' background'
+          : money(p.price) + ' for the mug. A background adds $' + BG_EXTRA + '.';
       }
       nudgeInto(nudge, Number(qty.value) * unit, unit);
     };
     qty.addEventListener('change', refreshPrice);
     refreshPrice();
+
+    if (p.includes.length) {
+      var ul = el('ul', 'single-list');
+      p.includes.forEach(function (line) { ul.appendChild(el('li', null, line)); });
+      box.appendChild(ul);
+    }
 
     /* Said before payment, not after, so nobody discovers how the photo gets to
        us only once they have already paid. */
@@ -2194,9 +2159,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       var n = el('div', 'shop-msg');
       n.appendChild(el('b', null, 'Not linked to a Shopify store yet'));
       n.appendChild(document.createTextNode(
-        'You can still build an order — it needs a store connected before it can hand over for payment.'));
+        'You can still build an order. Payment waits until a store is connected.'));
       notice.appendChild(n);
     }
+    var start = $('start');
+    if (start) start.hidden = !!ready();
   }
 
   /* ══ The customer's own photo ══
@@ -2510,7 +2477,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         : chosenBg.name + ' wraps the whole mug. Your photo sits on top.';
     }
     var opts = $('bg-options');
-    if (opts) opts.hidden = !chosenBg;
+    if (opts) opts.hidden = false;
     var note = $('bg-note');
     if (note) note.hidden = !chosenBg;
     var add = $('bg-add');
@@ -2762,8 +2729,13 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
   function buildProofPicker() {
     var wrap = el('div', 'proof');
-    wrap.appendChild(el('p', 'proof-head', 'See your photo on the mug'));
 
+    var step1 = el('div', 'flow-step');
+    var n1 = el('span', 'flow-n', '1');
+    n1.setAttribute('aria-hidden', 'true');
+    step1.appendChild(n1);
+    var step1b = el('div', 'flow-b');
+    step1b.appendChild(el('p', 'proof-head', 'Your photo'));
     var row = el('div', 'proof-row');
     var input = document.createElement('input');
     input.type = 'file'; input.id = 'own-photo'; input.accept = 'image/*';
@@ -2773,55 +2745,53 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     row.appendChild(input);
     var name = el('span', 'proof-name');
     row.appendChild(name);
-    wrap.appendChild(row);
+    step1b.appendChild(row);
+    step1.appendChild(step1b);
+    wrap.appendChild(step1);
 
-    wrap.appendChild(el('p', 'proof-head', 'Background'));
-    var addBg = el('button', 'bg-add', 'Add a background, $8');
-    addBg.type = 'button';
-    addBg.id = 'bg-add';
-    addBg.setAttribute('aria-pressed', 'false');
-    addBg.onclick = function () {
-      if (chosenBg) chooseBg('');
-      else chooseBg(lastBgId || 'tree');
-    };
-    wrap.appendChild(addBg);
-    function bgButton(id, label, bg) {
+    var step2 = el('div', 'flow-step');
+    var n2 = el('span', 'flow-n', '2');
+    n2.setAttribute('aria-hidden', 'true');
+    step2.appendChild(n2);
+    var step2b = el('div', 'flow-b');
+    step2b.appendChild(el('p', 'proof-head', 'Background'));
+    step2b.appendChild(el('p', 'proof-note', 'Optional. A small repeating pattern on the white ceramic, $8 extra.'));
+    function bgButton(id, label, group, bg) {
       var b = document.createElement('button');
       b.type = 'button';
       b.className = 'bg-pick';
       b.setAttribute('data-bg', id);
       b.setAttribute('aria-pressed', 'false');
-      var sw = svgEl('svg', { viewBox: '0 0 100 100', 'aria-hidden': 'true' });
-      var g = svgEl('g');
-      bg.draw(g);
-      sw.appendChild(g);
-      b.appendChild(sw);
+      if (bg) {
+        var sw = svgEl('svg', { viewBox: '0 0 100 100', 'aria-hidden': 'true' });
+        var g = svgEl('g');
+        bg.draw(g);
+        sw.appendChild(g);
+        b.appendChild(sw);
+      } else {
+        b.appendChild(el('span', 'bg-none', '\u2014'));
+      }
       b.appendChild(document.createTextNode(label));
+      if (group) b.appendChild(el('span', 'bg-g', group));
       b.onclick = function () { chooseBg(id); };
       return b;
     }
     var sets = el('div', 'bg-sets');
     sets.id = 'bg-options';
-    sets.hidden = true;
-    var seen = {};
+    sets.setAttribute('role', 'group');
+    sets.setAttribute('aria-label', 'Background');
     BACKGROUNDS.forEach(function (bg) {
-      if (!seen[bg.group]) {
-        seen[bg.group] = el('div', 'bg-set');
-        seen[bg.group].appendChild(el('p', 'bg-k', bg.group));
-        var row = el('div', 'bg-row');
-        row.setAttribute('role', 'group');
-        row.setAttribute('aria-label', bg.group);
-        seen[bg.group].appendChild(row);
-        sets.appendChild(seen[bg.group]);
-      }
-      seen[bg.group].querySelector('.bg-row').appendChild(bgButton(bg.id, bg.name, bg));
+      sets.appendChild(bgButton(bg.id, bg.name, bg.group, bg));
     });
-    wrap.appendChild(sets);
+    sets.appendChild(bgButton('', 'None', 'No extra', null));
+    step2b.appendChild(sets);
     var bgNote = el('p', 'proof-note',
       'Wraps the whole mug, edge to edge. Your photo sits on top.');
     bgNote.id = 'bg-note';
     bgNote.hidden = true;
-    wrap.appendChild(bgNote);
+    step2b.appendChild(bgNote);
+    step2.appendChild(step2b);
+    wrap.appendChild(step2);
 
     /* Hidden until there is a photo or a background.
        syncPhotoControls() decides from the state, not from the caller. */
@@ -2886,7 +2856,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     wrap.appendChild(tools);
 
     var note = el('p', 'proof-note');
-    wrap.appendChild(note);
+    step1b.appendChild(note);
 
     var addDrop = function () {
       if (row.querySelector('.proof-drop')) return;
@@ -3115,8 +3085,18 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
     if (!host()) {
       statusBox(box, 'info', 'No Shopify store linked yet.',
-        'Once one is linked, this button hands the order straight over to Shopify to pay. ' +
-        'In the meantime, send it through the order form further down the page.');
+        'This page cannot take payment. Email the shop and attach your photo, and we send a proof before anything is printed.');
+      if (!box.querySelector('.checkout-mail')) {
+        var jump = document.createElement('a');
+        jump.href = '#start';
+        jump.className = 'btn btn--fill checkout-mail';
+        jump.textContent = 'Email the shop';
+        jump.addEventListener('click', function () {
+          var d = $('cart-dlg');
+          if (d && d.open) d.close();
+        });
+        box.appendChild(jump);
+      }
       return;
     }
     var built = handoffUrl();
@@ -3205,7 +3185,12 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     if (noteField) noteField.hidden = up;
     if (noteAlt) noteAlt.hidden = !up;
 
-    set('checkout-btn', up ? 'Add your photo and check out' : 'Continue to payment');
+    set('checkout-btn', !host()
+      ? 'How to place this order'
+      : (up ? 'Add your photo and check out' : 'Continue to payment'));
+    set('cart-pay-note', host()
+      ? 'Shipping and tax are calculated on the Shopify page.'
+      : 'Payment is not connected yet. Nothing is charged on this page.');
   }
 
   /* ══ Connect panel ══ */
