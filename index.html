@@ -277,23 +277,19 @@ section{scroll-margin-top:92px}
   touch-action:none;cursor:grab;
 }
 .face-stage.dragging{cursor:grabbing}
-.face-stage.is-trace{cursor:crosshair}
 .face-stage img,.face-inset img{position:absolute;max-width:none;user-select:none;pointer-events:none}
-.trace-draw{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-.trace-shade{fill:rgba(255,255,255,.86);stroke:none;pointer-events:none}
-.trace-line{fill:none;stroke:var(--red-deep);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
-.trace-handle{fill:var(--surface);stroke:var(--red-deep);stroke-width:2;pointer-events:auto;cursor:grab}
-.proof-nudge button:disabled{opacity:.45;cursor:default}
 .face-ring{
   position:absolute;left:14%;top:14%;width:72%;height:72%;border-radius:50%;
   border:2.5px dashed var(--red-deep);pointer-events:none;
   box-shadow:0 0 0 240px rgba(22,19,17,.42);
 }
+.face-ring.is-square{border-radius:0}
 .face-side{display:flex;flex-direction:column;align-items:center;gap:4px;flex:none}
 .face-inset{
   position:relative;width:88px;height:88px;border-radius:50%;overflow:hidden;
   background:var(--surface-2);box-shadow:0 0 0 2px var(--surface),0 0 0 3px var(--rule-2);
 }
+.face-inset.is-square{border-radius:0}
 .face-side p{font-size:.75rem;font-weight:700;color:var(--ink-3);text-align:center}
 .face-zoom{margin-top:2px}
 .face-fields{display:flex;flex-direction:column;gap:8px}
@@ -311,6 +307,14 @@ section{scroll-margin-top:92px}
 }
 .font-pick.is-on{border-color:var(--ink);background:var(--red-soft);color:var(--red-deep)}
 .font-pick:focus-visible{outline:2px solid var(--red-deep);outline-offset:2px}
+.crop-picks{display:flex;flex-wrap:wrap;gap:6px}
+.crop-pick{
+  font-family:var(--f-body);font-weight:700;font-size:.9375rem;line-height:1.1;
+  padding:8px 14px;border-radius:var(--r-sm);
+  border:2px solid var(--field);background:var(--surface);color:var(--ink);cursor:pointer;
+}
+.crop-pick.is-on{border-color:var(--ink);background:var(--red-soft);color:var(--red-deep)}
+.crop-pick:focus-visible{outline:2px solid var(--red-deep);outline-offset:2px}
 .font-simple{font-family:Outfit,"Helvetica Neue",Arial,sans-serif;font-weight:700}
 .font-serif{font-family:"Libre Baskerville",Georgia,serif;font-weight:700}
 .font-script{font-family:Caveat,cursive;font-weight:600}
@@ -333,10 +337,10 @@ section{scroll-margin-top:92px}
 .ask-confirm p{margin:0;font-size:1rem;font-weight:600;line-height:1.45;white-space:pre-wrap}
 .ask-preview{
   margin:0;max-width:36ch;padding:0 12px;text-align:center;
-  font-size:.875rem;line-height:1.4;font-weight:600;color:var(--ink);
+  font-size:.875rem;line-height:1.4;font-weight:600;color:var(--ink);white-space:pre-wrap;
 }
 .ask-k{display:block;margin-bottom:2px;font-size:.75rem;font-weight:700;color:var(--ink-3)}
-.order-ask{margin:0;font-size:.9375rem;line-height:1.4;color:var(--ink);font-weight:600}
+.order-ask{margin:0;font-size:.9375rem;line-height:1.4;color:var(--ink);font-weight:600;white-space:pre-wrap}
 .price-extra{margin:0;font-size:.9375rem;font-weight:700;color:var(--ink);line-height:1.4}
 .nudge{
   font-size:.9375rem;font-weight:500;color:var(--ink-2);
@@ -479,7 +483,7 @@ section{scroll-margin-top:92px}
     background-color:var(--ground);
     box-shadow:0 16px 22px -20px rgba(22,19,17,.7);
   }
-  .bg-drop,.bg-drop-btn,.bg-drop-opt,.face-stage,.face-fields input,.face-ask textarea,.ask-confirm,#face-curve,.font-pick,#trace-mode,.proof-tools,.proof-nudge button,
+  .bg-drop,.bg-drop-btn,.bg-drop-opt,.face-stage,.face-fields input,.face-ask textarea,.ask-confirm,#face-curve,.font-pick,.crop-pick,.proof-tools,.proof-nudge button,
   #pattern-size,#photo-zoom,#photo-margin{
     scroll-margin-top:calc(var(--head-h, 96px) + 220px);
     scroll-margin-bottom:12px;
@@ -1830,7 +1834,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
        `price` is only what the page DISPLAYS; Shopify charges its own. */
     products: [
       { key:'mug', title:'The Memory Mug', price:28, variantId:'', image:'',
-        blurb:'White ceramic, 15 oz. A face, cropped to a circle on the front.',
+        blurb:'White ceramic, 15 oz. Your photo on the front.',
         includes:[
           'A digital proof before anything is printed',
           'Color correction by hand, every time',
@@ -2594,10 +2598,21 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       else over.setAttribute('hidden', '');
     }
     var cap = $('mug-caption');
-    if (cap && yours && chosenBg) {
-      cap.textContent = ownPhoto
-        ? 'Your face on ' + chosenBg.name + '. The pattern stays behind the circle.'
-        : chosenBg.name + ' wraps the mug. Your face sits on the front.';
+    if (cap && yours) {
+      if (chosenBg && ownPhoto) {
+        cap.textContent = cropShape === 'custom'
+          ? 'Your photo on ' + chosenBg.name + '. We remove the background after you send it.'
+          : 'Your face on ' + chosenBg.name + '. The pattern stays behind the ' +
+            (cropShape === 'square' ? 'square' : 'circle') + '.';
+      } else if (chosenBg) {
+        cap.textContent = chosenBg.name + ' wraps the mug. Your photo sits on the front.';
+      } else if (ownPhoto) {
+        cap.textContent = cropShape === 'square'
+          ? 'Your photo, in a square on the front. Drag it until it sits in the square.'
+          : cropShape === 'custom'
+            ? 'Your photo, as you uploaded it. We remove the background after you send it.'
+            : 'Your face, in a circle on the front. Drag the photo until it sits in the ring.';
+      }
     }
     syncAskPreview();
     var opts = $('bg-options');
@@ -2653,9 +2668,13 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     syncSceneChrome();
   }
 
-  /* The face is a circle on the front of the print, with room for a line
-     of type above it and a short line under it. Not a full-bleed photo. */
+  /* Circle and square share one window on the front of the print, with room
+     for a line of type above it and a short line under it. Custom keeps the
+     whole photo and does not use that window. */
   var FACE = { cx: 248, cy: 214, r: 38 };
+  /* circle | square | custom. Custom is a request, not a mask. */
+  var cropShape = 'circle';
+  var CUSTOM_NOTE = 'Remove the background. The photo is as you uploaded it.';
   var faceName = '';
   var faceLine = '';
   /* 0 is a flat line. 1 is a gentle arc that follows the circle. */
@@ -2684,13 +2703,6 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   }
   var faceAsk = '';
   var faceAskSent = '';
-  /* Outline on the source photo, as fractions of its width and height.
-     Each entry is one committed trace. Undo steps back through them. */
-  var traceOn = false;
-  var traceHist = [];
-  var traceLive = null;
-  var traceMask = null;
-  var traceToken = 0;
 
   /**
    * Where the photo sits relative to a circle of the given radius.
@@ -2751,24 +2763,34 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   function cleanAsk() { return tidyAsk(faceAsk); }
   /** Only what they submitted. Typing alone does not change this. */
   function sentAsk() { return tidyAsk(faceAskSent); }
+  function isFramedCrop() { return cropShape === 'circle' || cropShape === 'square'; }
+  /** The custom crop is a standing request, the same kind of note as the focus line. */
+  function shopNote() {
+    var parts = [];
+    if (cropShape === 'custom') parts.push(CUSTOM_NOTE);
+    var ask = sentAsk();
+    if (ask) parts.push(ask);
+    return parts.join('\n');
+  }
 
   /** Shows the submitted words under the mug, in the confirmation, and on the order. */
   function syncAskPreview() {
     var clean = sentAsk();
+    var shop = shopNote();
     var on = document.querySelector('.memory.is-on');
     var yours = !!(on && on.getAttribute('data-key') === 'yours' && ownPhoto);
     var text = $('photo-ask-text');
     var preview = $('photo-ask');
-    if (text) text.textContent = clean;
-    if (preview) preview.hidden = !clean || !yours;
+    if (text) text.textContent = shop;
+    if (preview) preview.hidden = !shop || !yours;
     var box = $('ask-confirm');
     var boxText = $('ask-confirm-text');
     if (boxText) boxText.textContent = clean;
     if (box) box.hidden = !clean;
     var echo = $('order-ask');
     var echoText = $('order-ask-text');
-    if (echoText) echoText.textContent = clean;
-    if (echo) echo.hidden = !clean;
+    if (echoText) echoText.textContent = shop;
+    if (echo) echo.hidden = !shop;
     var btn = $('ask-submit');
     if (btn) btn.textContent = (clean && cleanAsk() !== clean) ? 'Submit again' : 'Submit note';
   }
@@ -2780,7 +2802,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   function applyAskToNote() {
     var noteEl = $('cart-note');
     if (!noteEl) return;
-    var ask = sentAsk();
+    var ask = shopNote();
     var prev = applyAskToNote.prev || '';
     var cur = noteEl.value.replace(/\s+$/, '');
     if (prev && cur.indexOf(prev) === 0) cur = cur.slice(prev.length).replace(/^\n+/, '');
@@ -2804,228 +2826,33 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     applyAskToNote();
   }
 
-  function currentTrace() {
-    return traceHist.length ? traceHist[traceHist.length - 1] : null;
-  }
-
-  function photoSrc() {
-    return traceMask || (ownPhoto && ownPhoto.dataUri) || '';
-  }
-
-  /** White outside the outline, the photo inside it. No outside service. */
-  function maskPhoto(src, w, h, pts, cb) {
-    var maxEdge = 1400;
-    var scale = Math.min(1, maxEdge / Math.max(w, h, 1));
-    var cw = Math.max(1, Math.round(w * scale));
-    var ch = Math.max(1, Math.round(h * scale));
-    var canvas = document.createElement('canvas');
-    canvas.width = cw;
-    canvas.height = ch;
-    var ctx = canvas.getContext('2d');
-    var img = new Image();
-    img.onload = function () {
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, cw, ch);
-      ctx.beginPath();
-      pts.forEach(function (p, i) {
-        var x = Math.max(0, Math.min(1, p.x)) * cw;
-        var y = Math.max(0, Math.min(1, p.y)) * ch;
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      });
-      ctx.closePath();
-      ctx.save();
-      ctx.clip();
-      ctx.drawImage(img, 0, 0, cw, ch);
-      ctx.restore();
-      try { cb(canvas.toDataURL('image/png')); } catch (err) { cb(null); }
-    };
-    img.onerror = function () { cb(null); };
-    img.src = src;
-  }
-
-  function stagePoint(clientX, clientY) {
-    var img = $('face-img');
-    if (!img) return null;
-    var r = img.getBoundingClientRect();
-    if (!r.width || !r.height) return null;
+  /**
+   * The whole uploaded photo, fitted inside the print. Compensates for the
+   * panel's uneven scale so the picture keeps its own shape and nothing is cut.
+   */
+  function customPhotoFrame() {
+    var pw = ART_BOX[2], ph = ART_BOX[3];
+    var iw = ownPhoto && ownPhoto.w, ih = ownPhoto && ownPhoto.h;
+    if (!(iw > 0) || !(ih > 0)) { iw = pw; ih = ph; }
+    var box = printBox();
+    var sx = box[2] / pw, sy = box[3] / ph;
+    if (!(sx > 0)) sx = 1;
+    if (!(sy > 0)) sy = 1;
+    var scale = Math.min((pw * sx) / iw, (ph * sy) / ih);
+    var dw = iw * scale, dh = ih * scale;
+    var dx = (pw * sx - dw) / 2, dy = (ph * sy - dh) / 2;
     return {
-      x: Math.max(0, Math.min(1, (clientX - r.left) / r.width)),
-      y: Math.max(0, Math.min(1, (clientY - r.top) / r.height))
+      x: ART_BOX[0] + dx / sx,
+      y: ART_BOX[1] + dy / sy,
+      w: dw / sx,
+      h: dh / sy
     };
-  }
-
-  function imagePoint(p) {
-    var img = $('face-img');
-    if (!img) return null;
-    return {
-      x: img.offsetLeft + p.x * img.offsetWidth,
-      y: img.offsetTop + p.y * img.offsetHeight
-    };
-  }
-
-  function simplifyTrace(pts) {
-    var max = 28;
-    if (pts.length <= max) return pts.map(function (p) { return { x: p.x, y: p.y }; });
-    var out = [];
-    var step = (pts.length - 1) / (max - 1);
-    for (var i = 0; i < max; i++) {
-      var p = pts[Math.round(i * step)];
-      out.push({ x: p.x, y: p.y });
-    }
-    return out;
-  }
-
-  function syncTraceChrome() {
-    var stage = $('face-stage');
-    if (stage) {
-      stage.classList.toggle('is-trace', traceOn);
-      stage.setAttribute('aria-label', traceOn
-        ? 'Draw around the part of the photo that should stay'
-        : 'Drag to move the face inside the circle');
-    }
-    var mode = $('trace-mode');
-    if (mode) mode.setAttribute('aria-pressed', traceOn ? 'true' : 'false');
-    var undo = $('trace-undo');
-    var reset = $('trace-reset');
-    if (undo) undo.disabled = !traceHist.length;
-    if (reset) reset.disabled = !traceHist.length;
-    syncTraceOverlay();
-  }
-
-  function syncTraceOverlay() {
-    var line = $('trace-line');
-    var handles = $('trace-handles');
-    var shade = $('trace-shade');
-    var stage = $('face-stage');
-    var draw = $('trace-draw');
-    if (!line || !handles) return;
-    if (draw && stage) {
-      var vw = stage.clientWidth || 240;
-      var vh = stage.clientHeight || vw;
-      draw.setAttribute('viewBox', '0 0 ' + vw + ' ' + vh);
-      draw.setAttribute('preserveAspectRatio', 'none');
-    }
-    var pts = traceLive || currentTrace();
-    var live = !!traceLive;
-    if (!pts || pts.length < 2) {
-      line.setAttribute('points', '');
-      handles.textContent = '';
-      if (shade) shade.setAttribute('d', '');
-      return;
-    }
-    var mapped = [];
-    pts.forEach(function (p) {
-      var s = imagePoint(p);
-      if (s) mapped.push(s);
-    });
-    var attr = mapped.map(function (p) { return p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' ');
-    if (!live && mapped.length) attr += ' ' + mapped[0].x.toFixed(1) + ',' + mapped[0].y.toFixed(1);
-    line.setAttribute('points', attr);
-    if (shade) {
-      if (!live && mapped.length >= 3 && stage) {
-        var w = stage.clientWidth || 240;
-        var h = stage.clientHeight || w;
-        var hole = 'M' + mapped.map(function (p) {
-          return p.x.toFixed(1) + ',' + p.y.toFixed(1);
-        }).join(' L') + ' Z';
-        shade.setAttribute('fill-rule', 'evenodd');
-        shade.setAttribute('d', 'M0,0 H' + w.toFixed(1) + ' V' + h.toFixed(1) + ' H0 Z ' + hole);
-      } else shade.setAttribute('d', '');
-    }
-    if (live) { handles.textContent = ''; return; }
-    var kids = handles.querySelectorAll('.trace-handle');
-    if (kids.length !== mapped.length) {
-      handles.textContent = '';
-      mapped.forEach(function (p, i) {
-        var c = document.createElementNS(SVGNS, 'circle');
-        c.setAttribute('class', 'trace-handle');
-        c.setAttribute('r', '6');
-        c.setAttribute('cx', p.x.toFixed(1));
-        c.setAttribute('cy', p.y.toFixed(1));
-        c.addEventListener('pointerdown', function (e) {
-          c._traceDrag = true;
-          try { c.setPointerCapture(e.pointerId); } catch (err) {}
-          e.stopPropagation();
-          e.preventDefault();
-        });
-        c.addEventListener('pointermove', function (e) {
-          if (!c._traceDrag) return;
-          var hit = stagePoint(e.clientX, e.clientY);
-          var cur = currentTrace();
-          if (!hit || !cur || !cur[i]) return;
-          cur[i] = hit;
-          syncTraceOverlay();
-          e.stopPropagation();
-        });
-        c.addEventListener('pointerup', function (e) {
-          if (!c._traceDrag) return;
-          c._traceDrag = false;
-          rebuildTrace();
-          e.stopPropagation();
-        });
-        c.addEventListener('pointercancel', function () { c._traceDrag = false; });
-        handles.appendChild(c);
-      });
-    } else {
-      mapped.forEach(function (p, i) {
-        kids[i].setAttribute('cx', p.x.toFixed(1));
-        kids[i].setAttribute('cy', p.y.toFixed(1));
-      });
-    }
-  }
-
-  function rebuildTrace() {
-    syncTraceChrome();
-    var pts = currentTrace();
-    if (!pts || !ownPhoto) {
-      traceMask = null;
-      if (ownPhoto) paintOwnPhoto(ownPhoto.dataUri);
-      return;
-    }
-    var token = ++traceToken;
-    maskPhoto(ownPhoto.dataUri, ownPhoto.w, ownPhoto.h, pts, function (uri) {
-      if (token !== traceToken || !uri) return;
-      traceMask = uri;
-      paintOwnPhoto(ownPhoto.dataUri);
-    });
-  }
-
-  function commitTrace(pts) {
-    var clean = simplifyTrace(pts);
-    if (clean.length < 3) return;
-    traceHist.push(clean);
-    if (traceHist.length > 12) traceHist.shift();
-    rebuildTrace();
-  }
-
-  function undoTrace() {
-    if (!traceHist.length) return;
-    traceHist.pop();
-    traceLive = null;
-    rebuildTrace();
-  }
-
-  function resetTrace() {
-    traceHist = [];
-    traceLive = null;
-    traceMask = null;
-    traceToken++;
-    syncTraceChrome();
-    if (ownPhoto) paintOwnPhoto(ownPhoto.dataUri);
-  }
-
-  function clearTrace() {
-    traceHist = [];
-    traceLive = null;
-    traceMask = null;
-    traceOn = false;
-    traceToken++;
-    syncTraceChrome();
   }
 
   function placeFaceImage(img, frame, cx, cy) {
     var XLINK = 'http://www.w3.org/1999/xlink';
-    var src = photoSrc();
+    var src = ownPhoto && ownPhoto.dataUri;
+    if (!src) return;
     img.setAttribute('x', (cx + frame.x).toFixed(3));
     img.setAttribute('y', (cy + frame.y).toFixed(3));
     img.setAttribute('width', frame.w.toFixed(3));
@@ -3042,12 +2869,15 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     g.innerHTML = '';
     if (over) over.innerHTML = '';
     var frame = document.querySelector('.hero .mug-frame');
+    var draggable = !!dataUri && isFramedCrop();
     if (frame) {
-      frame.classList.toggle('has-mine', !!dataUri);
-      if (dataUri) {
+      frame.classList.toggle('has-mine', draggable);
+      if (draggable) {
         frame.setAttribute('tabindex', '0');
         frame.setAttribute('role', 'application');
-        frame.setAttribute('aria-label', 'Your face. Drag to move it inside the circle.');
+        frame.setAttribute('aria-label', cropShape === 'square'
+          ? 'Your photo. Drag to move it inside the square.'
+          : 'Your face. Drag to move it inside the circle.');
       } else {
         frame.removeAttribute('tabindex');
         frame.removeAttribute('role');
@@ -3056,40 +2886,69 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     }
     if (!dataUri) { syncPhotoControls(); syncSceneChrome(); syncCropView(); return; }
 
-    var placed = layoutCrop(FACE.r);
     var parent = chosenBg && over ? over : g;
     var holder = svgEl('g');
-    /* The print box is mapped with a different scale on each axis, which
-       turns a circle into an oval. Undo that on the face only, around its
-       own center, so the crop stays round and the type above and below
-       keeps the spacing it was drawn with. */
-    var face = svgEl('g');
-    var box = printBox();
-    var sx = box[2] / ART_BOX[2], sy = box[3] / ART_BOX[3];
-    if (sx > 0 && sy > 0 && Math.abs(sx - sy) > 0.01) {
-      var k = sx / sy;
-      face.setAttribute('transform',
-        'translate(' + FACE.cx + ' ' + FACE.cy + ') scale(1 ' + k.toFixed(6) +
-        ') translate(' + (-FACE.cx) + ' ' + (-FACE.cy) + ')');
+    if (cropShape === 'custom') {
+      var fit = customPhotoFrame();
+      var whole = svgEl('image');
+      whole.setAttribute('x', fit.x.toFixed(3));
+      whole.setAttribute('y', fit.y.toFixed(3));
+      whole.setAttribute('width', fit.w.toFixed(3));
+      whole.setAttribute('height', fit.h.toFixed(3));
+      whole.setAttribute('preserveAspectRatio', 'none');
+      whole.setAttribute('href', dataUri);
+      whole.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', dataUri);
+      holder.appendChild(whole);
+    } else {
+      var placed = layoutCrop(FACE.r);
+      /* The print box is mapped with a different scale on each axis, which
+         turns a circle into an oval and a square into a rectangle. Undo that
+         on the crop only, around its own center, so the shape stays true and
+         the type above and below keeps the spacing it was drawn with. */
+      var face = svgEl('g');
+      var box = printBox();
+      var sx = box[2] / ART_BOX[2], sy = box[3] / ART_BOX[3];
+      if (sx > 0 && sy > 0 && Math.abs(sx - sy) > 0.01) {
+        var k = sx / sy;
+        face.setAttribute('transform',
+          'translate(' + FACE.cx + ' ' + FACE.cy + ') scale(1 ' + k.toFixed(6) +
+          ') translate(' + (-FACE.cx) + ' ' + (-FACE.cy) + ')');
+      }
+      var defs = svgEl('defs');
+      var clip = svgEl('clipPath', { id: 'faceClip' });
+      if (cropShape === 'square') {
+        clip.appendChild(svgEl('rect', {
+          x: String(FACE.cx - FACE.r), y: String(FACE.cy - FACE.r),
+          width: String(FACE.r * 2), height: String(FACE.r * 2)
+        }));
+      } else {
+        clip.appendChild(svgEl('circle', {
+          cx: String(FACE.cx), cy: String(FACE.cy), r: String(FACE.r)
+        }));
+      }
+      defs.appendChild(clip);
+      face.appendChild(defs);
+      var pic = svgEl('g', { 'clip-path': 'url(#faceClip)' });
+      var img = svgEl('image');
+      if (placed) placeFaceImage(img, placed, FACE.cx, FACE.cy);
+      pic.appendChild(img);
+      face.appendChild(pic);
+      if (cropShape === 'square') {
+        face.appendChild(svgEl('rect', {
+          id: 'face-edge',
+          x: String(FACE.cx - FACE.r), y: String(FACE.cy - FACE.r),
+          width: String(FACE.r * 2), height: String(FACE.r * 2),
+          'stroke-width': '1.5', 'class': 'face-edge'
+        }));
+      } else {
+        face.appendChild(svgEl('circle', {
+          id: 'face-edge',
+          cx: String(FACE.cx), cy: String(FACE.cy), r: String(FACE.r),
+          'stroke-width': '1.5', 'class': 'face-edge'
+        }));
+      }
+      holder.appendChild(face);
     }
-    var defs = svgEl('defs');
-    var clip = svgEl('clipPath', { id: 'faceClip' });
-    clip.appendChild(svgEl('circle', {
-      cx: String(FACE.cx), cy: String(FACE.cy), r: String(FACE.r)
-    }));
-    defs.appendChild(clip);
-    face.appendChild(defs);
-    var pic = svgEl('g', { 'clip-path': 'url(#faceClip)' });
-    var img = svgEl('image');
-    if (placed) placeFaceImage(img, placed, FACE.cx, FACE.cy);
-    pic.appendChild(img);
-    face.appendChild(pic);
-    face.appendChild(svgEl('circle', {
-      id: 'face-edge',
-      cx: String(FACE.cx), cy: String(FACE.cy), r: String(FACE.r),
-      'stroke-width': '1.5', 'class': 'face-edge'
-    }));
-    holder.appendChild(face);
     /* How far the middle of a line lifts off a straight chord, in art units.
        Capped so the arc stays gentle and inside the print. */
     function arcBend(halfW, up) {
@@ -3146,21 +3005,23 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     syncCropView();
   }
 
-  /** The same circle, drawn in the crop box and in the round inset. */
+  /** The same crop, drawn in the crop box and in the small inset. */
   function syncCropView() {
     var stage = $('face-stage');
     var photo = $('face-img');
     var inset = $('face-inset');
     var insetImg = $('face-inset-img');
+    var ring = stage && stage.querySelector('.face-ring');
+    if (ring) ring.classList.toggle('is-square', cropShape === 'square');
+    if (inset) inset.classList.toggle('is-square', cropShape === 'square');
     if (!stage || !photo || !inset || !insetImg) return;
-    if (!ownPhoto || !ownPhoto.dataUri) {
+    if (!isFramedCrop() || !ownPhoto || !ownPhoto.dataUri) {
       photo.removeAttribute('src');
       insetImg.removeAttribute('src');
-      syncTraceOverlay();
       return;
     }
     var cropBox = $('face-crop');
-    if (cropBox && !cropBox.hidden && !stage.clientWidth) {
+    if (cropBox && !cropBox.hidden && !stage.hidden && !stage.clientWidth) {
       requestAnimationFrame(function () { syncCropView(); });
       return;
     }
@@ -3175,34 +3036,103 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       imgEl.style.top = (cy + frame.y) + 'px';
     }
     var size = stage.clientWidth || 220;
-    /* The drawing surface stays the original photo, including while a stroke
-       is in progress, so the outline can be adjusted against the whole picture.
-       The round inset uses the cleared result, the same one on the mug. */
-    var shown = traceLive ? ownPhoto.dataUri : photoSrc();
-    park(photo, size, size * 0.36, shown);
+    var src = ownPhoto.dataUri;
+    park(photo, size, size * 0.36, src);
     var isz = inset.clientWidth || 88;
-    park(insetImg, isz, isz / 2, photoSrc());
-    syncTraceOverlay();
+    park(insetImg, isz, isz / 2, src);
   }
 
   /** Words and crop, short enough to ride on the order. */
   function placementNote() {
     if (!ownPhoto) return '';
-    var bits = ['circle on the front'];
+    var bits = [cropShape === 'square'
+      ? 'square on the front'
+      : cropShape === 'custom'
+        ? 'photo as uploaded, remove the background'
+        : 'circle on the front'];
     var words = faceWords();
     if (words) bits.push(words);
     bits.push(fontChoice().name);
     var curvePct = Math.round(faceCurve * 100);
     if (curvePct) bits.push('arc ' + curvePct + '%');
-    if (currentTrace()) bits.push('outline traced');
-    var z = Math.round((ownPhoto.zoom || 1) * 100);
-    var ox = Math.round((ownPhoto.ox || 0) * 100), oy = Math.round((ownPhoto.oy || 0) * 100);
-    bits.push('zoom ' + z + '%');
-    if (ox || oy) {
-      var sign = function (n) { return (n > 0 ? '+' : '') + n + '%'; };
-      bits.push('offset ' + sign(ox) + ' across, ' + sign(oy) + ' down');
+    if (isFramedCrop()) {
+      var z = Math.round((ownPhoto.zoom || 1) * 100);
+      var ox = Math.round((ownPhoto.ox || 0) * 100), oy = Math.round((ownPhoto.oy || 0) * 100);
+      bits.push('zoom ' + z + '%');
+      if (ox || oy) {
+        var sign = function (n) { return (n > 0 ? '+' : '') + n + '%'; };
+        bits.push('offset ' + sign(ox) + ' across, ' + sign(oy) + ' down');
+      }
     }
     return bits.join(', ');
+  }
+
+  /** Keeps an order already started in step with the crop the buyer picked. */
+  function rememberCrop() {
+    var dirty = false;
+    cart.forEach(function (l) {
+      if (l.key !== 'mug') return;
+      if (l.crop !== cropShape) { l.crop = cropShape; dirty = true; }
+    });
+    if (dirty) save();
+    applyAskToNote();
+  }
+
+  /** Labels, the drag box, and the square-versus-circle frame. Does not repaint. */
+  function syncCropChrome() {
+    var framed = isFramedCrop();
+    var stage = $('face-stage');
+    var adjust = $('face-adjust');
+    if (stage) {
+      stage.hidden = !framed;
+      stage.setAttribute('aria-label', cropShape === 'square'
+        ? 'Drag to move the photo inside the square'
+        : 'Drag to move the face inside the circle');
+    }
+    if (adjust) adjust.hidden = !framed;
+    Array.prototype.forEach.call(document.querySelectorAll('.crop-pick'), function (b) {
+      var on = b.getAttribute('data-crop') === cropShape;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-checked', on ? 'true' : 'false');
+    });
+    var help = $('crop-help');
+    if (help) {
+      help.textContent = cropShape === 'square'
+        ? 'Drag the photo until it sits in the square. That square is what prints.'
+        : cropShape === 'custom'
+          ? 'We\u2019ll remove the background after you send the photo. The picture stays as you uploaded it.'
+          : 'Drag the photo until the face sits in the circle. That circle is what prints.';
+    }
+    var bgIntro = $('bg-intro');
+    if (bgIntro) {
+      bgIntro.textContent = cropShape === 'custom'
+        ? 'Optional. A small repeating pattern on the white ceramic, $8 extra. Your photo stays as you uploaded it.'
+        : 'Optional. A small repeating pattern on the white ceramic, $8 extra. The ' +
+          (cropShape === 'square' ? 'square' : 'face') + ' stays on the front.';
+    }
+    var bgNote = $('bg-note');
+    if (bgNote) {
+      bgNote.textContent = cropShape === 'custom'
+        ? 'The pattern wraps the mug. Your photo stays as you uploaded it, and we remove the background.'
+        : cropShape === 'square'
+          ? 'The pattern wraps the mug. Your photo stays a square on the front.'
+          : 'The pattern wraps the mug. Your face stays a circle on the front.';
+    }
+    var curveNote = $('curve-note');
+    if (curveNote) {
+      curveNote.textContent = cropShape === 'circle'
+        ? 'Flat, or a gentle arc around the circle.'
+        : 'Flat, or a gentle arc over the photo.';
+    }
+  }
+
+  function setCrop(id) {
+    if (id !== 'square' && id !== 'custom') id = 'circle';
+    cropShape = id;
+    syncCropChrome();
+    if (ownPhoto) paintOwnPhoto(ownPhoto.dataUri);
+    else syncSceneChrome();
+    rememberCrop();
   }
 
   function movePhoto(dx, dy) {
@@ -3263,7 +3193,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
     var active = function () {
       var on = document.querySelector('.memory.is-on');
-      return !!ownPhoto && !!on && on.getAttribute('data-key') === 'yours';
+      return isFramedCrop() && !!ownPhoto && !!on && on.getAttribute('data-key') === 'yours';
     };
     /* The print area's width and height in screen pixels, so a drag of n
        pixels becomes the right fraction whatever size the mug is drawn at. */
@@ -3341,8 +3271,31 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     nCrop.setAttribute('aria-hidden', 'true');
     cropStep.appendChild(nCrop);
     var cropB = el('div', 'flow-b');
-    cropB.appendChild(el('p', 'proof-head', 'Crop the face'));
-    cropB.appendChild(el('p', 'proof-note', 'Drag the photo until the face sits in the circle. That circle is what prints.'));
+    cropB.appendChild(el('p', 'proof-head', 'Crop'));
+    var shapePicks = el('div', 'crop-picks');
+    shapePicks.id = 'crop-picks';
+    shapePicks.setAttribute('role', 'radiogroup');
+    shapePicks.setAttribute('aria-label', 'Crop shape');
+    [
+      { id: 'circle', label: 'Circle' },
+      { id: 'square', label: 'Square' },
+      { id: 'custom', label: 'Custom' }
+    ].forEach(function (shape) {
+      var b = el('button', 'crop-pick', shape.label);
+      b.type = 'button';
+      b.setAttribute('role', 'radio');
+      b.setAttribute('data-crop', shape.id);
+      b.setAttribute('aria-checked', shape.id === cropShape ? 'true' : 'false');
+      if (shape.id === cropShape) b.classList.add('is-on');
+      b.addEventListener('click', function () { setCrop(shape.id); });
+      shapePicks.appendChild(b);
+    });
+    cropB.appendChild(shapePicks);
+    var help = el('p', 'proof-note', 'Drag the photo until the face sits in the circle. That circle is what prints.');
+    help.id = 'crop-help';
+    cropB.appendChild(help);
+    var adjust = el('div', 'face-adjust');
+    adjust.id = 'face-adjust';
     var faceRow = el('div', 'face-row');
     var stage = el('div', 'face-stage');
     stage.id = 'face-stage';
@@ -3355,22 +3308,6 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     stageImg.draggable = false;
     stage.appendChild(stageImg);
     stage.appendChild(el('div', 'face-ring'));
-    var draw = document.createElementNS(SVGNS, 'svg');
-    draw.setAttribute('class', 'trace-draw');
-    draw.id = 'trace-draw';
-    draw.setAttribute('aria-hidden', 'true');
-    var shade = document.createElementNS(SVGNS, 'path');
-    shade.setAttribute('class', 'trace-shade');
-    shade.id = 'trace-shade';
-    var traceLine = document.createElementNS(SVGNS, 'polyline');
-    traceLine.setAttribute('class', 'trace-line');
-    traceLine.id = 'trace-line';
-    var traceHandles = document.createElementNS(SVGNS, 'g');
-    traceHandles.id = 'trace-handles';
-    draw.appendChild(shade);
-    draw.appendChild(traceLine);
-    draw.appendChild(traceHandles);
-    stage.appendChild(draw);
     faceRow.appendChild(stage);
     var side = el('div', 'face-side');
     var inset = el('div', 'face-inset');
@@ -3383,7 +3320,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     side.appendChild(inset);
     side.appendChild(el('p', null, 'On the mug'));
     faceRow.appendChild(side);
-    cropB.appendChild(faceRow);
+    adjust.appendChild(faceRow);
     var zoomRow = el('div', 'proof-zoom face-zoom');
     var zlab = el('label', null, 'Zoom');
     zlab.setAttribute('for', 'face-zoom');
@@ -3397,34 +3334,8 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     center.type = 'button';
     center.onclick = function () { centerPhoto(); };
     zoomRow.appendChild(zlab); zoomRow.appendChild(zoom); zoomRow.appendChild(center);
-    cropB.appendChild(zoomRow);
-    cropB.appendChild(el('p', 'proof-note', 'Draw around what should stay. Everything outside that line comes off the mug. The circle still frames the face.'));
-    var traceRow = el('div', 'proof-nudge');
-    traceRow.setAttribute('role', 'group');
-    traceRow.setAttribute('aria-label', 'Photo outline');
-    var traceBtn = el('button', null, 'Trace');
-    traceBtn.type = 'button';
-    traceBtn.id = 'trace-mode';
-    traceBtn.setAttribute('aria-pressed', 'false');
-    traceBtn.addEventListener('click', function () {
-      traceOn = !traceOn;
-      traceLive = null;
-      syncTraceChrome();
-    });
-    var undoBtn = el('button', null, 'Undo');
-    undoBtn.type = 'button';
-    undoBtn.id = 'trace-undo';
-    undoBtn.disabled = true;
-    undoBtn.addEventListener('click', function () { undoTrace(); });
-    var resetBtn = el('button', null, 'Reset');
-    resetBtn.type = 'button';
-    resetBtn.id = 'trace-reset';
-    resetBtn.disabled = true;
-    resetBtn.addEventListener('click', function () { resetTrace(); });
-    traceRow.appendChild(traceBtn);
-    traceRow.appendChild(undoBtn);
-    traceRow.appendChild(resetBtn);
-    cropB.appendChild(traceRow);
+    adjust.appendChild(zoomRow);
+    cropB.appendChild(adjust);
     var askBox = el('div', 'face-ask');
     var askLab = el('label', null, 'What to keep in focus');
     askLab.setAttribute('for', 'photo-ask-input');
@@ -3511,7 +3422,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       picks.appendChild(b);
     });
     wordB.appendChild(picks);
-    wordB.appendChild(el('p', 'proof-note', 'Flat, or a gentle arc around the circle.'));
+    var curveNote = el('p', 'proof-note', 'Flat, or a gentle arc around the circle.');
+    curveNote.id = 'curve-note';
+    wordB.appendChild(curveNote);
     var curveRow = el('div', 'proof-zoom face-zoom');
     var curveLab = el('label', null, 'Curve');
     curveLab.setAttribute('for', 'face-curve');
@@ -3535,50 +3448,19 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
     var cropDrag = null;
     stage.addEventListener('pointerdown', function (e) {
-      if (!ownPhoto) return;
-      if (e.target && e.target.classList && e.target.classList.contains('trace-handle')) return;
-      if (traceOn) {
-        var hit = stagePoint(e.clientX, e.clientY);
-        if (!hit) return;
-        traceLive = [hit];
-        try { stage.setPointerCapture(e.pointerId); } catch (err) {}
-        e.preventDefault();
-        syncTraceOverlay();
-        return;
-      }
+      if (!ownPhoto || !isFramedCrop()) return;
       cropDrag = [e.clientX, e.clientY];
       try { stage.setPointerCapture(e.pointerId); } catch (err) {}
       stage.classList.add('dragging');
       e.preventDefault();
     });
     stage.addEventListener('pointermove', function (e) {
-      if (traceLive) {
-        var hit = stagePoint(e.clientX, e.clientY);
-        if (!hit) return;
-        var last = traceLive[traceLive.length - 1];
-        var img = $('face-img');
-        var min = 5 / Math.max(1, img ? img.offsetWidth : 200);
-        var dx = hit.x - last.x, dy = hit.y - last.y;
-        if (dx * dx + dy * dy < min * min) return;
-        if (traceLive.length < 480) traceLive.push(hit);
-        else traceLive[traceLive.length - 1] = hit;
-        syncTraceOverlay();
-        return;
-      }
       if (!cropDrag) return;
       var d = Math.max(1, stage.clientWidth * 0.72);
       movePhoto((e.clientX - cropDrag[0]) / d, (e.clientY - cropDrag[1]) / d);
       cropDrag = [e.clientX, e.clientY];
     });
     var stopCrop = function (e) {
-      if (traceLive) {
-        var pts = traceLive;
-        traceLive = null;
-        try { stage.releasePointerCapture(e.pointerId); } catch (err) {}
-        if (pts.length >= 3) commitTrace(pts);
-        else syncTraceOverlay();
-        return;
-      }
       if (!cropDrag) return;
       cropDrag = null;
       stage.classList.remove('dragging');
@@ -3587,9 +3469,8 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     stage.addEventListener('pointerup', stopCrop);
     stage.addEventListener('pointercancel', stopCrop);
     stage.addEventListener('keydown', function (e) {
-      if (traceOn) return;
       var d = { ArrowLeft:[-1,0], ArrowRight:[1,0], ArrowUp:[0,-1], ArrowDown:[0,1] }[e.key];
-      if (!d || !ownPhoto) return;
+      if (!d || !ownPhoto || !isFramedCrop()) return;
       e.preventDefault();
       movePhoto(d[0] * (e.shiftKey ? 0.02 : 0.06), d[1] * (e.shiftKey ? 0.02 : 0.06));
     });
@@ -3600,7 +3481,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     step2.appendChild(n2);
     var step2b = el('div', 'flow-b');
     step2b.appendChild(el('p', 'proof-head', 'Background'));
-    step2b.appendChild(el('p', 'proof-note', 'Optional. A small repeating pattern on the white ceramic, $8 extra. The face stays a circle on the front.'));
+    var bgIntro = el('p', 'proof-note', 'Optional. A small repeating pattern on the white ceramic, $8 extra. The face stays on the front.');
+    bgIntro.id = 'bg-intro';
+    step2b.appendChild(bgIntro);
     var drop = el('div', 'bg-drop');
     drop.id = 'bg-options';
     var bgBtn = el('button', 'bg-drop-btn', 'None');
@@ -3696,7 +3579,6 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       drop.type = 'button';
       drop.onclick = function () {
         ownPhoto = null; input.value = '';
-        clearTrace();
         paintOwnPhoto(null);
         if (!chosenBg) {
           var chip = $('chip-yours');
@@ -3733,7 +3615,6 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       if (!f) return;
       readImage(f, function (dataUri, problem, size) {
         if (problem) { name.textContent = problem; return; }
-        clearTrace();
         ownPhoto = { dataUri: dataUri, name: f.name,
                      w: (size && size.w) || 0, h: (size && size.h) || 0,
                      zoom: 1, ox: 0, oy: 0 };
@@ -3747,8 +3628,10 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     };
     if (ownPhoto) { name.textContent = ownPhoto.name; addDrop(); }
     setNote();
+    syncCropChrome();
     syncPhotoControls();
     syncSceneChrome();
+    if (ownPhoto) syncCropView();
     return wrap;
   }
 
@@ -3774,10 +3657,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       line.curve = Math.round(faceCurve * 100);
       line.font = fontChoice().name;
       line.ask = sentAsk();
+      line.crop = cropShape;
     } else {
       cart.push({ key:p.key, title:p.title, price:price, image:p.image || '', qty:qty,
         background:background, bgSize:bgSize, words:faceWords(), curve:Math.round(faceCurve * 100),
-        font:fontChoice().name, ask:sentAsk() });
+        font:fontChoice().name, ask:sentAsk(), crop:cropShape });
     }
     save();
     applyAskToNote();
@@ -3818,6 +3702,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         if (l.curve) letter = letter ? letter + ', arc ' + l.curve + '%' : 'Arc ' + l.curve + '%';
         main.appendChild(el('span', 'line-sub', letter));
       }
+      if (l.crop === 'custom') main.appendChild(el('span', 'line-sub', CUSTOM_NOTE));
       if (l.ask) main.appendChild(el('span', 'line-sub', l.ask));
       if (l.background) {
         var sub = l.background + ', $' + BG_EXTRA;
@@ -4633,18 +4518,20 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     preloadLetterFonts();
     buildVariantFields();
     cart.forEach(function (l) {
-      if (l.key === 'mug' && l.ask) {
+      if (l.key !== 'mug') return;
+      if (l.ask) {
         if (!faceAskSent) faceAskSent = l.ask;
         if (!faceAsk) faceAsk = l.ask;
       }
+      if (l.crop === 'circle' || l.crop === 'square' || l.crop === 'custom') cropShape = l.crop;
     });
     renderShop();
     renderCart();
 
     var note = lsGet(LS_NOTE);
     if (note && $('cart-note')) $('cart-note').value = note;
-    if (sentAsk() && $('cart-note') && $('cart-note').value.indexOf(sentAsk()) === -1) applyAskToNote();
-    else applyAskToNote.prev = sentAsk();
+    if (shopNote() && $('cart-note') && $('cart-note').value.indexOf(shopNote()) === -1) applyAskToNote();
+    else applyAskToNote.prev = shopNote();
     syncAskPreview();
 
     var dialogs = [$('cart-dlg'), $('connect-dlg'), $('gate-dlg')];
