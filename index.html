@@ -277,7 +277,13 @@ section{scroll-margin-top:92px}
   touch-action:none;cursor:grab;
 }
 .face-stage.dragging{cursor:grabbing}
+.face-stage.is-trace{cursor:crosshair}
 .face-stage img,.face-inset img{position:absolute;max-width:none;user-select:none;pointer-events:none}
+.trace-draw{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.trace-shade{fill:rgba(255,255,255,.86);stroke:none;pointer-events:none}
+.trace-line{fill:none;stroke:var(--red-deep);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+.trace-handle{fill:var(--surface);stroke:var(--red-deep);stroke-width:2;pointer-events:auto;cursor:grab}
+.proof-nudge button:disabled{opacity:.45;cursor:default}
 .face-ring{
   position:absolute;left:14%;top:14%;width:72%;height:72%;border-radius:50%;
   border:2.5px dashed var(--red-deep);pointer-events:none;
@@ -462,7 +468,7 @@ section{scroll-margin-top:92px}
     background-color:var(--ground);
     box-shadow:0 16px 22px -20px rgba(22,19,17,.7);
   }
-  .bg-drop,.bg-drop-btn,.bg-drop-opt,.face-stage,.face-fields input,.face-ask textarea,.ask-confirm,#face-curve,.proof-tools,.proof-nudge button,
+  .bg-drop,.bg-drop-btn,.bg-drop-opt,.face-stage,.face-fields input,.face-ask textarea,.ask-confirm,#face-curve,#trace-mode,.proof-tools,.proof-nudge button,
   #pattern-size,#photo-zoom,#photo-margin{
     scroll-margin-top:calc(var(--head-h, 96px) + 220px);
     scroll-margin-bottom:12px;
@@ -2645,6 +2651,13 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   var faceCurve = 0;
   var faceAsk = '';
   var faceAskSent = '';
+  /* Outline on the source photo, as fractions of its width and height.
+     Each entry is one committed trace. Undo steps back through them. */
+  var traceOn = false;
+  var traceHist = [];
+  var traceLive = null;
+  var traceMask = null;
+  var traceToken = 0;
 
   /**
    * Where the photo sits relative to a circle of the given radius.
@@ -2756,15 +2769,234 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     applyAskToNote();
   }
 
+  function currentTrace() {
+    return traceHist.length ? traceHist[traceHist.length - 1] : null;
+  }
+
+  function photoSrc() {
+    return traceMask || (ownPhoto && ownPhoto.dataUri) || '';
+  }
+
+  /** White outside the outline, the photo inside it. No outside service. */
+  function maskPhoto(src, w, h, pts, cb) {
+    var maxEdge = 1400;
+    var scale = Math.min(1, maxEdge / Math.max(w, h, 1));
+    var cw = Math.max(1, Math.round(w * scale));
+    var ch = Math.max(1, Math.round(h * scale));
+    var canvas = document.createElement('canvas');
+    canvas.width = cw;
+    canvas.height = ch;
+    var ctx = canvas.getContext('2d');
+    var img = new Image();
+    img.onload = function () {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, cw, ch);
+      ctx.beginPath();
+      pts.forEach(function (p, i) {
+        var x = Math.max(0, Math.min(1, p.x)) * cw;
+        var y = Math.max(0, Math.min(1, p.y)) * ch;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.closePath();
+      ctx.save();
+      ctx.clip();
+      ctx.drawImage(img, 0, 0, cw, ch);
+      ctx.restore();
+      try { cb(canvas.toDataURL('image/png')); } catch (err) { cb(null); }
+    };
+    img.onerror = function () { cb(null); };
+    img.src = src;
+  }
+
+  function stagePoint(clientX, clientY) {
+    var img = $('face-img');
+    if (!img) return null;
+    var r = img.getBoundingClientRect();
+    if (!r.width || !r.height) return null;
+    return {
+      x: Math.max(0, Math.min(1, (clientX - r.left) / r.width)),
+      y: Math.max(0, Math.min(1, (clientY - r.top) / r.height))
+    };
+  }
+
+  function imagePoint(p) {
+    var img = $('face-img');
+    if (!img) return null;
+    return {
+      x: img.offsetLeft + p.x * img.offsetWidth,
+      y: img.offsetTop + p.y * img.offsetHeight
+    };
+  }
+
+  function simplifyTrace(pts) {
+    var max = 28;
+    if (pts.length <= max) return pts.map(function (p) { return { x: p.x, y: p.y }; });
+    var out = [];
+    var step = (pts.length - 1) / (max - 1);
+    for (var i = 0; i < max; i++) {
+      var p = pts[Math.round(i * step)];
+      out.push({ x: p.x, y: p.y });
+    }
+    return out;
+  }
+
+  function syncTraceChrome() {
+    var stage = $('face-stage');
+    if (stage) {
+      stage.classList.toggle('is-trace', traceOn);
+      stage.setAttribute('aria-label', traceOn
+        ? 'Draw around the part of the photo that should stay'
+        : 'Drag to move the face inside the circle');
+    }
+    var mode = $('trace-mode');
+    if (mode) mode.setAttribute('aria-pressed', traceOn ? 'true' : 'false');
+    var undo = $('trace-undo');
+    var reset = $('trace-reset');
+    if (undo) undo.disabled = !traceHist.length;
+    if (reset) reset.disabled = !traceHist.length;
+    syncTraceOverlay();
+  }
+
+  function syncTraceOverlay() {
+    var line = $('trace-line');
+    var handles = $('trace-handles');
+    var shade = $('trace-shade');
+    var stage = $('face-stage');
+    var draw = $('trace-draw');
+    if (!line || !handles) return;
+    if (draw && stage) {
+      var vw = stage.clientWidth || 240;
+      var vh = stage.clientHeight || vw;
+      draw.setAttribute('viewBox', '0 0 ' + vw + ' ' + vh);
+      draw.setAttribute('preserveAspectRatio', 'none');
+    }
+    var pts = traceLive || currentTrace();
+    var live = !!traceLive;
+    if (!pts || pts.length < 2) {
+      line.setAttribute('points', '');
+      handles.textContent = '';
+      if (shade) shade.setAttribute('d', '');
+      return;
+    }
+    var mapped = [];
+    pts.forEach(function (p) {
+      var s = imagePoint(p);
+      if (s) mapped.push(s);
+    });
+    var attr = mapped.map(function (p) { return p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' ');
+    if (!live && mapped.length) attr += ' ' + mapped[0].x.toFixed(1) + ',' + mapped[0].y.toFixed(1);
+    line.setAttribute('points', attr);
+    if (shade) {
+      if (!live && mapped.length >= 3 && stage) {
+        var w = stage.clientWidth || 240;
+        var h = stage.clientHeight || w;
+        var hole = 'M' + mapped.map(function (p) {
+          return p.x.toFixed(1) + ',' + p.y.toFixed(1);
+        }).join(' L') + ' Z';
+        shade.setAttribute('fill-rule', 'evenodd');
+        shade.setAttribute('d', 'M0,0 H' + w.toFixed(1) + ' V' + h.toFixed(1) + ' H0 Z ' + hole);
+      } else shade.setAttribute('d', '');
+    }
+    if (live) { handles.textContent = ''; return; }
+    var kids = handles.querySelectorAll('.trace-handle');
+    if (kids.length !== mapped.length) {
+      handles.textContent = '';
+      mapped.forEach(function (p, i) {
+        var c = document.createElementNS(SVGNS, 'circle');
+        c.setAttribute('class', 'trace-handle');
+        c.setAttribute('r', '6');
+        c.setAttribute('cx', p.x.toFixed(1));
+        c.setAttribute('cy', p.y.toFixed(1));
+        c.addEventListener('pointerdown', function (e) {
+          c._traceDrag = true;
+          try { c.setPointerCapture(e.pointerId); } catch (err) {}
+          e.stopPropagation();
+          e.preventDefault();
+        });
+        c.addEventListener('pointermove', function (e) {
+          if (!c._traceDrag) return;
+          var hit = stagePoint(e.clientX, e.clientY);
+          var cur = currentTrace();
+          if (!hit || !cur || !cur[i]) return;
+          cur[i] = hit;
+          syncTraceOverlay();
+          e.stopPropagation();
+        });
+        c.addEventListener('pointerup', function (e) {
+          if (!c._traceDrag) return;
+          c._traceDrag = false;
+          rebuildTrace();
+          e.stopPropagation();
+        });
+        c.addEventListener('pointercancel', function () { c._traceDrag = false; });
+        handles.appendChild(c);
+      });
+    } else {
+      mapped.forEach(function (p, i) {
+        kids[i].setAttribute('cx', p.x.toFixed(1));
+        kids[i].setAttribute('cy', p.y.toFixed(1));
+      });
+    }
+  }
+
+  function rebuildTrace() {
+    syncTraceChrome();
+    var pts = currentTrace();
+    if (!pts || !ownPhoto) {
+      traceMask = null;
+      if (ownPhoto) paintOwnPhoto(ownPhoto.dataUri);
+      return;
+    }
+    var token = ++traceToken;
+    maskPhoto(ownPhoto.dataUri, ownPhoto.w, ownPhoto.h, pts, function (uri) {
+      if (token !== traceToken || !uri) return;
+      traceMask = uri;
+      paintOwnPhoto(ownPhoto.dataUri);
+    });
+  }
+
+  function commitTrace(pts) {
+    var clean = simplifyTrace(pts);
+    if (clean.length < 3) return;
+    traceHist.push(clean);
+    if (traceHist.length > 12) traceHist.shift();
+    rebuildTrace();
+  }
+
+  function undoTrace() {
+    if (!traceHist.length) return;
+    traceHist.pop();
+    traceLive = null;
+    rebuildTrace();
+  }
+
+  function resetTrace() {
+    traceHist = [];
+    traceLive = null;
+    traceMask = null;
+    traceToken++;
+    syncTraceChrome();
+    if (ownPhoto) paintOwnPhoto(ownPhoto.dataUri);
+  }
+
+  function clearTrace() {
+    traceHist = [];
+    traceLive = null;
+    traceMask = null;
+    traceOn = false;
+    traceToken++;
+  }
+
   function placeFaceImage(img, frame, cx, cy) {
     var XLINK = 'http://www.w3.org/1999/xlink';
+    var src = photoSrc();
     img.setAttribute('x', (cx + frame.x).toFixed(3));
     img.setAttribute('y', (cy + frame.y).toFixed(3));
     img.setAttribute('width', frame.w.toFixed(3));
     img.setAttribute('height', frame.h.toFixed(3));
     img.setAttribute('preserveAspectRatio', 'none');
-    img.setAttribute('href', ownPhoto.dataUri);
-    img.setAttributeNS(XLINK, 'xlink:href', ownPhoto.dataUri);
+    img.setAttribute('href', src);
+    img.setAttributeNS(XLINK, 'xlink:href', src);
   }
 
   function paintOwnPhoto(dataUri) {
@@ -2887,6 +3119,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     if (!ownPhoto || !ownPhoto.dataUri) {
       photo.removeAttribute('src');
       insetImg.removeAttribute('src');
+      syncTraceOverlay();
       return;
     }
     var cropBox = $('face-crop');
@@ -2894,20 +3127,25 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       requestAnimationFrame(function () { syncCropView(); });
       return;
     }
-    function park(imgEl, box, radius) {
+    function park(imgEl, box, radius, src) {
       var frame = layoutCrop(radius);
       if (!frame) return;
       var cx = box / 2, cy = box / 2;
-      imgEl.src = ownPhoto.dataUri;
+      imgEl.src = src;
       imgEl.style.width = frame.w + 'px';
       imgEl.style.height = frame.h + 'px';
       imgEl.style.left = (cx + frame.x) + 'px';
       imgEl.style.top = (cy + frame.y) + 'px';
     }
     var size = stage.clientWidth || 220;
-    park(photo, size, size * 0.36);
+    /* The drawing surface stays the original photo, including while a stroke
+       is in progress, so the outline can be adjusted against the whole picture.
+       The round inset uses the cleared result, the same one on the mug. */
+    var shown = traceLive ? ownPhoto.dataUri : photoSrc();
+    park(photo, size, size * 0.36, shown);
     var isz = inset.clientWidth || 88;
-    park(insetImg, isz, isz / 2);
+    park(insetImg, isz, isz / 2, photoSrc());
+    syncTraceOverlay();
   }
 
   /** Words and crop, short enough to ride on the order. */
@@ -2918,6 +3156,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     if (words) bits.push(words);
     var curvePct = Math.round(faceCurve * 100);
     if (curvePct) bits.push('arc ' + curvePct + '%');
+    if (currentTrace()) bits.push('outline traced');
     var z = Math.round((ownPhoto.zoom || 1) * 100);
     var ox = Math.round((ownPhoto.ox || 0) * 100), oy = Math.round((ownPhoto.oy || 0) * 100);
     bits.push('zoom ' + z + '%');
@@ -3078,6 +3317,22 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     stageImg.draggable = false;
     stage.appendChild(stageImg);
     stage.appendChild(el('div', 'face-ring'));
+    var draw = document.createElementNS(SVGNS, 'svg');
+    draw.setAttribute('class', 'trace-draw');
+    draw.id = 'trace-draw';
+    draw.setAttribute('aria-hidden', 'true');
+    var shade = document.createElementNS(SVGNS, 'path');
+    shade.setAttribute('class', 'trace-shade');
+    shade.id = 'trace-shade';
+    var traceLine = document.createElementNS(SVGNS, 'polyline');
+    traceLine.setAttribute('class', 'trace-line');
+    traceLine.id = 'trace-line';
+    var traceHandles = document.createElementNS(SVGNS, 'g');
+    traceHandles.id = 'trace-handles';
+    draw.appendChild(shade);
+    draw.appendChild(traceLine);
+    draw.appendChild(traceHandles);
+    stage.appendChild(draw);
     faceRow.appendChild(stage);
     var side = el('div', 'face-side');
     var inset = el('div', 'face-inset');
@@ -3105,6 +3360,33 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     center.onclick = function () { centerPhoto(); };
     zoomRow.appendChild(zlab); zoomRow.appendChild(zoom); zoomRow.appendChild(center);
     cropB.appendChild(zoomRow);
+    cropB.appendChild(el('p', 'proof-note', 'Draw around what should stay. Everything outside that line comes off the mug. The circle still frames the face.'));
+    var traceRow = el('div', 'proof-nudge');
+    traceRow.setAttribute('role', 'group');
+    traceRow.setAttribute('aria-label', 'Photo outline');
+    var traceBtn = el('button', null, 'Trace');
+    traceBtn.type = 'button';
+    traceBtn.id = 'trace-mode';
+    traceBtn.setAttribute('aria-pressed', 'false');
+    traceBtn.addEventListener('click', function () {
+      traceOn = !traceOn;
+      traceLive = null;
+      syncTraceChrome();
+    });
+    var undoBtn = el('button', null, 'Undo');
+    undoBtn.type = 'button';
+    undoBtn.id = 'trace-undo';
+    undoBtn.disabled = true;
+    undoBtn.addEventListener('click', function () { undoTrace(); });
+    var resetBtn = el('button', null, 'Reset');
+    resetBtn.type = 'button';
+    resetBtn.id = 'trace-reset';
+    resetBtn.disabled = true;
+    resetBtn.addEventListener('click', function () { resetTrace(); });
+    traceRow.appendChild(traceBtn);
+    traceRow.appendChild(undoBtn);
+    traceRow.appendChild(resetBtn);
+    cropB.appendChild(traceRow);
     var askBox = el('div', 'face-ask');
     var askLab = el('label', null, 'What to keep in focus');
     askLab.setAttribute('for', 'photo-ask-input');
@@ -3187,18 +3469,49 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     var cropDrag = null;
     stage.addEventListener('pointerdown', function (e) {
       if (!ownPhoto) return;
+      if (e.target && e.target.classList && e.target.classList.contains('trace-handle')) return;
+      if (traceOn) {
+        var hit = stagePoint(e.clientX, e.clientY);
+        if (!hit) return;
+        traceLive = [hit];
+        try { stage.setPointerCapture(e.pointerId); } catch (err) {}
+        e.preventDefault();
+        syncTraceOverlay();
+        return;
+      }
       cropDrag = [e.clientX, e.clientY];
       try { stage.setPointerCapture(e.pointerId); } catch (err) {}
       stage.classList.add('dragging');
       e.preventDefault();
     });
     stage.addEventListener('pointermove', function (e) {
+      if (traceLive) {
+        var hit = stagePoint(e.clientX, e.clientY);
+        if (!hit) return;
+        var last = traceLive[traceLive.length - 1];
+        var img = $('face-img');
+        var min = 5 / Math.max(1, img ? img.offsetWidth : 200);
+        var dx = hit.x - last.x, dy = hit.y - last.y;
+        if (dx * dx + dy * dy < min * min) return;
+        if (traceLive.length < 480) traceLive.push(hit);
+        else traceLive[traceLive.length - 1] = hit;
+        syncTraceOverlay();
+        return;
+      }
       if (!cropDrag) return;
       var d = Math.max(1, stage.clientWidth * 0.72);
       movePhoto((e.clientX - cropDrag[0]) / d, (e.clientY - cropDrag[1]) / d);
       cropDrag = [e.clientX, e.clientY];
     });
     var stopCrop = function (e) {
+      if (traceLive) {
+        var pts = traceLive;
+        traceLive = null;
+        try { stage.releasePointerCapture(e.pointerId); } catch (err) {}
+        if (pts.length >= 3) commitTrace(pts);
+        else syncTraceOverlay();
+        return;
+      }
       if (!cropDrag) return;
       cropDrag = null;
       stage.classList.remove('dragging');
@@ -3207,6 +3520,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     stage.addEventListener('pointerup', stopCrop);
     stage.addEventListener('pointercancel', stopCrop);
     stage.addEventListener('keydown', function (e) {
+      if (traceOn) return;
       var d = { ArrowLeft:[-1,0], ArrowRight:[1,0], ArrowUp:[0,-1], ArrowDown:[0,1] }[e.key];
       if (!d || !ownPhoto) return;
       e.preventDefault();
@@ -3315,6 +3629,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       drop.type = 'button';
       drop.onclick = function () {
         ownPhoto = null; input.value = '';
+        clearTrace();
         paintOwnPhoto(null);
         if (!chosenBg) {
           var chip = $('chip-yours');
@@ -3351,6 +3666,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       if (!f) return;
       readImage(f, function (dataUri, problem, size) {
         if (problem) { name.textContent = problem; return; }
+        clearTrace();
         ownPhoto = { dataUri: dataUri, name: f.name,
                      w: (size && size.w) || 0, h: (size && size.h) || 0,
                      zoom: 1, ox: 0, oy: 0 };
