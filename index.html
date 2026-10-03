@@ -240,40 +240,34 @@ section{scroll-margin-top:92px}
 
 .proof-note{font-size:.9375rem;color:var(--ink-2);line-height:1.55}
 .proof-note b{color:var(--ink)}
-.bg-sets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-@media (min-width:560px){
-  .bg-sets{grid-template-columns:repeat(5,minmax(0,1fr))}
+.bg-drop{position:relative;width:100%;min-width:0}
+.bg-drop-btn{
+  width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  font-family:var(--f-body);font-weight:700;font-size:1rem;line-height:1.3;color:var(--ink);
+  background:var(--surface);border:2px solid var(--field);border-radius:var(--r-sm);
+  padding:12px 14px;cursor:pointer;text-align:left;
 }
-.bg-set{display:flex;flex-direction:column;gap:4px}
-.bg-k{margin:0;font-size:.8125rem;font-weight:700;color:var(--ink-2)}
-.bg-row{display:flex;gap:8px;flex-wrap:wrap}
-.bg-pick{
-  flex:none;width:100%;max-width:none;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;
-  font-family:var(--f-body);font-weight:700;font-size:.8125rem;line-height:1.2;color:var(--ink);
-  background:var(--surface);border:2px solid var(--rule-2);border-radius:14px;
-  padding:6px 4px 8px;cursor:pointer;
+.bg-drop-btn::after{
+  content:"";flex:none;width:8px;height:8px;margin-right:4px;
+  border-right:2px solid var(--ink);border-bottom:2px solid var(--ink);
+  transform:translateY(-2px) rotate(45deg);
 }
-.bg-g{font-weight:500;font-size:.75rem;color:var(--ink-3)}
-.bg-pick.is-on .bg-g{color:var(--red-deep)}
-.bg-pick svg,.bg-none{
-  width:100%;height:58px;border-radius:8px;display:block;
+.bg-drop.is-open .bg-drop-btn{border-color:var(--ink);border-bottom-left-radius:0;border-bottom-right-radius:0}
+.bg-drop.is-open .bg-drop-btn::after{transform:translateY(2px) rotate(225deg)}
+.bg-drop-list{
+  margin:0;padding:6px;list-style:none;
+  background:var(--surface);border:2px solid var(--ink);border-top:0;
+  border-radius:0 0 var(--r-sm) var(--r-sm);
+  box-shadow:0 18px 28px -22px rgba(22,19,17,.7);
 }
-.bg-none{
-  display:flex;align-items:center;justify-content:center;
-  background:var(--surface-2);color:var(--ink-3);font-size:.75rem;
+.bg-drop-opt{
+  width:100%;display:block;font-family:var(--f-body);font-weight:700;font-size:1rem;
+  line-height:1.3;color:var(--ink);background:transparent;border:0;border-radius:10px;
+  padding:10px 12px;cursor:pointer;text-align:left;
 }
-.bg-pick:hover{border-color:var(--ink)}
-.bg-pick:focus-visible{outline:2px solid var(--red-deep);outline-offset:2px}
-.bg-pick.is-on{border-color:var(--red);background:var(--red-soft);color:var(--red-deep)}
-.bg-add{
-  width:100%;font-family:var(--f-body);font-weight:700;font-size:.9375rem;cursor:pointer;
-  padding:11px 18px;border-radius:var(--r-sm);border:2px solid var(--red);
-  background:var(--red);color:#FFFFFF;
-}
-.bg-add:hover{background:var(--red-deep);border-color:var(--red-deep)}
-.bg-add:focus-visible{outline:2px solid var(--red-deep);outline-offset:2px}
-.bg-add[aria-pressed="true"]{background:var(--surface);color:var(--ink);border-color:var(--ink)}
-.bg-add[aria-pressed="true"]:hover{background:var(--surface-2)}
+.bg-drop-opt:hover{background:var(--surface-2)}
+.bg-drop-opt.is-on{background:var(--red-soft);color:var(--red-deep)}
+.bg-drop-opt.is-on:hover{background:var(--red-soft)}
 .price-extra{margin:0;font-size:.9375rem;font-weight:700;color:var(--ink);line-height:1.4}
 .nudge{
   font-size:.9375rem;font-weight:500;color:var(--ink-2);
@@ -295,7 +289,7 @@ section{scroll-margin-top:92px}
   .hero-grid{display:flex;flex-direction:column;gap:12px}
   .stage{display:contents}
   .hero-head{order:1}
-  .mug-frame{order:2;align-self:center}
+  .mug-dock{order:2}
   .buy{order:3}
   .stage-foot{order:4}
   section{scroll-margin-top:124px}
@@ -314,6 +308,8 @@ section{scroll-margin-top:92px}
 
 /* ── Mug stage ──────────────────────────────────────────── */
 .stage{display:flex;flex-direction:column;justify-content:flex-start;gap:12px;align-items:center;min-width:0}
+/* Desktop: the wrapper is not a box, so the mug stays a child of the stage. */
+.mug-dock{display:contents}
 @media (min-width:921px){
   /* The order card is the tall piece. Keep the mug beside it instead of
      stretching an empty gap under the picture. */
@@ -323,7 +319,7 @@ section{scroll-margin-top:92px}
 @media (max-width:920px){
   .stage{display:contents}
   .hero-head{order:1}
-  .mug-frame{order:2;align-self:center}
+  .mug-dock{order:2}
   .stage-foot{order:3;gap:6px}
   .buy{order:4}
 }
@@ -398,6 +394,29 @@ section{scroll-margin-top:92px}
 }
 @media (max-width:720px) and (max-height:720px){
   .mug-frame{max-height:180px}
+}
+/* Phone: the design controls sit under the mug. Pin the mug below the header
+   so a background, a size change, or a nudge is visible as it happens.
+   --head-h is the sticky header's height, measured in the first script. */
+@media (max-width:920px){
+  .mug-dock{
+    display:flex;justify-content:center;align-items:flex-end;
+    position:sticky;top:var(--head-h,96px);z-index:40;
+    align-self:stretch;width:100%;
+    background-color:transparent;
+  }
+  .mug-dock.is-stuck{
+    background-color:var(--ground);
+    box-shadow:0 16px 22px -20px rgba(22,19,17,.7);
+  }
+  .bg-drop,.bg-drop-btn,.bg-drop-opt,.proof-tools,.proof-nudge button,
+  #pattern-size,#photo-zoom,#photo-margin{
+    scroll-margin-top:calc(var(--head-h, 96px) + 220px);
+    scroll-margin-bottom:12px;
+  }
+}
+@media (max-width:920px) and (min-width:721px){
+  .mug-dock .mug-frame{width:auto;max-height:220px;margin-inline:auto}
 }
 
 /* ── Ticker ─────────────────────────────────────────────── */
@@ -773,10 +792,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
           Choose a photo, add a background if you want one, and put the mug on your order.
         </p>
       </div>
+      <div class="mug-dock">
       <div class="mug-frame">
         <svg class="mug-svg" viewBox="158 110 240 248" role="img" aria-labelledby="mug-title mug-desc">
-          <title id="mug-title">A white ceramic mug with an example design</title>
-          <desc id="mug-desc">A white 15 oz mug with an illustrated example on the front. Your photo goes on yours.</desc>
+          <title id="mug-title">A white ceramic mug with an example photograph</title>
+          <desc id="mug-desc">A white 15 oz mug with a real photograph on the front. Your photo goes on yours.</desc>
 
           <defs>
             <linearGradient id="ceramic" x1="0" y1="0" x2="1" y2="0">
@@ -1044,6 +1064,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
           <rect class="s-rule2 mug-drawn" id="panel-edge" x="178" y="146" width="140" height="172" rx="7" fill="none" stroke-width="1.6" opacity=".8"/>
         </svg>
       </div>
+      </div>
 
       <div class="stage-foot">
       <div class="chips" role="group" aria-label="Preview a mug style">
@@ -1058,7 +1079,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       <p class="stage-caption" id="mug-caption" aria-live="polite">
         The whole crew, wrapped the entire way around. Yes, the dog counts as family.
       </p>
-      <p class="stage-caption" id="stage-fineprint" style="margin-top:-8px">Illustrated example — your mug carries your photo.</p>
+      <p class="stage-caption" id="stage-fineprint" style="margin-top:-8px">An example on the mug. Yours carries your photo.</p>
       </div>
     </div>
 
@@ -1478,8 +1499,8 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
       <p class="admin-sec">Every other photograph</p>
       <p class="hint" style="margin-top:-6px">
-        Optional. A photo here replaces the drawing on the mug for that style.
-        Leave a slot empty and the drawing stays.
+        These photographs are the examples on the mug. Replace one and that style updates.
+        Leave a slot empty and the drawing shows instead.
         Big files are shrunk to 900px automatically so the page stays quick.
         The brand mark, the cart, and the small arrows are drawn in the page, not image files,
         and there is no favicon to replace.
@@ -1593,12 +1614,12 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 (function () {
   /* ── Mug style preview ─────────────────────────────── */
   var CAPTIONS = {
-    family: "The whole crew, wrapped the entire way around. Yes, the dog counts as family.",
-    art:    "The crayon drawing off the fridge \u2014 rainbow, wonky house and all, exactly as drawn.",
-    pet:    "Background knocked out so it\u2019s just the dog. Collar, tag and everything.",
-    hand:   "Her actual handwriting, lifted off the note. Same pen pressure, same shaky letters.",
-    recipe: "The index card as she wrote it, big enough to read from across the counter.",
-    team:   "Your logo or your crew badge, printed sharp on the white base.",
+    family: "A family, printed on the white mug. Yours would be your people.",
+    art:    "A kid's drawing, photographed and printed on the ceramic.",
+    pet:    "A dog, close up. Yours would be your dog.",
+    hand:   "Handwriting from a real note, large enough to read.",
+    recipe: "A recipe from the kitchen, printed on the mug.",
+    team:   "A crew, printed on the white base.",
     yours:  "Your photo, about where it will sit. Drag or zoom to move it; we send a real proof before printing."
   };
 
@@ -1648,6 +1669,28 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   }
   window.addEventListener('scroll', markNav, { passive: true });
   markNav();
+
+  /* Keeps the pinned mug clear of the sticky header on a phone. */
+  var dock = document.querySelector('.mug-dock');
+  var header = document.querySelector('.site-header');
+  var phoneQ = window.matchMedia('(max-width: 920px)');
+  function placeDock() {
+    if (!dock || !header) return;
+    if (!phoneQ.matches) {
+      document.documentElement.style.removeProperty('--head-h');
+      dock.classList.remove('is-stuck');
+      return;
+    }
+    var safe = parseFloat(window.getComputedStyle(header).top) || 0;
+    var h = Math.ceil(header.offsetHeight + safe);
+    document.documentElement.style.setProperty('--head-h', h + 'px');
+    dock.classList.toggle('is-stuck', dock.getBoundingClientRect().top <= h + 1);
+  }
+  window.addEventListener('scroll', placeDock, { passive: true });
+  window.addEventListener('resize', placeDock);
+  if (phoneQ.addEventListener) phoneQ.addEventListener('change', placeDock);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeDock);
+  placeDock();
 })();
 </script>
 
@@ -1755,15 +1798,15 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     [0.260, 0.790], [0.240, 0.710], [0.228, 0.560], [0.218, 0.400], [0.212, 0.258]
   ];
 
-  /* Optional photos that can replace a drawing on the mug. Blank keeps the
-     drawing. The customer page does not ship photographs of real people. */
+  /* Example photographs on the mug. A blank slot falls back to the drawing.
+     They stay on the mug itself: no credits, and no lineup beside it. */
   var EXAMPLE_PHOTOS = {
-    family: '',
-    art: '',
-    pet: '',
-    hand: '',
-    recipe: '',
-    team: ''
+    family: 'assets/examples/family.jpg',
+    art:    'assets/examples/art.jpg',
+    pet:    'assets/examples/dog.jpg',
+    hand:   'assets/examples/handwriting.jpg',
+    recipe: 'assets/examples/recipe.jpg',
+    team:   'assets/examples/crew.jpg'
   };
   /* ADMIN-CONFIG-END */
 
@@ -1899,8 +1942,8 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     /* The small print has to match what is actually on screen. */
     var fine = $('stage-fineprint');
     if (fine) fine.textContent = src
-      ? 'Our 15 oz mug. The artwork on it is an example \u2014 yours carries your photo.'
-      : 'Illustrated example \u2014 your mug carries your photo.';
+      ? 'Our 15 oz mug. The photograph on it is an example \u2014 yours carries your photo.'
+      : 'An example on the mug. Yours carries your photo.';
 
     var fit = svg.querySelector('#panel-fit');
     var sx = b[2] / ART_BOX[2], sy = b[3] / ART_BOX[3];
@@ -2486,10 +2529,13 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       add.setAttribute('aria-pressed', onBg ? 'true' : 'false');
       add.textContent = onBg ? 'Remove background' : 'Add a background, $8';
     }
-    Array.prototype.forEach.call(document.querySelectorAll('.bg-pick'), function (b) {
-      var onThis = (b.getAttribute('data-bg') || '') === (chosenBg ? chosenBg.id : '');
+    var currentBg = chosenBg ? chosenBg.id : '';
+    var bgBtn = $('bg-drop-btn');
+    if (bgBtn) bgBtn.textContent = chosenBg ? chosenBg.name + ' (' + chosenBg.group + ')' : 'None';
+    Array.prototype.forEach.call(document.querySelectorAll('.bg-drop-opt'), function (b) {
+      var onThis = (b.getAttribute('data-bg') || '') === currentBg;
       b.classList.toggle('is-on', onThis);
-      b.setAttribute('aria-pressed', onThis ? 'true' : 'false');
+      b.setAttribute('aria-selected', onThis ? 'true' : 'false');
     });
   }
 
@@ -2756,35 +2802,65 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     var step2b = el('div', 'flow-b');
     step2b.appendChild(el('p', 'proof-head', 'Background'));
     step2b.appendChild(el('p', 'proof-note', 'Optional. A small repeating pattern on the white ceramic, $8 extra.'));
-    function bgButton(id, label, group, bg) {
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'bg-pick';
-      b.setAttribute('data-bg', id);
-      b.setAttribute('aria-pressed', 'false');
-      if (bg) {
-        var sw = svgEl('svg', { viewBox: '0 0 100 100', 'aria-hidden': 'true' });
-        var g = svgEl('g');
-        bg.draw(g);
-        sw.appendChild(g);
-        b.appendChild(sw);
-      } else {
-        b.appendChild(el('span', 'bg-none', '\u2014'));
-      }
-      b.appendChild(document.createTextNode(label));
-      if (group) b.appendChild(el('span', 'bg-g', group));
-      b.onclick = function () { chooseBg(id); };
-      return b;
+    var drop = el('div', 'bg-drop');
+    drop.id = 'bg-options';
+    var bgBtn = el('button', 'bg-drop-btn', 'None');
+    bgBtn.type = 'button';
+    bgBtn.id = 'bg-drop-btn';
+    bgBtn.setAttribute('aria-haspopup', 'listbox');
+    bgBtn.setAttribute('aria-expanded', 'false');
+    bgBtn.setAttribute('aria-controls', 'bg-list');
+    var list = el('div', 'bg-drop-list');
+    list.id = 'bg-list';
+    list.setAttribute('role', 'listbox');
+    list.setAttribute('aria-label', 'Background');
+    list.hidden = true;
+    function addBgOpt(id, label) {
+      var o = el('button', 'bg-drop-opt', label);
+      o.type = 'button';
+      o.setAttribute('role', 'option');
+      o.setAttribute('data-bg', id);
+      o.setAttribute('aria-selected', id ? 'false' : 'true');
+      if (!id) o.classList.add('is-on');
+      o.onclick = function () { chooseBg(id); closeBg(); };
+      list.appendChild(o);
     }
-    var sets = el('div', 'bg-sets');
-    sets.id = 'bg-options';
-    sets.setAttribute('role', 'group');
-    sets.setAttribute('aria-label', 'Background');
+    function closeBg() {
+      list.hidden = true;
+      drop.classList.remove('is-open');
+      bgBtn.setAttribute('aria-expanded', 'false');
+    }
+    function openBg() {
+      list.hidden = false;
+      drop.classList.add('is-open');
+      bgBtn.setAttribute('aria-expanded', 'true');
+    }
     BACKGROUNDS.forEach(function (bg) {
-      sets.appendChild(bgButton(bg.id, bg.name, bg.group, bg));
+      addBgOpt(bg.id, bg.name + ' (' + bg.group + ')');
     });
-    sets.appendChild(bgButton('', 'None', 'No extra', null));
-    step2b.appendChild(sets);
+    addBgOpt('', 'None');
+    bgBtn.onclick = function () { if (list.hidden) openBg(); else closeBg(); };
+    if (!buildProofPicker.bgWired) {
+      buildProofPicker.bgWired = true;
+      var shutBg = function () {
+        var live = document.getElementById('bg-options');
+        var liveList = document.getElementById('bg-list');
+        var liveBtn = document.getElementById('bg-drop-btn');
+        if (liveList) liveList.hidden = true;
+        if (live) live.classList.remove('is-open');
+        if (liveBtn) liveBtn.setAttribute('aria-expanded', 'false');
+      };
+      document.addEventListener('click', function (e) {
+        var live = document.getElementById('bg-options');
+        if (live && !live.contains(e.target)) shutBg();
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') shutBg();
+      });
+    }
+    drop.appendChild(bgBtn);
+    drop.appendChild(list);
+    step2b.appendChild(drop);
     var bgNote = el('p', 'proof-note',
       'Wraps the whole mug, edge to edge. Your photo sits on top.');
     bgNote.id = 'bg-note';
