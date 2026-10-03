@@ -2678,9 +2678,30 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
      does not make the browser fetch its font. Ask for each face up front. */
   function preloadLetterFonts() {
     if (!document.fonts || !document.fonts.load) return;
+    var left = LETTER_FONTS.length;
+    function done() {
+      left--;
+      if (left > 0 || !ownPhoto || (!faceName && !faceLine)) return;
+      paintOwnPhoto(ownPhoto.dataUri);
+    }
     LETTER_FONTS.forEach(function (f) {
-      document.fonts.load(f.spec).catch(function () {});
+      document.fonts.load(f.spec).then(done).catch(done);
     });
+  }
+
+  /** Width and the ink above and below the baseline, in the face that will print. */
+  function letterMetrics(str, size) {
+    var canvas = letterMetrics.canvas || (letterMetrics.canvas = document.createElement('canvas'));
+    var ctx = canvas.getContext('2d');
+    ctx.font = fontChoice().spec.replace(/[\d.]+px/, size + 'px');
+    var m = ctx.measureText(str);
+    var w = m.width;
+    if (!isFinite(w) || w < 1) w = Math.max(size, str.length * size * 0.55);
+    return {
+      w: w,
+      ascent: m.actualBoundingBoxAscent > 0 ? m.actualBoundingBoxAscent : size * 0.8,
+      descent: m.actualBoundingBoxDescent > 0 ? m.actualBoundingBoxDescent : size * 0.22
+    };
   }
   var faceAsk = '';
   var faceAskSent = '';
@@ -3090,53 +3111,97 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       'stroke-width': '1.5', 'class': 'face-edge'
     }));
     holder.appendChild(face);
-    /* How far the middle of a line lifts off a straight chord, in art units.
-       Capped so the arc stays gentle and inside the print. */
-    function arcBend(halfW, up) {
-      var t = Math.max(0, Math.min(1, faceCurve));
-      if (t <= 0 || halfW < 1) return 0;
-      var cap = up ? 16 : 14;
-      return Math.min(cap, Math.max(12, halfW * 0.48)) * t;
-    }
+    /* The print, in the same units the letters are drawn in. */
+    var BOX_L = 190, BOX_T = 152, BOX_R = 306, BOX_B = 292;
+    var CIRCLE_TOP = FACE.cy - FACE.r, CIRCLE_BOT = FACE.cy + FACE.r;
     function bowPath(y, halfW, bend, up) {
       var x1 = FACE.cx - halfW, x2 = FACE.cx + halfW;
       if (bend < 0.4) {
         return 'M' + x1.toFixed(2) + ',' + y.toFixed(2) + ' L' + x2.toFixed(2) + ',' + y.toFixed(2);
       }
-      /* Keep the middle where the flat line sits, and let the ends
-         follow the circle, so the arc does not climb out of the print. */
+      /* Keep the middle of the line, and let the ends follow the circle,
+         so the arc does not climb out of the print. */
       var endY = up ? y + bend : y - bend;
       var R = (halfW * halfW + bend * bend) / (2 * bend);
       var yy = endY.toFixed(2);
       return 'M' + x1.toFixed(2) + ',' + yy + ' A' + R.toFixed(2) + ',' + R.toFixed(2) +
         ' 0 0 ' + (up ? '1' : '0') + ' ' + x2.toFixed(2) + ',' + yy;
     }
+    function arcLen(half, bend) {
+      if (bend < 0.4) return half * 2;
+      var R = (half * half + bend * bend) / (2 * bend);
+      return R * 2 * Math.asin(Math.min(1, half / R));
+    }
+    /* True when the tilted letters stay on the ceramic and off the face. */
+    function arcFits(y0, half, bend, metrics, up) {
+      var lean = 0;
+      if (bend >= 0.4 && half > 0) {
+        var R = (half * half + bend * bend) / (2 * bend);
+        var alpha = Math.asin(Math.min(1, half / R));
+        lean = Math.sin(alpha) * metrics.ascent * 0.9;
+      }
+      if (up) {
+        var top = y0 - metrics.ascent - lean * 0.35;
+        var bot = y0 + bend + metrics.descent + lean * 0.25;
+        return top >= BOX_T + 0.4 && bot <= CIRCLE_TOP - 1.5;
+      }
+      var topEnd = y0 - bend - metrics.ascent - lean * 0.2;
+      var botMid = y0 + metrics.descent + lean;
+      return topEnd >= CIRCLE_BOT + 1.5 && botMid <= BOX_B - 0.4;
+    }
     function putText(str, y, cls, size, maxW, up) {
       var clean = String(str || '').replace(/\s+/g, ' ').trim();
       if (!clean) return;
-      var width = Math.min(maxW, Math.max(size * 1.4, clean.length * size * 0.52));
-      var half = width / 2;
-      var bend = arcBend(half, up);
+      var metrics = letterMetrics(clean, size);
+      var side = Math.max(3.5, metrics.ascent * 0.22);
+      var maxHalf = Math.min(maxW / 2, (BOX_R - BOX_L) / 2 - side);
+      var half = Math.min(maxHalf, Math.max(size * 0.7, metrics.w / 2));
+      var t = Math.max(0, Math.min(1, faceCurve));
+      var y0 = y;
+      var bend = 0;
+      if (t > 0 && half > 1) {
+        var want = Math.min(half * 0.36, up ? 14 : 12) * t;
+        /* A short lower line has room under the circle. Slide it down
+           a little so the arc can show without the ends crossing the face. */
+        if (!up) y0 = Math.min(BOX_B - metrics.descent - 2, y + Math.min(6, want * 0.45));
+        bend = want;
+        var guard = 0;
+        while (bend >= 0.4 && guard < 10 && !arcFits(y0, half, bend, metrics, up)) {
+          bend *= 0.8;
+          guard++;
+        }
+        if (!arcFits(y0, half, bend, metrics, up)) { bend = 0; y0 = y; }
+      }
       var fontCls = cls + ' font-' + fontChoice().id;
       if (bend < 0.4) {
+        var flatW = Math.min(maxHalf * 2, Math.max(size * 1.2, metrics.w));
         var flat = svgEl('text', {
           x: String(FACE.cx), y: String(y),
           'text-anchor': 'middle', 'font-size': String(size), 'class': fontCls
         });
         flat.textContent = clean;
-        flat.setAttribute('textLength', width.toFixed(1));
-        flat.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+        if (metrics.w > flatW + 0.5) {
+          flat.setAttribute('textLength', flatW.toFixed(1));
+          flat.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+        }
         holder.appendChild(flat);
         return;
       }
       var id = cls + '-arc';
-      holder.appendChild(svgEl('path', { id: id, d: bowPath(y, half, bend, up), fill: 'none' }));
-      var t = svgEl('text', { 'font-size': String(size), 'class': fontCls, 'text-anchor': 'middle' });
+      var len = arcLen(half, bend);
+      holder.appendChild(svgEl('path', { id: id, d: bowPath(y0, half, bend, up), fill: 'none' }));
+      var text = svgEl('text', { 'font-size': String(size), 'class': fontCls, 'text-anchor': 'middle' });
       var tp = svgEl('textPath', { href: '#' + id, startOffset: '50%' });
       tp.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#' + id);
       tp.textContent = clean;
-      t.appendChild(tp);
-      holder.appendChild(t);
+      /* Longer than the arc: compress onto it, the way a flat line already
+         does. Otherwise the path drops the letters that do not fit. */
+      if (metrics.w > len - 2) {
+        text.setAttribute('textLength', Math.max(size, len - 2).toFixed(1));
+        text.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+      }
+      text.appendChild(tp);
+      holder.appendChild(text);
     }
     putText(faceName, 166, 'face-name', 13, 100, true);
     putText(faceLine, 274, 'face-line', 22, 92, false);
