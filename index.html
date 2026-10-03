@@ -795,8 +795,8 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       <div class="mug-dock">
       <div class="mug-frame">
         <svg class="mug-svg" viewBox="158 110 240 248" role="img" aria-labelledby="mug-title mug-desc">
-          <title id="mug-title">A white ceramic mug with an example design</title>
-          <desc id="mug-desc">A white 15 oz mug with an illustrated example on the front. Your photo goes on yours.</desc>
+          <title id="mug-title">A white ceramic mug with an example photograph</title>
+          <desc id="mug-desc">A white 15 oz mug with a real photograph on the front. Your photo goes on yours.</desc>
 
           <defs>
             <linearGradient id="ceramic" x1="0" y1="0" x2="1" y2="0">
@@ -1079,7 +1079,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       <p class="stage-caption" id="mug-caption" aria-live="polite">
         The whole crew, wrapped the entire way around. Yes, the dog counts as family.
       </p>
-      <p class="stage-caption" id="stage-fineprint" style="margin-top:-8px">Illustrated example — your mug carries your photo.</p>
+      <p class="stage-caption" id="stage-fineprint" style="margin-top:-8px">An example on the mug. Yours carries your photo.</p>
       </div>
     </div>
 
@@ -1499,8 +1499,8 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
       <p class="admin-sec">Every other photograph</p>
       <p class="hint" style="margin-top:-6px">
-        Optional. A photo here replaces the drawing on the mug for that style.
-        Leave a slot empty and the drawing stays.
+        These photographs are the examples on the mug. Replace one and that style updates.
+        Leave a slot empty and the drawing shows instead.
         Big files are shrunk to 900px automatically so the page stays quick.
         The brand mark, the cart, and the small arrows are drawn in the page, not image files,
         and there is no favicon to replace.
@@ -1614,12 +1614,12 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 (function () {
   /* ── Mug style preview ─────────────────────────────── */
   var CAPTIONS = {
-    family: "The whole crew, wrapped the entire way around. Yes, the dog counts as family.",
-    art:    "The crayon drawing off the fridge \u2014 rainbow, wonky house and all, exactly as drawn.",
-    pet:    "Background knocked out so it\u2019s just the dog. Collar, tag and everything.",
-    hand:   "Her actual handwriting, lifted off the note. Same pen pressure, same shaky letters.",
-    recipe: "The index card as she wrote it, big enough to read from across the counter.",
-    team:   "Your logo or your crew badge, printed sharp on the white base.",
+    family: "A family, printed on the white mug. Yours would be your people.",
+    art:    "A kid's drawing, photographed and printed on the ceramic.",
+    pet:    "A dog, close up. Yours would be your dog.",
+    hand:   "Handwriting from a real note, large enough to read.",
+    recipe: "A recipe from the kitchen, printed on the mug.",
+    team:   "A crew, printed on the white base.",
     yours:  "Your photo, about where it will sit. Drag or zoom to move it; we send a real proof before printing."
   };
 
@@ -1798,15 +1798,15 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     [0.260, 0.790], [0.240, 0.710], [0.228, 0.560], [0.218, 0.400], [0.212, 0.258]
   ];
 
-  /* Optional photos that can replace a drawing on the mug. Blank keeps the
-     drawing. The customer page does not ship photographs of real people. */
+  /* Example photographs on the mug. A blank slot falls back to the drawing.
+     They stay on the mug itself: no credits, and no lineup beside it. */
   var EXAMPLE_PHOTOS = {
-    family: '',
-    art: '',
-    pet: '',
-    hand: '',
-    recipe: '',
-    team: ''
+    family: 'assets/examples/family.jpg',
+    art:    'assets/examples/art.jpg',
+    pet:    'assets/examples/dog.jpg',
+    hand:   'assets/examples/handwriting.jpg',
+    recipe: 'assets/examples/recipe.jpg',
+    team:   'assets/examples/crew.jpg'
   };
   /* ADMIN-CONFIG-END */
 
@@ -1942,8 +1942,8 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     /* The small print has to match what is actually on screen. */
     var fine = $('stage-fineprint');
     if (fine) fine.textContent = src
-      ? 'Our 15 oz mug. The artwork on it is an example \u2014 yours carries your photo.'
-      : 'Illustrated example \u2014 your mug carries your photo.';
+      ? 'Our 15 oz mug. The photograph on it is an example \u2014 yours carries your photo.'
+      : 'An example on the mug. Yours carries your photo.';
 
     var fit = svg.querySelector('#panel-fit');
     var sx = b[2] / ART_BOX[2], sy = b[3] / ART_BOX[3];
