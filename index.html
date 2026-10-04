@@ -2702,8 +2702,6 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   /* circle | square | custom. Custom is a request, not a mask. */
   var cropShape = 'circle';
   var CUSTOM_NOTE = 'Remove the background. The photo is as you uploaded it.';
-  /* What the circle preview actually did, so the shop is not told the backdrop is gone. */
-  var CIRCLE_NOTE = 'Circle preview knocked the background back. Please clean any backdrop left on the subject.';
   var faceName = '';
   var faceLine = '';
   /* 0 is a flat line. 1 is a gentle arc that follows the circle. */
@@ -2761,22 +2759,6 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     };
   }
 
-  /**
-   * Puts the circle on the subject the cut found. Shared with the square only
-   * until the buyer drags; Center on a square still returns to the whole photo.
-   */
-  function frameHead() {
-    if (!ownPhoto || !ownPhoto.head) return;
-    var head = ownPhoto.head;
-    var short = Math.min(ownPhoto.w, ownPhoto.h);
-    if (!(head.diam > 8) || !(short > 0)) return;
-    var zoom = short / head.diam;
-    if (!isFinite(zoom)) return;
-    ownPhoto.zoom = Math.max(1, Math.min(3, zoom));
-    ownPhoto.ox = (ownPhoto.w / 2 - head.cx) * ownPhoto.zoom / short;
-    ownPhoto.oy = (ownPhoto.h / 2 - head.cy) * ownPhoto.zoom / short;
-  }
-
   function faceWords() {
     return [faceName, faceLine].map(function (s) {
       return String(s || '').replace(/\s+/g, ' ').trim();
@@ -2819,10 +2801,6 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   function shopNote() {
     var parts = [];
     if (cropShape === 'custom') parts.push(CUSTOM_NOTE);
-    else if (cropShape === 'circle' && ownPhoto && ownPhoto.cutout) parts.push(CIRCLE_NOTE);
-    else if (cropShape === 'circle' && ownPhoto && !ownPhoto.cutout) {
-      parts.push('Circle crop. Please remove the background. The preview could not.');
-    }
     var ask = sentAsk();
     if (ask) parts.push(ask);
     return parts.join('\n');
@@ -2904,9 +2882,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     };
   }
 
-  function placeFaceImage(img, frame, cx, cy, src) {
+  function placeFaceImage(img, frame, cx, cy) {
     var XLINK = 'http://www.w3.org/1999/xlink';
-    if (!src) src = ownPhoto && ownPhoto.dataUri;
+    var src = ownPhoto && ownPhoto.dataUri;
     if (!src) return;
     img.setAttribute('x', (cx + frame.x).toFixed(3));
     img.setAttribute('y', (cy + frame.y).toFixed(3));
@@ -2985,8 +2963,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       face.appendChild(defs);
       var pic = svgEl('g', { 'clip-path': 'url(#faceClip)' });
       var img = svgEl('image');
-      var photoSrc = (cropShape === 'circle' && ownPhoto && ownPhoto.cutout) ? ownPhoto.cutout : dataUri;
-      if (placed) placeFaceImage(img, placed, FACE.cx, FACE.cy, photoSrc);
+      if (placed) placeFaceImage(img, placed, FACE.cx, FACE.cy);
       pic.appendChild(img);
       face.appendChild(pic);
       if (cropShape === 'square') {
@@ -3007,53 +2984,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     }
     /* How far the middle of a line lifts off a straight chord, in art units.
        Capped so the arc stays gentle and inside the print. */
-    function arcBend(halfW, up, maxBend) {
+    function arcBend(halfW, up) {
       var t = Math.max(0, Math.min(1, faceCurve));
       if (t <= 0 || halfW < 1) return 0;
       var cap = up ? 16 : 14;
-      var bend = Math.min(cap, Math.max(12, halfW * 0.48)) * t;
-      if (isFinite(maxBend)) bend = Math.min(bend, Math.max(0, maxBend));
-      return bend;
-    }
-    /* Where the subject sits in the same space as the type, so the lines can
-       clear it. The crop group is scaled to stay round; the type is not. */
-    function inkBox() {
-      var top = FACE.cy - FACE.r, bot = FACE.cy + FACE.r;
-      if (!(cropShape === 'circle' && ownPhoto && ownPhoto.head)) return { top: top, bot: bot };
-      var placedInk = layoutCrop(FACE.r);
-      if (!placedInk || !(ownPhoto.h > 0)) return { top: top, bot: bot };
-      var pb = printBox();
-      var psx = pb[2] / ART_BOX[2], psy = pb[3] / ART_BOX[3];
-      var kk = (psx > 0 && psy > 0) ? psx / psy : 1;
-      var hy = FACE.cy + placedInk.y + (ownPhoto.head.cy / ownPhoto.h) * placedInk.h;
-      var ry = (ownPhoto.head.diam / 2) / ownPhoto.h * placedInk.h;
-      return {
-        top: FACE.cy + kk * (hy - ry - FACE.cy),
-        bot: FACE.cy + kk * (hy + ry - FACE.cy)
-      };
-    }
-    function lineLayout(size, above, edge) {
-      var ascent = size * 0.92, descent = size * 0.36, gap = 5;
-      var printTop = ART_BOX[1] + 1, printBot = ART_BOX[1] + ART_BOX[3] - 1;
-      var y, maxBend, room;
-      if (above) {
-        room = edge - gap - descent - (printTop + ascent);
-        maxBend = Math.max(0, Math.min(10, room));
-        y = edge - gap - descent - maxBend;
-        if (y - ascent < printTop) {
-          y = printTop + ascent;
-          maxBend = Math.max(0, edge - gap - descent - y);
-        }
-      } else {
-        room = (printBot - descent) - (edge + gap + ascent);
-        maxBend = Math.max(0, Math.min(10, room));
-        y = edge + gap + ascent + maxBend;
-        if (y + descent > printBot) {
-          y = printBot - descent;
-          maxBend = Math.max(0, y - ascent - (edge + gap));
-        }
-      }
-      return { y: y, maxBend: maxBend };
+      return Math.min(cap, Math.max(12, halfW * 0.48)) * t;
     }
     function bowPath(y, halfW, bend, up) {
       var x1 = FACE.cx - halfW, x2 = FACE.cx + halfW;
@@ -3068,12 +3003,12 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       return 'M' + x1.toFixed(2) + ',' + yy + ' A' + R.toFixed(2) + ',' + R.toFixed(2) +
         ' 0 0 ' + (up ? '1' : '0') + ' ' + x2.toFixed(2) + ',' + yy;
     }
-    function putText(str, y, cls, size, maxW, up, maxBend) {
+    function putText(str, y, cls, size, maxW, up) {
       var clean = String(str || '').replace(/\s+/g, ' ').trim();
       if (!clean) return;
       var width = Math.min(maxW, Math.max(size * 1.4, clean.length * size * 0.52));
       var half = width / 2;
-      var bend = arcBend(half, up, maxBend);
+      var bend = arcBend(half, up);
       var fontCls = cls + ' font-' + fontChoice().id;
       if (bend < 0.4) {
         var flat = svgEl('text', {
@@ -3095,15 +3030,8 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       t.appendChild(tp);
       holder.appendChild(t);
     }
-    var nameLay = { y: 166, maxBend: NaN };
-    var lineLay = { y: 274, maxBend: NaN };
-    if (cropShape === 'circle' && ownPhoto && ownPhoto.head) {
-      var ink = inkBox();
-      nameLay = lineLayout(13, true, ink.top);
-      lineLay = lineLayout(22, false, ink.bot);
-    }
-    putText(faceName, nameLay.y, 'face-name', 13, 100, true, nameLay.maxBend);
-    putText(faceLine, lineLay.y, 'face-line', 22, 92, false, lineLay.maxBend);
+    putText(faceName, 166, 'face-name', 13, 100, true);
+    putText(faceLine, 274, 'face-line', 22, 92, false);
     parent.appendChild(holder);
     syncPhotoControls();
     syncSceneChrome();
@@ -3150,7 +3078,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       imgEl.style.left = (cx + frame.x) + 'px';
       imgEl.style.top = (cy + frame.y) + 'px';
     }
-    var src = (cropShape === 'circle' && ownPhoto.cutout) ? ownPhoto.cutout : ownPhoto.dataUri;
+    var src = ownPhoto.dataUri;
     if (stage && photo) {
       var size = stage.clientWidth || 220;
       park(photo, size, size * 0.36, src);
@@ -3224,7 +3152,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         ? 'Drag the photo until it sits in the square. That square is what prints.'
         : cropShape === 'custom'
           ? 'We\u2019ll remove the background after you send the photo. The picture stays as you uploaded it.'
-          : 'Drag until the face sits in the circle. The preview knocks the background off; anything it leaves still has to be cleaned up on the order.';
+          : 'Drag the photo until the face sits in the circle. That circle is what prints.';
     }
     var bgIntro = $('bg-intro');
     if (bgIntro) {
@@ -3252,7 +3180,6 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   function setCrop(id) {
     if (id !== 'square' && id !== 'custom') id = 'circle';
     cropShape = id;
-    if (cropShape === 'circle' && ownPhoto && ownPhoto.head && !ownPhoto.moved) frameHead();
     syncCropChrome();
     if (ownPhoto) paintOwnPhoto(ownPhoto.dataUri);
     else syncSceneChrome();
@@ -3261,7 +3188,6 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
   function movePhoto(dx, dy) {
     if (!ownPhoto) return;
-    ownPhoto.moved = true;
     ownPhoto.ox = (ownPhoto.ox || 0) + dx;
     ownPhoto.oy = (ownPhoto.oy || 0) + dy;
     paintOwnPhoto(ownPhoto.dataUri);
@@ -3269,15 +3195,13 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
   function zoomPhoto(z) {
     if (!ownPhoto) return;
-    ownPhoto.moved = true;
     ownPhoto.zoom = Math.max(1, Math.min(3, z));
     paintOwnPhoto(ownPhoto.dataUri);
   }
 
   function centerPhoto() {
     if (!ownPhoto) return;
-    if (cropShape === 'circle' && ownPhoto.head) frameHead();
-    else { ownPhoto.zoom = 1; ownPhoto.ox = 0; ownPhoto.oy = 0; }
+    ownPhoto.zoom = 1; ownPhoto.ox = 0; ownPhoto.oy = 0;
     paintOwnPhoto(ownPhoto.dataUri);
   }
 
@@ -3418,7 +3342,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       shapePicks.appendChild(b);
     });
     cropB.appendChild(shapePicks);
-    var help = el('p', 'proof-note', 'Drag until the face sits in the circle. The preview knocks the background off; anything it leaves still has to be cleaned up on the order.');
+    var help = el('p', 'proof-note', 'Drag the photo until the face sits in the circle. That circle is what prints.');
     help.id = 'crop-help';
     cropB.appendChild(help);
     var adjust = el('div', 'face-adjust');
@@ -3744,11 +3668,8 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         if (problem) { name.textContent = problem; return; }
         ownPhoto = { dataUri: dataUri, name: f.name,
                      w: (size && size.w) || 0, h: (size && size.h) || 0,
-                     zoom: 1, ox: 0, oy: 0, moved: false,
-                     cutout: size && size.cutout, head: size && size.head };
-        if (cropShape === 'circle') frameHead();
+                     zoom: 1, ox: 0, oy: 0 };
         paintOwnPhoto(dataUri);
-        applyAskToNote();
         var chip = $('chip-yours');
         if (chip) { chip.hidden = false; chip.click(); }
         name.textContent = f.name;
@@ -4079,447 +4000,6 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
   /* ══ Admin: photos ══ */
 
-  function mulberry32(seed) {
-    var a = seed >>> 0;
-    return function () {
-      a |= 0; a = a + 0x6D2B79F5 | 0;
-      var t = Math.imul(a ^ a >>> 15, 1 | a);
-      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-      return ((t ^ t >>> 14) >>> 0) / 4294967296;
-    };
-  }
-
-  function kmeans(samples, k, iters, seed) {
-    var n = samples.length / 3;
-    k = Math.min(k, n);
-    var rnd = mulberry32(seed);
-    var chosen = {};
-    var centers = new Float64Array(k * 3);
-    var picked = 0;
-    var guard = 0;
-    while (picked < k && guard < k * 20) {
-      var i = Math.floor(rnd() * n);
-      guard++;
-      if (chosen[i]) continue;
-      chosen[i] = 1;
-      centers[picked * 3] = samples[i * 3];
-      centers[picked * 3 + 1] = samples[i * 3 + 1];
-      centers[picked * 3 + 2] = samples[i * 3 + 2];
-      picked++;
-    }
-    var assign = new Int16Array(n);
-    for (var it = 0; it < iters; it++) {
-      for (var p = 0; p < n; p++) {
-        var best = 0, bd = 1e18;
-        var r = samples[p * 3], g = samples[p * 3 + 1], b = samples[p * 3 + 2];
-        for (var j = 0; j < k; j++) {
-          var dr = r - centers[j * 3], dg = g - centers[j * 3 + 1], db = b - centers[j * 3 + 2];
-          var d = dr * dr + dg * dg + db * db;
-          if (d < bd) { bd = d; best = j; }
-        }
-        assign[p] = best;
-      }
-      var sum = new Float64Array(k * 3);
-      var cnt = new Int32Array(k);
-      for (p = 0; p < n; p++) {
-        j = assign[p];
-        sum[j * 3] += samples[p * 3];
-        sum[j * 3 + 1] += samples[p * 3 + 1];
-        sum[j * 3 + 2] += samples[p * 3 + 2];
-        cnt[j]++;
-      }
-      for (j = 0; j < k; j++) {
-        if (!cnt[j]) continue;
-        centers[j * 3] = sum[j * 3] / cnt[j];
-        centers[j * 3 + 1] = sum[j * 3 + 1] / cnt[j];
-        centers[j * 3 + 2] = sum[j * 3 + 2] / cnt[j];
-      }
-    }
-    return { centers: centers, k: k };
-  }
-
-  function fitModel(samples, k) {
-    var n = samples.length / 3;
-    k = Math.min(k, Math.max(1, Math.floor(n / 8)));
-    var km = kmeans(samples, k, 8, 1);
-    k = km.k;
-    var assign = new Int16Array(n);
-    for (var p = 0; p < n; p++) {
-      var best = 0, bd = 1e18;
-      var r = samples[p * 3], g = samples[p * 3 + 1], b = samples[p * 3 + 2];
-      for (var j = 0; j < k; j++) {
-        var dr = r - km.centers[j * 3], dg = g - km.centers[j * 3 + 1], db = b - km.centers[j * 3 + 2];
-        var d = dr * dr + dg * dg + db * db;
-        if (d < bd) { bd = d; best = j; }
-      }
-      assign[p] = best;
-    }
-    var means = [], vars = [], ws = [];
-    for (j = 0; j < k; j++) {
-      var cnt = 0;
-      var sr = 0, sg = 0, sb = 0;
-      for (p = 0; p < n; p++) if (assign[p] === j) { cnt++; sr += samples[p * 3]; sg += samples[p * 3 + 1]; sb += samples[p * 3 + 2]; }
-      if (cnt < 4) continue;
-      var mr = sr / cnt, mg = sg / cnt, mb = sb / cnt;
-      var vr = 0, vg = 0, vb = 0;
-      for (p = 0; p < n; p++) if (assign[p] === j) {
-        vr += ((samples[p * 3] - mr)*(samples[p * 3] - mr));
-        vg += ((samples[p * 3 + 1] - mg)*(samples[p * 3 + 1] - mg));
-        vb += ((samples[p * 3 + 2] - mb)*(samples[p * 3 + 2] - mb));
-      }
-      means.push([mr, mg, mb]);
-      vars.push([Math.max(vr / cnt, 25), Math.max(vg / cnt, 25), Math.max(vb / cnt, 25)]);
-      ws.push(cnt / n);
-    }
-    return { means: means, vars: vars, ws: ws };
-  }
-
-  function nllAt(r, g, b, model) {
-    var best = 1e9;
-    for (var j = 0; j < model.means.length; j++) {
-      var m = model.means[j], v = model.vars[j];
-      var q = ((r - m[0])*(r - m[0])) / v[0] + ((g - m[1])*(g - m[1])) / v[1] + ((b - m[2])*(b - m[2])) / v[2];
-      var val = 0.5 * q + 0.5 * (Math.log(v[0]) + Math.log(v[1]) + Math.log(v[2])) - Math.log(Math.max(model.ws[j], 1e-8));
-      if (val < best) best = val;
-    }
-    return best;
-  }
-
-  /**
-   * Grid max-flow. Source side of the cut is foreground.
-   * capS: cost of labeling background (source -> pixel)
-   * capT: cost of labeling foreground (pixel -> sink)
-   * capR, capD: neighbor smoothness, symmetric.
-   */
-
-  function dinicCut(H, W, capS, capT, capR, capD) {
-    var N = H * W, S = N, T = N + 1, V = N + 2;
-    var head = new Int32Array(V);
-    for (var i = 0; i < V; i++) head[i] = -1;
-    var to = [], cap = [], rev = [], nxt = [];
-    var ec = 0;
-    function add(u, v, c) {
-      to.push(v); cap.push(c); rev.push(ec + 1); nxt.push(head[u]); head[u] = ec++;
-      to.push(u); cap.push(0); rev.push(ec - 1); nxt.push(head[v]); head[v] = ec++;
-    }
-    function addU(u, v, c) {
-      to.push(v); cap.push(c); rev.push(ec + 1); nxt.push(head[u]); head[u] = ec++;
-      to.push(u); cap.push(c); rev.push(ec - 1); nxt.push(head[v]); head[v] = ec++;
-    }
-    for (i = 0; i < N; i++) {
-      if (capS[i] > 1e-8) add(S, i, capS[i]);
-      if (capT[i] > 1e-8) add(i, T, capT[i]);
-    }
-    var y, x, c;
-    for (y = 0; y < H; y++) for (x = 0; x < W - 1; x++) {
-      c = capR[y * (W - 1) + x];
-      if (c > 1e-8) addU(y * W + x, y * W + x + 1, c);
-    }
-    for (y = 0; y < H - 1; y++) for (x = 0; x < W; x++) {
-      c = capD[y * W + x];
-      if (c > 1e-8) addU(y * W + x, (y + 1) * W + x, c);
-    }
-    var level = new Int32Array(V);
-    var iter = new Int32Array(V);
-    function bfs() {
-      for (var i = 0; i < V; i++) level[i] = -1;
-      level[S] = 0;
-      var q = [S];
-      for (var qi = 0; qi < q.length; qi++) {
-        var u = q[qi];
-        for (var e = head[u]; e >= 0; e = nxt[e]) {
-          var v = to[e];
-          if (cap[e] > 1e-8 && level[v] < 0) {
-            level[v] = level[u] + 1;
-            q.push(v);
-          }
-        }
-      }
-      return level[T] >= 0;
-    }
-    function dfs(u, f) {
-      if (u === T || f <= 1e-10) return f;
-      for (var e = iter[u]; e >= 0; e = nxt[e]) {
-        iter[u] = e;
-        var v = to[e];
-        if (cap[e] > 1e-8 && level[v] === level[u] + 1) {
-          var pushed = dfs(v, f < cap[e] ? f : cap[e]);
-          if (pushed > 1e-10) {
-            cap[e] -= pushed;
-            cap[rev[e]] += pushed;
-            return pushed;
-          }
-        }
-      }
-      iter[u] = -1;
-      return 0;
-    }
-    while (bfs()) {
-      for (i = 0; i < V; i++) iter[i] = head[i];
-      while (dfs(S, 1e18) > 1e-10) {}
-    }
-    var seen = new Uint8Array(N);
-    var q = [S];
-    var vis = new Uint8Array(V);
-    vis[S] = 1;
-    for (var qi = 0; qi < q.length; qi++) {
-      var u = q[qi];
-      for (var e = head[u]; e >= 0; e = nxt[e]) {
-        var v = to[e];
-        if (cap[e] > 1e-8 && !vis[v]) {
-          vis[v] = 1;
-          q.push(v);
-          if (v < N) seen[v] = 1;
-        }
-      }
-    }
-    return { fg: seen, steps: 0, limit: 0 };
-  }
-
-  function boxResize(src, sw, sh, dw, dh) {
-    var dst = new Float64Array(dw * dh * 3);
-    for (var y = 0; y < dh; y++) {
-      var y0 = Math.floor(y * sh / dh), y1 = Math.max(y0 + 1, Math.floor((y + 1) * sh / dh));
-      if (y1 > sh) y1 = sh;
-      for (var x = 0; x < dw; x++) {
-        var x0 = Math.floor(x * sw / dw), x1 = Math.max(x0 + 1, Math.floor((x + 1) * sw / dw));
-        if (x1 > sw) x1 = sw;
-        var sr = 0, sg = 0, sb = 0, n = 0;
-        for (var yy = y0; yy < y1; yy++) {
-          for (var xx = x0; xx < x1; xx++) {
-            var i = (yy * sw + xx) * 3;
-            sr += src[i]; sg += src[i + 1]; sb += src[i + 2]; n++;
-          }
-        }
-        var o = (y * dw + x) * 3;
-        dst[o] = sr / n; dst[o + 1] = sg / n; dst[o + 2] = sb / n;
-      }
-    }
-    return dst;
-  }
-
-  function largest(bin, H, W) {
-    var seen = new Uint8Array(H * W);
-    var best = [];
-    var q = [];
-    for (var i = 0; i < bin.length; i++) {
-      if (!bin[i] || seen[i]) continue;
-      q.length = 0;
-      q.push(i);
-      seen[i] = 1;
-      var cells = [i];
-      var qi = 0;
-      while (qi < q.length) {
-        var u = q[qi++];
-        var y = (u / W) | 0, x = u - y * W;
-        var nbrs = [];
-        if (x > 0) nbrs.push(u - 1);
-        if (x + 1 < W) nbrs.push(u + 1);
-        if (y > 0) nbrs.push(u - W);
-        if (y + 1 < H) nbrs.push(u + W);
-        for (var k = 0; k < nbrs.length; k++) {
-          var v = nbrs[k];
-          if (bin[v] && !seen[v]) { seen[v] = 1; q.push(v); cells.push(v); }
-        }
-      }
-      if (cells.length > best.length) best = cells;
-    }
-    var out = new Uint8Array(H * W);
-    for (k = 0; k < best.length; k++) out[best[k]] = 1;
-    return out;
-  }
-
-  function dilate(bin, H, W, rad) {
-    var out = new Uint8Array(H * W);
-    for (var y = 0; y < H; y++) {
-      for (var x = 0; x < W; x++) {
-        if (!bin[y * W + x]) continue;
-        for (var dy = -rad; dy <= rad; dy++) {
-          var yy = y + dy;
-          if (yy < 0 || yy >= H) continue;
-          for (var dx = -rad; dx <= rad; dx++) {
-            var xx = x + dx;
-            if (xx < 0 || xx >= W) continue;
-            out[yy * W + xx] = 1;
-          }
-        }
-      }
-    }
-    return out;
-  }
-
-  function cutSubject(rgb, sw, sh, longEdge) {
-    var H, W;
-    if (sh >= sw) { H = longEdge; W = Math.max(8, Math.round(sw * H / sh)); }
-    else { W = longEdge; H = Math.max(8, Math.round(sh * W / sw)); }
-    var small = boxResize(rgb, sw, sh, W, H);
-    var m = 3;
-    var border = [];
-    function pushPx(x, y) {
-      var i = (y * W + x) * 3;
-      border.push(small[i], small[i + 1], small[i + 2]);
-    }
-    for (var y = 0; y < m; y++) for (var x = 0; x < W; x++) { pushPx(x, y); pushPx(x, H - 1 - y); }
-    for (y = m; y < H - m; y++) for (x = 0; x < m; x++) { pushPx(x, y); pushPx(W - 1 - x, y); }
-    var centers = kmeans(Float64Array.from(border), 3, 8, 1).centers;
-    var dist = new Float64Array(H * W);
-    var gray = new Float64Array(H * W);
-    for (var p = 0; p < H * W; p++) {
-      var r = small[p * 3], g = small[p * 3 + 1], b = small[p * 3 + 2];
-      gray[p] = (r + g + b) / 3;
-      var bd = 1e18;
-      for (var j = 0; j < 3; j++) {
-        var dr = r - centers[j * 3], dg = g - centers[j * 3 + 1], db = b - centers[j * 3 + 2];
-        var d = Math.sqrt(dr * dr + dg * dg + db * db);
-        if (d < bd) bd = d;
-      }
-      dist[p] = bd;
-    }
-    var sureBg = new Uint8Array(H * W);
-    var sureFg = new Uint8Array(H * W);
-    for (p = 0; p < H * W; p++) if (dist[p] < 32) sureBg[p] = 1;
-    for (x = 0; x < W; x++) { sureBg[x] = 1; sureBg[(H - 1) * W + x] = 1; sureBg[W + x] = 1; sureBg[(H - 2) * W + x] = 1; }
-    for (y = 0; y < H; y++) { sureBg[y * W] = 1; sureBg[y * W + W - 1] = 1; sureBg[y * W + 1] = 1; sureBg[y * W + W - 2] = 1; }
-    var farVals = [];
-    for (p = 0; p < H * W; p++) if (dist[p] > 40) farVals.push(gray[p]);
-    farVals.sort(function (a, b) { return a - b; });
-    var thr = farVals.length ? farVals[Math.floor(farVals.length * 0.25)] : 0;
-    var cand = new Uint8Array(H * W);
-    for (p = 0; p < H * W; p++) if (dist[p] > 40 && gray[p] < thr) cand[p] = 1;
-    var seed = largest(cand, H, W);
-    for (p = 0; p < H * W; p++) if (seed[p]) sureFg[p] = 1;
-    var grown = dilate(seed, H, W, 4);
-    var isFg = new Uint8Array(H * W);
-    for (p = 0; p < H * W; p++) isFg[p] = (sureFg[p] || (grown[p] && !sureBg[p])) ? 1 : 0;
-
-    var gamma = 50;
-    var dh = new Float64Array(H * (W - 1));
-    var dv = new Float64Array((H - 1) * W);
-    var acc = 0, cnt = 0;
-    for (y = 0; y < H; y++) for (x = 0; x < W - 1; x++) {
-      var i1 = (y * W + x) * 3, i2 = i1 + 3;
-      var dd = ((small[i1] - small[i2])*(small[i1] - small[i2])) + ((small[i1 + 1] - small[i2 + 1])*(small[i1 + 1] - small[i2 + 1])) + ((small[i1 + 2] - small[i2 + 2])*(small[i1 + 2] - small[i2 + 2]));
-      dh[y * (W - 1) + x] = dd; acc += dd; cnt++;
-    }
-    for (y = 0; y < H - 1; y++) for (x = 0; x < W; x++) {
-      i1 = (y * W + x) * 3; i2 = i1 + W * 3;
-      dd = ((small[i1] - small[i2])*(small[i1] - small[i2])) + ((small[i1 + 1] - small[i2 + 1])*(small[i1 + 1] - small[i2 + 1])) + ((small[i1 + 2] - small[i2 + 2])*(small[i1 + 2] - small[i2 + 2]));
-      dv[y * W + x] = dd; acc += dd; cnt++;
-    }
-    var beta = 1 / (2 * (acc / cnt) + 1e-6);
-    var capR = new Float64Array(dh.length);
-    var capD = new Float64Array(dv.length);
-    for (p = 0; p < capR.length; p++) capR[p] = gamma * Math.exp(-beta * dh[p]);
-    for (p = 0; p < capD.length; p++) capD[p] = gamma * Math.exp(-beta * dv[p]);
-    var K = gamma * 8;
-
-    for (var it = 0; it < 3; it++) {
-      var fgS = [], bgS = [];
-      for (p = 0; p < H * W; p++) {
-        var pix = [small[p * 3], small[p * 3 + 1], small[p * 3 + 2]];
-        if (isFg[p]) fgS.push(pix[0], pix[1], pix[2]);
-        else bgS.push(pix[0], pix[1], pix[2]);
-      }
-      if (fgS.length < 24 || bgS.length < 24) break;
-      var fm = fitModel(Float64Array.from(fgS), 5);
-      var bm = fitModel(Float64Array.from(bgS), 5);
-      var capS = new Float64Array(H * W);
-      var capT = new Float64Array(H * W);
-      for (p = 0; p < H * W; p++) {
-        var nb = nllAt(small[p * 3], small[p * 3 + 1], small[p * 3 + 2], bm);
-        var nf = nllAt(small[p * 3], small[p * 3 + 1], small[p * 3 + 2], fm);
-        if (sureBg[p]) { capS[p] = 0; capT[p] = K; }
-        else if (sureFg[p]) { capS[p] = K; capT[p] = 0; }
-        else { capS[p] = nb; capT[p] = nf; }
-      }
-      var cut = dinicCut(H, W, capS, capT, capR, capD);
-      var next = cut.fg;
-      for (p = 0; p < H * W; p++) {
-        if (sureBg[p]) next[p] = 0;
-        else if (sureFg[p]) next[p] = 1;
-      }
-      var fgCount = 0;
-      for (p = 0; p < H * W; p++) fgCount += next[p];
-      isFg = next;
-    }
-  /* The face is the top of the biggest piece left after the cut. A wide
-     window also catches the gap where the backdrop used to be, so the
-     circle stays on that top piece. */
-  var blob = largest(isFg, H, W);
-  var ys = [];
-  for (p = 0; p < H * W; p++) if (blob[p]) ys.push((p / W) | 0);
-  ys.sort(function (a, b) { return a - b; });
-  var yCut = ys.length ? ys[Math.floor(ys.length * 0.45)] : 0;
-  var hx = [], hy = [];
-  for (p = 0; p < H * W; p++) if (blob[p]) {
-    var py = (p / W) | 0;
-    if (py <= yCut) { hy.push(py); hx.push(p - py * W); }
-  }
-  function pct(arr, q) {
-    if (!arr.length) return 0;
-    var s = arr.slice().sort(function (a, b) { return a - b; });
-    var i = Math.max(0, Math.min(s.length - 1, Math.round(q * (s.length - 1))));
-    return s[i];
-  }
-  var cx = (pct(hx, 0.1) + pct(hx, 0.9)) / 2;
-  var cy = (pct(hy, 0.08) + pct(hy, 0.92)) / 2;
-  var diam = Math.max(pct(hx, 0.9) - pct(hx, 0.1), pct(hy, 0.92) - pct(hy, 0.08)) * 1.2;
-    var fullCx = (cx + 0.5) * sw / W - 0.5;
-    var fullCy = (cy + 0.5) * sh / H - 0.5;
-    var fullD = diam * ((sw / W) + (sh / H)) / 2;
-    var fgFrac = 0;
-    for (p = 0; p < H * W; p++) fgFrac += isFg[p];
-    fgFrac /= (H * W);
-    var ok = fgFrac > 0.04 && fgFrac < 0.85 && fullD > Math.min(sw, sh) * 0.12 && hx.length > 12;
-    return { mask: isFg, W: W, H: H, head: ok ? { cx: fullCx, cy: fullCy, diam: fullD } : null };
-  }
-
-  /* The circle crop only. Square and custom keep the photo as it was uploaded.
-     This is a color-and-edge cut in the browser, not a studio knockout: backdrop
-     that matches the subject can stay, and a subject that matches the backdrop
-     can lose a little edge. Callers have to say so. */
-  function knockoutCircle(canvas) {
-    var w = canvas.width, h = canvas.height;
-    if (!(w > 1) || !(h > 1)) return null;
-    var ctx = canvas.getContext('2d');
-    var src = ctx.getImageData(0, 0, w, h);
-    var rgb = new Float64Array(w * h * 3);
-    var s = src.data;
-    for (var i = 0, p = 0; i < s.length; i += 4, p++) {
-      rgb[p * 3] = s[i];
-      rgb[p * 3 + 1] = s[i + 1];
-      rgb[p * 3 + 2] = s[i + 2];
-    }
-    var cut = cutSubject(rgb, w, h, 120);
-    if (!cut.head) return null;
-    var mask = cut.mask, mW = cut.W, mH = cut.H;
-    var d = src.data;
-    for (var y = 0; y < h; y++) {
-      var fy = (y + 0.5) * mH / h - 0.5;
-      var y0 = Math.floor(fy);
-      var ty = fy - y0;
-      if (y0 < 0) { y0 = 0; ty = 0; }
-      var y1 = y0 + 1;
-      if (y1 >= mH) y1 = mH - 1;
-      for (var x = 0; x < w; x++) {
-        var fx = (x + 0.5) * mW / w - 0.5;
-        var x0 = Math.floor(fx);
-        var tx = fx - x0;
-        if (x0 < 0) { x0 = 0; tx = 0; }
-        var x1 = x0 + 1;
-        if (x1 >= mW) x1 = mW - 1;
-        var a = mask[y0 * mW + x0] * (1 - tx) * (1 - ty)
-          + mask[y0 * mW + x1] * tx * (1 - ty)
-          + mask[y1 * mW + x0] * (1 - tx) * ty
-          + mask[y1 * mW + x1] * tx * ty;
-        d[(y * w + x) * 4 + 3] = a < 0 ? 0 : (a > 1 ? 255 : a * 255);
-      }
-    }
-    ctx.putImageData(src, 0, 0);
-    try { return { url: canvas.toDataURL('image/png'), head: cut.head }; }
-    catch (e) { return null; }
-  }
-
   /** Shrinks to 900px and re-encodes, so a 6 MB phone photo doesn't bloat the page. */
   function readImage(file, cb) {
     if (!/^image\//.test(file.type)) return cb(null, 'That is not an image file.');
@@ -4541,15 +4021,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         var uri;
         try { uri = c.toDataURL('image/jpeg', 0.82); }
         catch (e) { cb(null, 'That image could not be converted.'); return; }
-        /* JPEG above is the file they send. The circle crop also keeps a
-           transparent copy, made here, so the mug can show ceramic through
-           the backdrop. Square and custom keep using the JPEG. */
-        var knock = null;
-        try { knock = knockoutCircle(c); } catch (e2) { knock = null; }
-        cb(uri, null, {
-          w: c.width, h: c.height,
-          cutout: knock && knock.url, head: knock && knock.head
-        });
+        cb(uri, null, { w: c.width, h: c.height });
       };
       im.src = fr.result;
     };
