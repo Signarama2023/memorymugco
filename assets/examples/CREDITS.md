@@ -2,7 +2,7 @@ Example photographs shipped with the storefront. They are samples of what a prin
 
 They are free to use for commercial work, including redistribution in this site. The dog photographs are under the [Unsplash License](https://unsplash.com/license). The others are under the [Pexels License](https://www.pexels.com/license/). They are real photographs, stored in the repo so the page does not hotlink them.
 
-The mug shows a cutout: the `.png` file, subject only, with the photo background removed. The `.jpg` beside it is the photograph that cutout was made from. A buyer's upload is not cut out on this page.
+The mug shows a cutout: the `.png` file. People and the dog are the subject only, with the photo background removed. A page — the drawing, the note, the recipe — stays a page, with a clean edge and the table or wall removed. The `.jpg` beside it is the photograph that cutout was made from. A buyer's upload is not cut out on this page.
 
 | File | Used for | Photograph | Source |
 | --- | --- | --- | --- |
