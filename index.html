@@ -320,7 +320,25 @@ section{scroll-margin-top:92px}
 .font-script{font-family:Caveat,cursive;font-weight:600}
 .font-display{font-family:"Lilita One",Outfit,sans-serif;font-weight:400}
 .font-round{font-family:Fredoka,Outfit,sans-serif;font-weight:600}
-.mug-svg .face-edge{stroke:var(--surface);fill:none}
+.mug-svg .face-edge{stroke:none;fill:none}
+/* A small copy of the crop, beside the mug, so the buyer can see the
+   piece that prints. It stays inside the frame, including on a phone. */
+.crop-sample{
+  position:absolute;z-index:2;left:1%;bottom:13%;
+  width:clamp(64px,18%,104px);display:flex;flex-direction:column;align-items:center;gap:5px;
+  pointer-events:none;
+}
+.crop-sample-disc{
+  position:relative;width:100%;aspect-ratio:1;border-radius:50%;overflow:hidden;
+  background:var(--surface);box-shadow:0 10px 18px -8px rgba(22,19,17,.45),0 0 0 2.5px var(--red-deep);
+}
+.crop-sample.is-square .crop-sample-disc{border-radius:4px}
+.crop-sample-disc img{position:absolute;max-width:none;user-select:none}
+.crop-sample-k{
+  margin:0;padding:2px 8px;border-radius:999px;
+  background:var(--surface);color:var(--ink);box-shadow:0 0 0 1px var(--rule);
+  font-size:.75rem;font-weight:700;line-height:1.3;
+}
 .face-ask{display:flex;flex-direction:column;gap:6px;margin-top:4px}
 .face-ask label{font-weight:700;font-size:.9375rem}
 .face-ask textarea{
@@ -1130,14 +1148,19 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
             </g>
            </g>
           </g>
-          <!-- The customer's photo, opaque, when a wrap is behind it. Same
-               clip and the same transform as the scenes, so position, zoom
-               and margins land where they always have. -->
+          <!-- The customer's photo, in full color, outside the multiplied
+               print. Same clip and the same transform as the scenes. -->
           <g id="photo-over" clip-path="url(#panelClip)" hidden>
             <g id="photo-over-fit"></g>
           </g>
           <rect class="s-rule2 mug-drawn" id="panel-edge" x="178" y="146" width="140" height="172" rx="7" fill="none" stroke-width="1.6" opacity=".8"/>
         </svg>
+        <div class="crop-sample" id="crop-sample" hidden role="img" aria-label="The cropped photo">
+          <div class="crop-sample-disc" id="crop-sample-disc">
+            <img id="crop-sample-img" alt="" draggable="false">
+          </div>
+          <p class="crop-sample-k">Cropped</p>
+        </div>
       </div>
       <p class="ask-preview" id="photo-ask" hidden><span class="ask-k">Received</span><span id="photo-ask-text"></span></p>
       </div>
@@ -2594,9 +2617,13 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     }
     var over = $('photo-over');
     if (over) {
-      if (chosenBg && yours && ownPhoto) over.removeAttribute('hidden');
+      /* Outside the multiplied print, so a circle or square stays a solid
+         cutout on the ceramic instead of a faded window. */
+      if (yours && ownPhoto) over.removeAttribute('hidden');
       else over.setAttribute('hidden', '');
     }
+    var sample = $('crop-sample');
+    if (sample) sample.hidden = !sampleOn();
     var cap = $('mug-caption');
     if (cap && yours) {
       if (chosenBg && ownPhoto) {
@@ -2764,6 +2791,12 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   /** Only what they submitted. Typing alone does not change this. */
   function sentAsk() { return tidyAsk(faceAskSent); }
   function isFramedCrop() { return cropShape === 'circle' || cropShape === 'square'; }
+  /** The round or square sample sits beside the mug only while that crop is on show. */
+  function sampleOn() {
+    var on = document.querySelector('.memory.is-on');
+    var yours = !!(on && on.getAttribute('data-key') === 'yours');
+    return yours && isFramedCrop() && !!(ownPhoto && ownPhoto.dataUri);
+  }
   /** The custom crop is a standing request, the same kind of note as the focus line. */
   function shopNote() {
     var parts = [];
@@ -2886,7 +2919,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     }
     if (!dataUri) { syncPhotoControls(); syncSceneChrome(); syncCropView(); return; }
 
-    var parent = chosenBg && over ? over : g;
+    var parent = over || g;
     var holder = svgEl('g');
     if (cropShape === 'custom') {
       var fit = customPhotoFrame();
@@ -3005,29 +3038,39 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     syncCropView();
   }
 
-  /** The same crop, drawn in the crop box and in the small inset. */
+  /** The same crop, in the drag box, the form inset, and the sample beside the mug. */
   function syncCropView() {
     var stage = $('face-stage');
     var photo = $('face-img');
     var inset = $('face-inset');
     var insetImg = $('face-inset-img');
+    var sample = $('crop-sample');
+    var sampleImg = $('crop-sample-img');
+    var disc = $('crop-sample-disc');
     var ring = stage && stage.querySelector('.face-ring');
+    var framed = sampleOn();
     if (ring) ring.classList.toggle('is-square', cropShape === 'square');
     if (inset) inset.classList.toggle('is-square', cropShape === 'square');
-    if (!stage || !photo || !inset || !insetImg) return;
-    if (!isFramedCrop() || !ownPhoto || !ownPhoto.dataUri) {
-      photo.removeAttribute('src');
-      insetImg.removeAttribute('src');
+    if (sample) {
+      sample.classList.toggle('is-square', cropShape === 'square');
+      sample.hidden = !framed;
+    }
+    if (!framed) {
+      if (photo) photo.removeAttribute('src');
+      if (insetImg) insetImg.removeAttribute('src');
+      if (sampleImg) sampleImg.removeAttribute('src');
       return;
     }
     var cropBox = $('face-crop');
-    if (cropBox && !cropBox.hidden && !stage.hidden && !stage.clientWidth) {
+    var stageWaiting = cropBox && !cropBox.hidden && stage && !stage.hidden && !stage.clientWidth;
+    var sampleWaiting = sample && !sample.hidden && disc && !disc.clientWidth;
+    if (stageWaiting || sampleWaiting) {
       requestAnimationFrame(function () { syncCropView(); });
       return;
     }
     function park(imgEl, box, radius, src) {
       var frame = layoutCrop(radius);
-      if (!frame) return;
+      if (!frame || !imgEl) return;
       var cx = box / 2, cy = box / 2;
       imgEl.src = src;
       imgEl.style.width = frame.w + 'px';
@@ -3035,11 +3078,19 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       imgEl.style.left = (cx + frame.x) + 'px';
       imgEl.style.top = (cy + frame.y) + 'px';
     }
-    var size = stage.clientWidth || 220;
     var src = ownPhoto.dataUri;
-    park(photo, size, size * 0.36, src);
-    var isz = inset.clientWidth || 88;
-    park(insetImg, isz, isz / 2, src);
+    if (stage && photo) {
+      var size = stage.clientWidth || 220;
+      park(photo, size, size * 0.36, src);
+    }
+    if (inset && insetImg) {
+      var isz = inset.clientWidth || 88;
+      park(insetImg, isz, isz / 2, src);
+    }
+    if (disc && sampleImg) {
+      var ssz = disc.clientWidth || 72;
+      park(sampleImg, ssz, ssz / 2, src);
+    }
   }
 
   /** Words and crop, short enough to ride on the order. */
