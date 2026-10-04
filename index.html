@@ -746,11 +746,13 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 .bg-admin-preview svg svg{max-width:none}
 
 /* With a product photo in place the drawn mug and the printed panel's own
-   white ground step aside, and the artwork multiplies onto the real ceramic so
-   the photograph's shading and highlights read through it the way a pressed
-   print does. */
+   white ground step aside. An example cutout sits on the ceramic in its own
+   colors, with the photo's background already gone. The illustrated stand-in,
+   and the customer's own photo, still multiply so the glaze reads through. */
 .mug-svg.has-photo .mug-drawn{display:none}
-.mug-svg.has-photo .panel-art{mix-blend-mode:multiply}
+.mug-svg.has-photo .scene-draw{mix-blend-mode:multiply}
+.mug-svg.has-photo .memory[data-key="yours"]{mix-blend-mode:multiply}
+.memory.has-cut .scene-draw{display:none}
 
 .field{display:flex;flex-direction:column;gap:6px}
 .field label{font-weight:700;font-size:.9rem}
@@ -786,7 +788,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 @media (max-width:520px){.photo-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .photo-slot{border:2px solid var(--rule);border-radius:var(--r-md);overflow:hidden;background:var(--surface-2);display:flex;flex-direction:column}
 .photo-thumb{position:relative;aspect-ratio:1/1;max-width:100%;background:var(--surface-2);display:flex;align-items:center;justify-content:center;overflow:hidden}
-.photo-thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.photo-thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
 .photo-thumb span{font-size:.7rem;font-weight:700;color:var(--ink-3);text-align:center;padding:6px;line-height:1.3}
 .photo-slot .cap{padding:8px 6px 0;font-size:.75rem;font-weight:700;text-align:center;color:var(--ink-2);line-height:1.3}
 .photo-slot .pick{display:block;padding:6px;font-size:.7rem;font-weight:700;text-align:center;color:var(--red-ink);cursor:pointer}
@@ -969,6 +971,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
             <!-- FAMILY — a close photo of the crew, full-bleed on the print -->
             <g class="memory is-on" data-key="family">
+             <g class="scene-draw">
               <rect x="190" y="152" width="116" height="140" fill="url(#famSky)"/>
               <circle cx="230" cy="176" r="28" fill="#F6D7A8" opacity=".85"/>
               <ellipse cx="248" cy="250" rx="70" ry="36" fill="#8E4A2C" opacity=".22"/>
@@ -1020,10 +1023,12 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
               <ellipse cx="281" cy="270" rx="1.8" ry="1.5" fill="#E0B48A"/>
               <circle cx="281.6" cy="270.2" r=".7" fill="#1A1614"/>
               <ellipse cx="286" cy="275" rx="2.4" ry="1.6" fill="#1A1614"/>
+             </g>
             </g>
 
             <!-- KID'S ART — a crayon drawing, photographed flat -->
             <g class="memory" data-key="art">
+             <g class="scene-draw">
               <rect x="190" y="152" width="116" height="140" fill="#F4E3C6"/>
               <circle cx="214" cy="174" r="11" fill="#F0C14A" stroke="#D9922A" stroke-width="2.5"/>
               <g stroke="#D9922A" stroke-width="3" stroke-linecap="round">
@@ -1042,10 +1047,12 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
               <circle cx="228" cy="256" r="7" fill="#E8B898" stroke="#2A211C" stroke-width="2.2"/>
               <path d="M221 262h14v14a7 7 0 0 1-14 0Z" fill="#7A5AB5" stroke="#2A211C" stroke-width="2.2"/>
               <path d="M190 284c10-8 16 6 26-2s16 6 26-2 16 6 26-2 16 6 26-2" fill="none" stroke="#3E8A52" stroke-width="4.5" stroke-linecap="round"/>
+             </g>
             </g>
 
             <!-- THE DOG — a close portrait, background knocked back -->
             <g class="memory" data-key="pet">
+             <g class="scene-draw">
               <rect x="190" y="152" width="116" height="140" fill="#E7D3BE"/>
               <circle cx="230" cy="188" r="28" fill="#F4E6D6" opacity=".7"/>
               <circle cx="286" cy="250" r="36" fill="#D7BBA4" opacity=".55"/>
@@ -1071,10 +1078,12 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
               <path d="M212 258c10 16 62 18 80 2 2 8-10 14-40 14s-44-6-40-16Z" fill="#C12F1A"/>
               <circle cx="248" cy="270" r="4.6" fill="#F4E4C8"/>
               <circle cx="248" cy="270" r="2.1" fill="#C12F1A"/>
+             </g>
             </g>
 
             <!-- HANDWRITING — a note off the fridge -->
             <g class="memory" data-key="hand">
+             <g class="scene-draw">
               <rect x="190" y="152" width="116" height="140" fill="#E6D2B6"/>
               <g stroke="#E4D3C0" stroke-width="1">
                 <path d="M198 198h100M198 224h100M198 250h100M198 276h100"/>
@@ -1086,10 +1095,12 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
               </g>
               <text fill="#C12F1A" x="232" y="248" font-family="Caveat, cursive" font-size="24" textLength="52" lengthAdjust="spacingAndGlyphs">— Mom</text>
               <path fill="#C12F1A" d="M252 260c-5-7-14-2-14 4 0 6 9 10 14 14 5-4 14-8 14-14 0-6-9-11-14-4Z" opacity=".9"/>
+             </g>
             </g>
 
             <!-- RECIPE — the index card -->
             <g class="memory" data-key="recipe">
+             <g class="scene-draw">
               <rect x="190" y="152" width="116" height="140" fill="#E4D2B8"/>
               <rect x="197" y="161" width="102" height="122" rx="3" fill="#F0E2CC" stroke="#B7A48C" stroke-width="1.5"/>
               <path d="M197 164a3 3 0 0 1 3-3h96a3 3 0 0 1 3 3v14H197Z" fill="#C12F1A"/>
@@ -1106,6 +1117,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
               <text fill="#C12F1A" x="206" y="275" font-family="Caveat, cursive" font-size="15" textLength="60" lengthAdjust="spacingAndGlyphs">Bake 45 min!</text>
               <circle cx="286" cy="266" r="8" fill="#E7A04A"/>
               <path d="M286 258c3-4 8-4 8-3s-1 5-4 6c-2 1-4 0-4-3Z" fill="#6B8F4E"/>
+             </g>
             </g>
 
             <!-- THE CUSTOMER'S OWN PHOTO — filled in on this device only -->
@@ -1113,6 +1125,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
             <!-- THE CREW — a shop badge, for team and logo mugs -->
             <g class="memory" data-key="team">
+             <g class="scene-draw">
               <rect x="190" y="152" width="116" height="140" fill="#1A1614"/>
               <circle cx="248" cy="208" r="42" fill="none" stroke="#C12F1A" stroke-width="2.5"/>
               <circle cx="248" cy="208" r="36" fill="none" stroke="#F6E7D4" stroke-width="1" opacity=".45"/>
@@ -1123,6 +1136,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
               <text fill="#C12F1A" x="248" y="236" font-family="Outfit, sans-serif" font-size="11" font-weight="700" text-anchor="middle" textLength="54" lengthAdjust="spacingAndGlyphs">THE CREW</text>
               <path d="M226 244h44" stroke="#F6E7D4" stroke-width="1.2" opacity=".45"/>
               <text fill="#F6E7D4" x="248" y="258" font-family="Outfit, sans-serif" font-size="9" text-anchor="middle" textLength="42" lengthAdjust="spacingAndGlyphs">EST. 2019</text>
+             </g>
             </g>
            </g>
           </g>
@@ -1870,15 +1884,18 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     [0.260, 0.790], [0.240, 0.710], [0.228, 0.560], [0.218, 0.400], [0.212, 0.258]
   ];
 
-  /* Example photographs on the mug. A blank slot falls back to the drawing.
-     They stay on the mug itself: no credits, and no lineup beside it. */
+  /* Example photographs on the mug. Each one is the subject only —
+     the beach, the wall, the table, the paper — already cleared, so it
+     sits on the ceramic as a cutout. A blank slot falls back to the drawing.
+     They stay on the mug itself: no credits, and no lineup beside it.
+     A buyer's own upload is not cut out here. */
   var EXAMPLE_PHOTOS = {
-    family: 'assets/examples/family.jpg',
-    art:    'assets/examples/art.jpg',
-    pet:    'assets/examples/dog.jpg',
-    hand:   'assets/examples/handwriting.jpg',
-    recipe: 'assets/examples/recipe.jpg',
-    team:   'assets/examples/crew.jpg'
+    family: 'assets/examples/family.png',
+    art:    'assets/examples/art.png',
+    pet:    'assets/examples/dog.png',
+    hand:   'assets/examples/handwriting.png',
+    recipe: 'assets/examples/recipe.png',
+    team:   'assets/examples/crew.png'
   };
   /* ADMIN-CONFIG-END */
 
@@ -2129,7 +2146,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     target.appendChild(box);
   }
 
-  /** Lays each supplied photo over its drawing, inside the same clip. Re-runnable. */
+  /** Lays each example cutout in its print box. Re-runnable.
+      The drawing underneath steps aside, so a clear pixel shows ceramic
+      rather than the stand-in. Meet keeps the whole subject in the box. */
   function mountPhotos() {
     var SVG = 'http://www.w3.org/2000/svg', XLINK = 'http://www.w3.org/1999/xlink', live = photos();
     layoutPanel();
@@ -2138,6 +2157,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     Array.prototype.forEach.call(
       document.querySelectorAll('.mug-svg image:not(.mug-base):not(.mug-wrap)'),
       function (n) { n.remove(); });
+    Array.prototype.forEach.call(document.querySelectorAll('.memory'), function (n) {
+      n.classList.remove('has-cut');
+    });
     Object.keys(live).forEach(function (key) {
       var src = live[key];
       if (!src) return;
@@ -2147,10 +2169,14 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       var img = document.createElementNS(SVG, 'image');
       img.setAttribute('x', box[0]); img.setAttribute('y', box[1]);
       img.setAttribute('width', box[2]); img.setAttribute('height', box[3]);
-      img.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+      img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
       img.setAttribute('href', src);
       img.setAttributeNS(XLINK, 'xlink:href', src);
-      img.addEventListener('error', function () { img.remove(); });
+      img.addEventListener('error', function () {
+        img.remove();
+        target.classList.remove('has-cut');
+      });
+      target.classList.add('has-cut');
       target.appendChild(img);
     });
     /* The lineup cards are the same photographs as the mug prints. */
