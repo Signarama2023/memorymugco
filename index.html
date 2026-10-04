@@ -451,6 +451,13 @@ section{scroll-margin-top:92px}
 .chip[aria-pressed="true"]:hover{background:var(--red-deep);color:#FFFFFF}
 .chip--more{border-style:dashed;color:var(--ink-3)}
 .stage-caption{font-size:.9375rem;color:var(--ink-2);text-align:center;max-width:42ch;min-height:2.6em}
+/* Handwriting is typed, not a photograph. The box sits with the chips. */
+.hand-box{width:100%;max-width:420px;min-width:0}
+.hand-box textarea{
+  font-family:Caveat,cursive;font-weight:600;font-size:1.7rem;line-height:1.2;
+  min-height:0;resize:vertical;
+}
+.mug-svg .hand-line{fill:var(--ink);font-family:Caveat,cursive;font-weight:600}
 @media (max-width:720px){
   .hero{padding-block:4px 28px}
   .hero h1{font-size:clamp(1.55rem,6.6vw,1.85rem)}
@@ -480,7 +487,7 @@ section{scroll-margin-top:92px}
     box-shadow:0 16px 22px -20px rgba(22,19,17,.7);
   }
   .bg-drop,.bg-drop-btn,.bg-drop-opt,.face-stage,.face-fields input,.face-ask textarea,.ask-confirm,#face-curve,.font-pick,#trace-mode,.proof-tools,.proof-nudge button,
-  #pattern-size,#photo-zoom,#photo-margin{
+  #pattern-size,#photo-zoom,#photo-margin,#hand-text{
     scroll-margin-top:calc(var(--head-h, 96px) + 220px);
     scroll-margin-bottom:12px;
   }
@@ -764,6 +771,8 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'><path d='M1 1.5 6 6.5l5-5' fill='none' stroke='%231F1D1B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
   background-repeat:no-repeat;background-position:right 14px center;background-size:12px 8px}
 .field input:focus-visible,.field textarea:focus-visible,.field select:focus-visible{border-color:var(--red-deep)}
+/* After .field's font shorthand, so the box matches the script on the mug. */
+.hand-box textarea{font-family:Caveat,cursive;font-weight:600;font-size:1.7rem;line-height:1.2}
 .field .hint{font-size:.9375rem;color:var(--ink-3);line-height:1.5}
 .field .hint a{color:var(--red-ink);font-weight:700}
 .status{border-radius:var(--r-md);padding:14px 16px;font-size:.92rem;line-height:1.55}
@@ -1081,21 +1090,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
              </g>
             </g>
 
-            <!-- HANDWRITING — a note off the fridge -->
+            <!-- HANDWRITING — words the buyer types. No paper, no photograph. -->
             <g class="memory" data-key="hand">
-             <g class="scene-draw">
-              <rect x="190" y="152" width="116" height="140" fill="#E6D2B6"/>
-              <g stroke="#E4D3C0" stroke-width="1">
-                <path d="M198 198h100M198 224h100M198 250h100M198 276h100"/>
-              </g>
-              <path d="M210 152v140" stroke="#C12F1A" stroke-width="1.25" opacity=".45"/>
-              <g fill="#1A1614" font-family="Caveat, cursive" text-anchor="start">
-                <text x="219" y="194" font-size="26" textLength="68" lengthAdjust="spacingAndGlyphs">Love you</text>
-                <text x="219" y="220" font-size="26" textLength="56" lengthAdjust="spacingAndGlyphs">always,</text>
-              </g>
-              <text fill="#C12F1A" x="232" y="248" font-family="Caveat, cursive" font-size="24" textLength="52" lengthAdjust="spacingAndGlyphs">— Mom</text>
-              <path fill="#C12F1A" d="M252 260c-5-7-14-2-14 4 0 6 9 10 14 14 5-4 14-8 14-14 0-6-9-11-14-4Z" opacity=".9"/>
-             </g>
+              <g id="hand-words"></g>
             </g>
 
             <!-- RECIPE — the index card -->
@@ -1161,6 +1158,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         <button type="button" class="chip" id="chip-recipe" data-key="recipe" aria-pressed="false">Recipe</button>
         <button type="button" class="chip" id="chip-team" data-key="team" aria-pressed="false">The crew</button>
         <button type="button" class="chip" id="chip-yours" data-key="yours" aria-pressed="false" hidden>Your photo</button>
+      </div>
+      <div class="field hand-box" id="hand-box" hidden>
+        <label for="hand-text">Your words</label>
+        <textarea id="hand-text" rows="2" maxlength="160" autocomplete="off" spellcheck="true">Love you
+always</textarea>
       </div>
       <p class="stage-caption" id="mug-caption" aria-live="polite">
         The whole crew, wrapped the entire way around. Yes, the dog counts as family.
@@ -1703,7 +1705,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     family: "A family, printed on the white mug. Yours would be your people.",
     art:    "A kid's drawing, photographed and printed on the ceramic.",
     pet:    "A dog, close up. Yours would be your dog.",
-    hand:   "Handwriting from a real note, large enough to read.",
+    hand:   "Type a few words. They show up on the mug.",
     recipe: "A recipe from the kitchen, printed on the mug.",
     team:   "A crew, printed on the white base.",
     yours:  "Your face, in a circle on the front. Drag the photo until it sits in the ring."
@@ -1723,6 +1725,109 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       c.setAttribute('aria-pressed', String(c.getAttribute('data-key') === key));
     });
     if (caption && CAPTIONS[key]) caption.textContent = CAPTIONS[key];
+    var box = document.getElementById('hand-box');
+    if (box) box.hidden = key !== 'hand';
+    var fine = document.getElementById('stage-fineprint');
+    if (fine) fine.textContent = fineLine(key);
+  }
+
+  function fineLine(key) {
+    if (key === 'hand') return 'Our 15 oz mug. The words are what you typed.';
+    var svg = document.querySelector('.hero .mug-svg');
+    if (svg && svg.classList.contains('has-photo')) {
+      return 'Our 15 oz mug. The photograph on it is an example \u2014 yours carries your photo.';
+    }
+    return 'An example on the mug. Yours carries your photo.';
+  }
+
+  /* The words live in the same print box as the other examples. A canvas
+     measurement is in the same units as an SVG font-size, so the lines can
+     be wrapped without reading the scaled mug. */
+  var HAND = { x: 190, y: 152, w: 116, h: 140, pad: 8 };
+
+  function measureHand(str, size) {
+    var canvas = measureHand.c || (measureHand.c = document.createElement('canvas'));
+    var ctx = canvas.getContext && canvas.getContext('2d');
+    if (!ctx) return String(str || '').length * size * 0.5;
+    ctx.font = '600 ' + size + 'px Caveat, cursive';
+    return ctx.measureText(str || '').width;
+  }
+
+  function wrapHand(paragraphs, size, maxW) {
+    var lines = [], tooWide = false;
+    paragraphs.forEach(function (p) {
+      var words = p.split(' '), cur = '';
+      words.forEach(function (word) {
+        if (!word) return;
+        var trial = cur ? (cur + ' ' + word) : word;
+        if (measureHand(trial, size) <= maxW) { cur = trial; return; }
+        if (cur) lines.push(cur);
+        if (measureHand(word, size) > maxW) tooWide = true;
+        cur = word;
+      });
+      if (cur) lines.push(cur);
+    });
+    return { lines: lines, tooWide: tooWide };
+  }
+
+  function paintHand(raw) {
+    var g = document.getElementById('hand-words');
+    if (!g) return;
+    var SVG = 'http://www.w3.org/2000/svg';
+    while (g.firstChild) g.removeChild(g.firstChild);
+    var paragraphs = String(raw || '').replace(/\r\n/g, '\n').split('\n').map(function (line) {
+      return line.replace(/[ \t]+/g, ' ').trim();
+    }).filter(Boolean);
+    if (!paragraphs.length) return;
+    var maxW = HAND.w - HAND.pad * 2;
+    var maxH = HAND.h - HAND.pad * 2;
+    /* Keep the line breaks the buyer typed. Shrink to fit those lines,
+       and only wrap when a line still will not fit. */
+    var size = 15, lines = paragraphs.slice();
+    var s;
+    for (s = 36; s >= 15; s--) {
+      var oneEach = paragraphs.every(function (p) { return measureHand(p, s) <= maxW; });
+      if (oneEach && paragraphs.length * s * 1.12 <= maxH) { size = s; lines = paragraphs.slice(); break; }
+    }
+    if (s < 15) {
+      var fit;
+      size = 28;
+      for (s = 28; s >= 14; s--) {
+        fit = wrapHand(paragraphs, s, maxW);
+        if (!fit.tooWide && fit.lines.length && fit.lines.length * s * 1.12 <= maxH) {
+          size = s; lines = fit.lines; break;
+        }
+      }
+      if (s < 14) { size = 14; lines = fit.lines.length ? fit.lines : lines; }
+    }
+    var gap = size * 1.12;
+    var maxLines = Math.max(1, Math.floor(maxH / gap));
+    lines = lines.slice(0, maxLines);
+    if (!lines.length) return;
+    var cx = HAND.x + HAND.w / 2;
+    var mid = HAND.y + HAND.h / 2;
+    var start = mid - (lines.length - 1) * gap / 2;
+    lines.forEach(function (line, i) {
+      var t = document.createElementNS(SVG, 'text');
+      t.setAttribute('class', 'hand-line');
+      t.setAttribute('x', cx.toFixed(2));
+      t.setAttribute('y', (start + i * gap).toFixed(2));
+      t.setAttribute('text-anchor', 'middle');
+      t.setAttribute('dominant-baseline', 'middle');
+      t.setAttribute('font-size', String(size));
+      var width = measureHand(line, size);
+      if (width > maxW && width > 0) {
+        t.setAttribute('textLength', maxW.toFixed(1));
+        t.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+      }
+      t.textContent = line;
+      g.appendChild(t);
+    });
+  }
+
+  function repaintHand() {
+    var input = document.getElementById('hand-text');
+    paintHand(input ? input.value : '');
   }
 
   function stopCycle() {
@@ -1735,6 +1840,13 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       show(chip.getAttribute('data-key'));
     });
   });
+
+  var handInput = document.getElementById('hand-text');
+  if (handInput) handInput.addEventListener('input', repaintHand);
+  repaintHand();
+  if (document.fonts && document.fonts.load) {
+    document.fonts.load('600 36px Caveat').then(repaintHand).catch(repaintHand);
+  }
 
   /* No auto-rotation: the designs change only when someone picks one.
      Moving the product while a buyer is reading it costs more than it shows. */
@@ -1888,12 +2000,12 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
      the beach, the wall, the table, the paper — already cleared, so it
      sits on the ceramic as a cutout. A blank slot falls back to the drawing.
      They stay on the mug itself: no credits, and no lineup beside it.
+     Handwriting is typed words, not a photograph, so it is not in this list.
      A buyer's own upload is not cut out here. */
   var EXAMPLE_PHOTOS = {
     family: 'assets/examples/family.png',
     art:    'assets/examples/art.png',
     pet:    'assets/examples/dog.png',
-    hand:   'assets/examples/handwriting.png',
     recipe: 'assets/examples/recipe.png',
     team:   'assets/examples/crew.png'
   };
@@ -1918,11 +2030,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   /* Where each photo sits, in SVG user units: [x, y, width, height]. */
   var PHOTO_BOX = {
     family:[190,152,116,140], art:[190,152,116,140], pet:[190,152,116,140],
-    hand:[190,152,116,140], recipe:[190,152,116,140], team:[190,152,116,140]
+    recipe:[190,152,116,140], team:[190,152,116,140]
   };
   var PHOTO_LABEL = {
     family:'Family — on the mug', art:"Kid's art — on the mug",
-    pet:'The dog — on the mug', hand:'Handwriting — on the mug',
+    pet:'The dog — on the mug',
     recipe:'Recipe — on the mug', team:'The crew — on the mug'
   };
 
@@ -2030,9 +2142,14 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     }
     /* The small print has to match what is actually on screen. */
     var fine = $('stage-fineprint');
-    if (fine) fine.textContent = src
-      ? 'Our 15 oz mug. The photograph on it is an example \u2014 yours carries your photo.'
-      : 'An example on the mug. Yours carries your photo.';
+    if (fine) {
+      var handOn = document.querySelector('#chip-hand[aria-pressed="true"]');
+      fine.textContent = handOn
+        ? 'Our 15 oz mug. The words are what you typed.'
+        : (src
+          ? 'Our 15 oz mug. The photograph on it is an example \u2014 yours carries your photo.'
+          : 'An example on the mug. Yours carries your photo.');
+    }
 
     var fit = svg.querySelector('#panel-fit');
     var sx = b[2] / ART_BOX[2], sy = b[3] / ART_BOX[3];
