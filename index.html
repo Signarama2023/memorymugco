@@ -284,6 +284,14 @@ section{scroll-margin-top:92px}
 .trace-line{fill:none;stroke:var(--red-deep);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
 .trace-handle{fill:var(--surface);stroke:var(--red-deep);stroke-width:2;pointer-events:auto;cursor:grab}
 .proof-nudge button:disabled{opacity:.45;cursor:default}
+/* On a phone the crop box is small and a finger hides a freehand stroke.
+   Tracing switches to a full-width photo and dots you tap, then drag. */
+@media (max-width:920px){
+  .face-row.is-tracing{flex-direction:column;align-items:stretch}
+  .face-row.is-tracing .face-stage{width:100%;max-width:none;flex:none}
+  .face-row.is-tracing .face-side{flex-direction:row;justify-content:center;gap:10px}
+  .face-row.is-tracing .trace-line{stroke-width:4}
+}
 .face-ring{
   position:absolute;left:14%;top:14%;width:72%;height:72%;border-radius:50%;
   border:2.5px dashed var(--red-deep);pointer-events:none;
@@ -2903,11 +2911,22 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
   function syncTraceChrome() {
     var stage = $('face-stage');
+    var phone = phoneTrace();
+    var row = $('face-row');
+    if (row) row.classList.toggle('is-tracing', !!(traceOn && phone));
     if (stage) {
       stage.classList.toggle('is-trace', traceOn);
       stage.setAttribute('aria-label', traceOn
-        ? 'Draw around the part of the photo that should stay'
+        ? (phone
+          ? 'Tap to place a point. Drag a point to move it.'
+          : 'Draw around the part of the photo that should stay')
         : 'Drag to move the face inside the circle');
+    }
+    var note = $('trace-note');
+    if (note) {
+      note.textContent = (traceOn && phone)
+        ? 'Tap around what should stay. Drag a dot to move it. The rest comes off the mug. The circle still frames the face.'
+        : 'Draw around what should stay. Everything outside that line comes off the mug. The circle still frames the face.';
     }
     var mode = $('trace-mode');
     if (mode) mode.setAttribute('aria-pressed', traceOn ? 'true' : 'false');
@@ -2933,7 +2952,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     }
     var pts = traceLive || currentTrace();
     var live = !!traceLive;
-    if (!pts || pts.length < 2) {
+    if (!pts || !pts.length) {
       line.setAttribute('points', '');
       handles.textContent = '';
       if (shade) shade.setAttribute('d', '');
@@ -2945,8 +2964,8 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       if (s) mapped.push(s);
     });
     var attr = mapped.map(function (p) { return p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' ');
-    if (!live && mapped.length) attr += ' ' + mapped[0].x.toFixed(1) + ',' + mapped[0].y.toFixed(1);
-    line.setAttribute('points', attr);
+    if (!live && mapped.length > 1) attr += ' ' + mapped[0].x.toFixed(1) + ',' + mapped[0].y.toFixed(1);
+    line.setAttribute('points', mapped.length > 1 ? attr : '');
     if (shade) {
       if (!live && mapped.length >= 3 && stage) {
         var w = stage.clientWidth || 240;
@@ -2965,7 +2984,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       mapped.forEach(function (p, i) {
         var c = document.createElementNS(SVGNS, 'circle');
         c.setAttribute('class', 'trace-handle');
-        c.setAttribute('r', '6');
+        c.setAttribute('r', phoneTrace() ? '16' : '6');
         c.setAttribute('cx', p.x.toFixed(1));
         c.setAttribute('cy', p.y.toFixed(1));
         c.addEventListener('pointerdown', function (e) {
@@ -2993,7 +3012,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         handles.appendChild(c);
       });
     } else {
+      var radius = phoneTrace() ? '16' : '6';
       mapped.forEach(function (p, i) {
+        kids[i].setAttribute('r', radius);
         kids[i].setAttribute('cx', p.x.toFixed(1));
         kids[i].setAttribute('cy', p.y.toFixed(1));
       });
@@ -3003,7 +3024,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   function rebuildTrace() {
     syncTraceChrome();
     var pts = currentTrace();
-    if (!pts || !ownPhoto) {
+    if (!ownPhoto || !pts || pts.length < 3) {
       traceMask = null;
       if (ownPhoto) paintOwnPhoto(ownPhoto.dataUri);
       return;
@@ -3016,11 +3037,39 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     });
   }
 
+  /* A phone is the narrow layout. There the buyer taps dots instead of
+     drawing a stroke the finger would cover. */
+  function phoneTrace() {
+    return window.matchMedia('(max-width: 920px)').matches;
+  }
+
   function commitTrace(pts) {
     var clean = simplifyTrace(pts);
     if (clean.length < 3) return;
     traceHist.push(clean);
-    if (traceHist.length > 12) traceHist.shift();
+    if (traceHist.length > 36) traceHist.shift();
+    rebuildTrace();
+  }
+
+  function addTracePoint(p) {
+    var prev = [];
+    var cur = currentTrace();
+    if (cur) cur.forEach(function (q) { prev.push({ x: q.x, y: q.y }); });
+    if (prev.length) {
+      var last = prev[prev.length - 1];
+      var dx = p.x - last.x, dy = p.y - last.y;
+      if (dx * dx + dy * dy < 0.0004) return;
+    }
+    if (prev.length >= 3) {
+      var first = prev[0];
+      var fx = p.x - first.x, fy = p.y - first.y;
+      if (fx * fx + fy * fy < 0.0016) return;
+    }
+    prev.push({ x: p.x, y: p.y });
+    if (prev.length > 28) prev = simplifyTrace(prev);
+    traceHist.push(prev);
+    if (traceHist.length > 36) traceHist.shift();
+    traceLive = null;
     rebuildTrace();
   }
 
@@ -3370,6 +3419,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     cropB.appendChild(el('p', 'proof-head', 'Crop the face'));
     cropB.appendChild(el('p', 'proof-note', 'Drag the photo until the face sits in the circle. That circle is what prints.'));
     var faceRow = el('div', 'face-row');
+    faceRow.id = 'face-row';
     var stage = el('div', 'face-stage');
     stage.id = 'face-stage';
     stage.tabIndex = 0;
@@ -3424,7 +3474,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     center.onclick = function () { centerPhoto(); };
     zoomRow.appendChild(zlab); zoomRow.appendChild(zoom); zoomRow.appendChild(center);
     cropB.appendChild(zoomRow);
-    cropB.appendChild(el('p', 'proof-note', 'Draw around what should stay. Everything outside that line comes off the mug. The circle still frames the face.'));
+    var traceNote = el('p', 'proof-note', 'Draw around what should stay. Everything outside that line comes off the mug. The circle still frames the face.');
+    traceNote.id = 'trace-note';
+    cropB.appendChild(traceNote);
     var traceRow = el('div', 'proof-nudge');
     traceRow.setAttribute('role', 'group');
     traceRow.setAttribute('aria-label', 'Photo outline');
@@ -3436,6 +3488,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       traceOn = !traceOn;
       traceLive = null;
       syncTraceChrome();
+      syncCropView();
     });
     var undoBtn = el('button', null, 'Undo');
     undoBtn.type = 'button';
@@ -3560,9 +3613,16 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     wrap.appendChild(wordStep);
 
     var cropDrag = null;
+    var tap = null;
     stage.addEventListener('pointerdown', function (e) {
       if (!ownPhoto) return;
       if (e.target && e.target.classList && e.target.classList.contains('trace-handle')) return;
+      if (traceOn && phoneTrace()) {
+        tap = { x: e.clientX, y: e.clientY };
+        try { stage.setPointerCapture(e.pointerId); } catch (err) {}
+        e.preventDefault();
+        return;
+      }
       if (traceOn) {
         var hit = stagePoint(e.clientX, e.clientY);
         if (!hit) return;
@@ -3578,6 +3638,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       e.preventDefault();
     });
     stage.addEventListener('pointermove', function (e) {
+      if (tap) return;
       if (traceLive) {
         var hit = stagePoint(e.clientX, e.clientY);
         if (!hit) return;
@@ -3597,6 +3658,17 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       cropDrag = [e.clientX, e.clientY];
     });
     var stopCrop = function (e) {
+      if (tap) {
+        var moved = Math.hypot(e.clientX - tap.x, e.clientY - tap.y);
+        var at = tap;
+        tap = null;
+        try { stage.releasePointerCapture(e.pointerId); } catch (err) {}
+        if (moved < 18) {
+          var placed = stagePoint(at.x, at.y);
+          if (placed) addTracePoint(placed);
+        }
+        return;
+      }
       if (traceLive) {
         var pts = traceLive;
         traceLive = null;
@@ -4645,7 +4717,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   /* ══ Wiring ══ */
   function start() {
     mountPhotos();
-    window.addEventListener('resize', function () { if (ownPhoto) syncCropView(); });
+    window.addEventListener('resize', function () {
+      if (!ownPhoto) return;
+      syncTraceChrome();
+      syncCropView();
+    });
     renderMugSlot();
     wireMugSlot();
     wirePhotoDrag();
