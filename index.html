@@ -451,13 +451,13 @@ section{scroll-margin-top:92px}
 .chip[aria-pressed="true"]:hover{background:var(--red-deep);color:#FFFFFF}
 .chip--more{border-style:dashed;color:var(--ink-3)}
 .stage-caption{font-size:.9375rem;color:var(--ink-2);text-align:center;max-width:42ch;min-height:2.6em}
-/* Handwriting is typed, not a photograph. The box sits with the chips. */
-.hand-box{width:100%;max-width:420px;min-width:0}
-.hand-box textarea{
+/* Handwriting and Recipe are typed, not photographs. The box sits with the chips. */
+.hand-box,.recipe-box{width:100%;max-width:420px;min-width:0}
+.hand-box textarea,.recipe-box textarea{
   font-family:Caveat,cursive;font-weight:600;font-size:1.7rem;line-height:1.2;
   min-height:0;resize:vertical;
 }
-.mug-svg .hand-line{fill:var(--ink);font-family:Caveat,cursive;font-weight:600}
+.mug-svg .hand-line,.mug-svg .recipe-line{fill:var(--ink);font-family:Caveat,cursive;font-weight:600}
 @media (max-width:720px){
   .hero{padding-block:4px 28px}
   .hero h1{font-size:clamp(1.55rem,6.6vw,1.85rem)}
@@ -487,7 +487,7 @@ section{scroll-margin-top:92px}
     box-shadow:0 16px 22px -20px rgba(22,19,17,.7);
   }
   .bg-drop,.bg-drop-btn,.bg-drop-opt,.face-stage,.face-fields input,.face-ask textarea,.ask-confirm,#face-curve,.font-pick,#trace-mode,.proof-tools,.proof-nudge button,
-  #pattern-size,#photo-zoom,#photo-margin,#hand-text{
+  #pattern-size,#photo-zoom,#photo-margin,#hand-text,#recipe-text{
     scroll-margin-top:calc(var(--head-h, 96px) + 220px);
     scroll-margin-bottom:12px;
   }
@@ -772,7 +772,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   background-repeat:no-repeat;background-position:right 14px center;background-size:12px 8px}
 .field input:focus-visible,.field textarea:focus-visible,.field select:focus-visible{border-color:var(--red-deep)}
 /* After .field's font shorthand, so the box matches the script on the mug. */
-.hand-box textarea{font-family:Caveat,cursive;font-weight:600;font-size:1.7rem;line-height:1.2}
+.hand-box textarea,.recipe-box textarea{font-family:Caveat,cursive;font-weight:600;font-size:1.7rem;line-height:1.2}
 .field .hint{font-size:.9375rem;color:var(--ink-3);line-height:1.5}
 .field .hint a{color:var(--red-ink);font-weight:700}
 .status{border-radius:var(--r-md);padding:14px 16px;font-size:.92rem;line-height:1.55}
@@ -1095,26 +1095,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
               <g id="hand-words"></g>
             </g>
 
-            <!-- RECIPE — the index card -->
+            <!-- RECIPE — words the buyer types. No page, no photograph. -->
             <g class="memory" data-key="recipe">
-             <g class="scene-draw">
-              <rect x="190" y="152" width="116" height="140" fill="#E4D2B8"/>
-              <rect x="197" y="161" width="102" height="122" rx="3" fill="#F0E2CC" stroke="#B7A48C" stroke-width="1.5"/>
-              <path d="M197 164a3 3 0 0 1 3-3h96a3 3 0 0 1 3 3v14H197Z" fill="#C12F1A"/>
-              <text fill="#FFFFFF" x="248" y="175" font-family="Caveat, cursive" font-size="15" text-anchor="middle" textLength="46" lengthAdjust="spacingAndGlyphs">Grandma&#8217;s</text>
-              <text fill="#1A1614" x="248" y="200" font-family="Caveat, cursive" font-size="19" font-weight="600" text-anchor="middle" textLength="84" lengthAdjust="spacingAndGlyphs">Peach Cobbler</text>
-              <g stroke="#E4D3C0" stroke-width="1">
-                <path d="M204 212h88M204 228h88M204 244h88M204 260h88"/>
-              </g>
-              <g fill="#1A1614" font-family="Caveat, cursive" font-size="15" opacity=".88">
-                <text x="206" y="225" textLength="76" lengthAdjust="spacingAndGlyphs">6 peaches, sliced</text>
-                <text x="206" y="241" textLength="54" lengthAdjust="spacingAndGlyphs">1 cup sugar</text>
-                <text x="206" y="257" textLength="62" lengthAdjust="spacingAndGlyphs">1 stick butter</text>
-              </g>
-              <text fill="#C12F1A" x="206" y="275" font-family="Caveat, cursive" font-size="15" textLength="60" lengthAdjust="spacingAndGlyphs">Bake 45 min!</text>
-              <circle cx="286" cy="266" r="8" fill="#E7A04A"/>
-              <path d="M286 258c3-4 8-4 8-3s-1 5-4 6c-2 1-4 0-4-3Z" fill="#6B8F4E"/>
-             </g>
+              <g id="recipe-words"></g>
             </g>
 
             <!-- THE CUSTOMER'S OWN PHOTO — filled in on this device only -->
@@ -1163,6 +1146,11 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         <label for="hand-text">Your words</label>
         <textarea id="hand-text" rows="2" maxlength="160" autocomplete="off" spellcheck="true">Love you
 always</textarea>
+      </div>
+      <div class="field recipe-box" id="recipe-box" hidden>
+        <label for="recipe-text">Your recipe</label>
+        <textarea id="recipe-text" rows="3" maxlength="160" autocomplete="off" spellcheck="true">Grandma's cobbler
+6 peaches</textarea>
       </div>
       <p class="stage-caption" id="mug-caption" aria-live="polite">
         The whole crew, wrapped the entire way around. Yes, the dog counts as family.
@@ -1706,7 +1694,7 @@ always</textarea>
     art:    "A kid's drawing, photographed and printed on the ceramic.",
     pet:    "A dog, close up. Yours would be your dog.",
     hand:   "Type a few words. They show up on the mug.",
-    recipe: "A recipe from the kitchen, printed on the mug.",
+    recipe: "Type a recipe. The words show up on the mug.",
     team:   "A crew, printed on the white base.",
     yours:  "Your face, in a circle on the front. Drag the photo until it sits in the ring."
   };
@@ -1725,14 +1713,16 @@ always</textarea>
       c.setAttribute('aria-pressed', String(c.getAttribute('data-key') === key));
     });
     if (caption && CAPTIONS[key]) caption.textContent = CAPTIONS[key];
-    var box = document.getElementById('hand-box');
-    if (box) box.hidden = key !== 'hand';
+    var handBox = document.getElementById('hand-box');
+    if (handBox) handBox.hidden = key !== 'hand';
+    var recipeBox = document.getElementById('recipe-box');
+    if (recipeBox) recipeBox.hidden = key !== 'recipe';
     var fine = document.getElementById('stage-fineprint');
     if (fine) fine.textContent = fineLine(key);
   }
 
   function fineLine(key) {
-    if (key === 'hand') return 'Our 15 oz mug. The words are what you typed.';
+    if (key === 'hand' || key === 'recipe') return 'Our 15 oz mug. The words are what you typed.';
     var svg = document.querySelector('.hero .mug-svg');
     if (svg && svg.classList.contains('has-photo')) {
       return 'Our 15 oz mug. The photograph on it is an example \u2014 yours carries your photo.';
@@ -1742,27 +1732,28 @@ always</textarea>
 
   /* The words live in the same print box as the other examples. A canvas
      measurement is in the same units as an SVG font-size, so the lines can
-     be wrapped without reading the scaled mug. */
-  var HAND = { x: 190, y: 152, w: 116, h: 140, pad: 8 };
+     be wrapped without reading the scaled mug. Handwriting and Recipe share
+     this box; each one paints into its own group. */
+  var TYPE_BOX = { x: 190, y: 152, w: 116, h: 140, pad: 8 };
 
-  function measureHand(str, size) {
-    var canvas = measureHand.c || (measureHand.c = document.createElement('canvas'));
+  function measureTyped(str, size) {
+    var canvas = measureTyped.c || (measureTyped.c = document.createElement('canvas'));
     var ctx = canvas.getContext && canvas.getContext('2d');
     if (!ctx) return String(str || '').length * size * 0.5;
     ctx.font = '600 ' + size + 'px Caveat, cursive';
     return ctx.measureText(str || '').width;
   }
 
-  function wrapHand(paragraphs, size, maxW) {
+  function wrapTyped(paragraphs, size, maxW) {
     var lines = [], tooWide = false;
     paragraphs.forEach(function (p) {
       var words = p.split(' '), cur = '';
       words.forEach(function (word) {
         if (!word) return;
         var trial = cur ? (cur + ' ' + word) : word;
-        if (measureHand(trial, size) <= maxW) { cur = trial; return; }
+        if (measureTyped(trial, size) <= maxW) { cur = trial; return; }
         if (cur) lines.push(cur);
-        if (measureHand(word, size) > maxW) tooWide = true;
+        if (measureTyped(word, size) > maxW) tooWide = true;
         cur = word;
       });
       if (cur) lines.push(cur);
@@ -1770,8 +1761,8 @@ always</textarea>
     return { lines: lines, tooWide: tooWide };
   }
 
-  function paintHand(raw) {
-    var g = document.getElementById('hand-words');
+  function paintTyped(groupId, lineClass, raw) {
+    var g = document.getElementById(groupId);
     if (!g) return;
     var SVG = 'http://www.w3.org/2000/svg';
     while (g.firstChild) g.removeChild(g.firstChild);
@@ -1779,21 +1770,21 @@ always</textarea>
       return line.replace(/[ \t]+/g, ' ').trim();
     }).filter(Boolean);
     if (!paragraphs.length) return;
-    var maxW = HAND.w - HAND.pad * 2;
-    var maxH = HAND.h - HAND.pad * 2;
+    var maxW = TYPE_BOX.w - TYPE_BOX.pad * 2;
+    var maxH = TYPE_BOX.h - TYPE_BOX.pad * 2;
     /* Keep the line breaks the buyer typed. Shrink to fit those lines,
        and only wrap when a line still will not fit. */
     var size = 15, lines = paragraphs.slice();
     var s;
     for (s = 36; s >= 15; s--) {
-      var oneEach = paragraphs.every(function (p) { return measureHand(p, s) <= maxW; });
+      var oneEach = paragraphs.every(function (p) { return measureTyped(p, s) <= maxW; });
       if (oneEach && paragraphs.length * s * 1.12 <= maxH) { size = s; lines = paragraphs.slice(); break; }
     }
     if (s < 15) {
       var fit;
       size = 28;
       for (s = 28; s >= 14; s--) {
-        fit = wrapHand(paragraphs, s, maxW);
+        fit = wrapTyped(paragraphs, s, maxW);
         if (!fit.tooWide && fit.lines.length && fit.lines.length * s * 1.12 <= maxH) {
           size = s; lines = fit.lines; break;
         }
@@ -1804,18 +1795,18 @@ always</textarea>
     var maxLines = Math.max(1, Math.floor(maxH / gap));
     lines = lines.slice(0, maxLines);
     if (!lines.length) return;
-    var cx = HAND.x + HAND.w / 2;
-    var mid = HAND.y + HAND.h / 2;
+    var cx = TYPE_BOX.x + TYPE_BOX.w / 2;
+    var mid = TYPE_BOX.y + TYPE_BOX.h / 2;
     var start = mid - (lines.length - 1) * gap / 2;
     lines.forEach(function (line, i) {
       var t = document.createElementNS(SVG, 'text');
-      t.setAttribute('class', 'hand-line');
+      t.setAttribute('class', lineClass);
       t.setAttribute('x', cx.toFixed(2));
       t.setAttribute('y', (start + i * gap).toFixed(2));
       t.setAttribute('text-anchor', 'middle');
       t.setAttribute('dominant-baseline', 'middle');
       t.setAttribute('font-size', String(size));
-      var width = measureHand(line, size);
+      var width = measureTyped(line, size);
       if (width > maxW && width > 0) {
         t.setAttribute('textLength', maxW.toFixed(1));
         t.setAttribute('lengthAdjust', 'spacingAndGlyphs');
@@ -1825,9 +1816,17 @@ always</textarea>
     });
   }
 
+  function paintHand(raw) { paintTyped('hand-words', 'hand-line', raw); }
+  function paintRecipe(raw) { paintTyped('recipe-words', 'recipe-line', raw); }
+
   function repaintHand() {
     var input = document.getElementById('hand-text');
     paintHand(input ? input.value : '');
+  }
+
+  function repaintRecipe() {
+    var input = document.getElementById('recipe-text');
+    paintRecipe(input ? input.value : '');
   }
 
   function stopCycle() {
@@ -1843,9 +1842,18 @@ always</textarea>
 
   var handInput = document.getElementById('hand-text');
   if (handInput) handInput.addEventListener('input', repaintHand);
+  var recipeInput = document.getElementById('recipe-text');
+  if (recipeInput) recipeInput.addEventListener('input', repaintRecipe);
   repaintHand();
+  repaintRecipe();
   if (document.fonts && document.fonts.load) {
-    document.fonts.load('600 36px Caveat').then(repaintHand).catch(repaintHand);
+    document.fonts.load('600 36px Caveat').then(function () {
+      repaintHand();
+      repaintRecipe();
+    }).catch(function () {
+      repaintHand();
+      repaintRecipe();
+    });
   }
 
   /* No auto-rotation: the designs change only when someone picks one.
@@ -2000,13 +2008,12 @@ always</textarea>
      the beach, the wall, the table, the paper — already cleared, so it
      sits on the ceramic as a cutout. A blank slot falls back to the drawing.
      They stay on the mug itself: no credits, and no lineup beside it.
-     Handwriting is typed words, not a photograph, so it is not in this list.
-     A buyer's own upload is not cut out here. */
+     Handwriting and Recipe are typed words, not photographs, so they are
+     not in this list. A buyer's own upload is not cut out here. */
   var EXAMPLE_PHOTOS = {
     family: 'assets/examples/family.png',
     art:    'assets/examples/art.png',
     pet:    'assets/examples/dog.png',
-    recipe: 'assets/examples/recipe.png',
     team:   'assets/examples/crew.png'
   };
   /* ADMIN-CONFIG-END */
@@ -2030,12 +2037,11 @@ always</textarea>
   /* Where each photo sits, in SVG user units: [x, y, width, height]. */
   var PHOTO_BOX = {
     family:[190,152,116,140], art:[190,152,116,140], pet:[190,152,116,140],
-    recipe:[190,152,116,140], team:[190,152,116,140]
+    team:[190,152,116,140]
   };
   var PHOTO_LABEL = {
     family:'Family — on the mug', art:"Kid's art — on the mug",
-    pet:'The dog — on the mug',
-    recipe:'Recipe — on the mug', team:'The crew — on the mug'
+    pet:'The dog — on the mug', team:'The crew — on the mug'
   };
 
   var LS_CFG = 'mmc.config.v3', LS_CART = 'mmc.cart.v3', LS_NOTE = 'mmc.note.v3';
@@ -2143,8 +2149,8 @@ always</textarea>
     /* The small print has to match what is actually on screen. */
     var fine = $('stage-fineprint');
     if (fine) {
-      var handOn = document.querySelector('#chip-hand[aria-pressed="true"]');
-      fine.textContent = handOn
+      var typedOn = document.querySelector('#chip-hand[aria-pressed="true"], #chip-recipe[aria-pressed="true"]');
+      fine.textContent = typedOn
         ? 'Our 15 oz mug. The words are what you typed.'
         : (src
           ? 'Our 15 oz mug. The photograph on it is an example \u2014 yours carries your photo.'
