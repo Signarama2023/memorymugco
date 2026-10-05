@@ -2970,34 +2970,33 @@ always</textarea>
     var canvas = letterMetrics.canvas || (letterMetrics.canvas = document.createElement('canvas'));
     var ctx = canvas.getContext && canvas.getContext('2d');
     if (!ctx) {
-      return { w: Math.max(size, str.length * size * 0.55), ascent: size * 0.8, descent: size * 0.22 };
+      return { w: Math.max(size, str.length * size * 0.55), ascent: size * 0.74, descent: size * 0.18 };
     }
     ctx.font = fontChoice().spec.replace(/[\d.]+px/, size + 'px');
     var m = ctx.measureText(str);
     var w = m.width;
     if (!isFinite(w) || w < 1) w = Math.max(size, str.length * size * 0.55);
-    /* The canvas box sits inside the SVG ink. Use the larger of the two so a
-       big size is moved into the gap instead of being clipped off the print. */
-    return {
-      w: w,
-      ascent: Math.max(m.actualBoundingBoxAscent || 0, size * 0.98),
-      descent: Math.max(m.actualBoundingBoxDescent || 0, size * 0.26)
-    };
+    /* Tight ink, not the em square. The square is taller than the letters,
+       and counting it as ink filled the gap, so a large size stayed flat. */
+    var ascent = m.actualBoundingBoxAscent;
+    var descent = m.actualBoundingBoxDescent;
+    if (!(ascent > 0)) ascent = size * 0.74;
+    if (!(descent >= 0)) descent = 0;
+    return { w: w, ascent: ascent, descent: descent };
   }
 
   function arcLength(half, bend) {
-    if (bend < 0.4 || half < 0.5) return Math.max(0, half * 2);
+    if (bend < 0.35 || half < 0.5) return Math.max(0, half * 2);
     var R = (half * half + bend * bend) / (2 * bend);
     return R * 2 * Math.asin(Math.min(1, half / R));
   }
 
   function bowPath(y, half, bend, up) {
     var x1 = FACE.cx - half, x2 = FACE.cx + half;
-    if (bend < 0.4) {
+    if (bend < 0.35) {
       return 'M' + x1.toFixed(2) + ',' + y.toFixed(2) + ' L' + x2.toFixed(2) + ',' + y.toFixed(2);
     }
-    /* Keep the middle of the line, and let the ends follow the circle,
-       so the arc does not climb out of the print. */
+    /* The middle of the line stays put. The ends follow the circle. */
     var endY = up ? y + bend : y - bend;
     var R = (half * half + bend * bend) / (2 * bend);
     var yy = endY.toFixed(2);
@@ -3006,9 +3005,10 @@ always</textarea>
   }
 
   /**
-   * One line of the name. The bow scales with the words. A fixed bend used to
-   * swing a short line off the ceramic, and a path shorter than the words
-   * never drew the letters past its ends.
+   * One line on the face. Both lines take the same bow from the slider.
+   * A short word eases that bow before the letters fold together, and a
+   * line that is too tall eases its own arc. The size stays what the buyer
+   * set, and the other line is left alone.
    */
   function drawFaceLine(holder, str, y, cls, size, up) {
     var clean = String(str || '').replace(/\s+/g, ' ').trim();
@@ -3019,96 +3019,115 @@ always</textarea>
        bigger box nudges a line outward; a smaller one leaves it put. */
     var edge = faceHalf();
     var circleTop = FACE.cy - edge, circleBot = FACE.cy + edge;
-    var drawSize = Math.max(8, Math.round(size));
-    var metrics = letterMetrics(clean, drawSize);
-    function bandOk(met) {
-      if (up) return (circleTop - met.descent - 1.6) >= (boxT + met.ascent + 0.8) - 0.4;
-      return (boxB - met.descent - 0.8) >= (circleBot + met.ascent + 1.6) - 0.4;
-    }
-    while (drawSize > 9 && !bandOk(metrics)) {
-      drawSize -= 1;
-      metrics = letterMetrics(clean, drawSize);
-    }
-    size = drawSize;
-    var side = 2 + Math.min(8, metrics.ascent * 0.2);
+    size = Math.max(8, Math.round(size));
+    var metrics = letterMetrics(clean, size);
+    var side = 2.5;
     var maxHalf = (boxR - boxL) / 2 - side;
     if (maxHalf < 8) maxHalf = 8;
     var t = Math.max(0, Math.min(1, faceCurve));
+    /* How far the middle lifts at a full curve. The same distance for both lines. */
+    var FULL_BOW = 8;
+    /* Steeper than this and a short word stacks its letters. The slider scales it. */
+    var MAX_TILT = 0.42;
+    var fontCls = cls + ' font-' + fontChoice().id;
+    var glyphs = clean.replace(/ /g, '').length || 1;
+    var gaps = Math.max(0, glyphs - 1);
+    var tiltWant = MAX_TILT * t;
 
-    function halfFor(bend, target) {
-      if (bend < 0.4) return Math.min(maxHalf, target / 2);
-      var lo = 1, hi = Math.max(1, target / 2);
+    function halfFor(bend, target, limit) {
+      var cap = limit > 0 ? limit : maxHalf;
+      if (bend < 0.35) return Math.min(cap, target / 2);
+      var lo = 0.4, hi = Math.min(cap, Math.max(0.4, target / 2));
+      if (arcLength(hi, bend) < target) return hi;
       var i;
-      for (i = 0; i < 16; i++) {
+      for (i = 0; i < 18; i++) {
         var mid = (lo + hi) / 2;
         if (arcLength(mid, bend) < target) lo = mid;
         else hi = mid;
       }
-      return Math.min(maxHalf, hi);
+      return hi;
     }
 
-    function fits(y0, half, bend) {
-      var alpha = 0, lean = 0;
-      if (bend >= 0.4 && half > 0.5) {
-        var R = (half * half + bend * bend) / (2 * bend);
-        alpha = Math.asin(Math.min(1, half / R));
-        lean = Math.sin(alpha) * metrics.ascent;
-      }
-      if (half + lean * 0.55 > maxHalf + side - 0.4) return false;
-      if (up) {
-        var top = y0 - metrics.ascent * Math.cos(alpha);
-        var bot = y0 + bend + metrics.descent + lean * 0.12;
-        return top >= boxT + 0.6 && bot <= circleTop - 1.4;
-      }
-      var topEnd = y0 - bend - metrics.ascent * Math.max(0.55, Math.cos(alpha)) - lean * 0.08;
-      var botMid = y0 + metrics.descent + lean * 0.35;
-      return topEnd >= circleBot + 1.4 && botMid <= boxB - 0.6;
+    function tiltOf(half, bend) {
+      if (bend < 0.35 || half < 0.5) return 0;
+      var R = (half * half + bend * bend) / (2 * bend);
+      return Math.asin(Math.min(1, half / R));
     }
 
-    var y0 = y;
+    /* The slider's bow. Same tilt on every line, unless the line is too tall. */
+    function askedBend(span) {
+      var want = FULL_BOW * t;
+      if (want <= 0 || span < 1 || tiltWant < 0.02) return 0;
+      var R = span / (2 * tiltWant);
+      return Math.min(want, R * (1 - Math.cos(tiltWant)));
+    }
+
+    /* The designed baseline, moved only when the flat ink itself would
+       cross the print or the photo. The curve does not move it further. */
+    var yHome = y;
     if (up) {
-      var minY = boxT + metrics.ascent + 0.8;
-      var maxY = circleTop - metrics.descent - 1.6;
-      y0 = maxY < minY ? minY : Math.max(minY, Math.min(maxY, y));
+      var minHome = boxT + metrics.ascent + 0.35;
+      var maxHome = circleTop - metrics.descent - 0.7;
+      if (maxHome >= minHome) yHome = Math.max(minHome, Math.min(maxHome, y));
     } else {
-      var minY2 = circleBot + metrics.ascent + 1.6;
-      var maxY2 = boxB - metrics.descent - 0.8;
-      y0 = maxY2 < minY2 ? minY2 : Math.max(minY2, Math.min(maxY2, y));
+      var minHome2 = circleBot + metrics.ascent + 0.7;
+      var maxHome2 = boxB - metrics.descent - 0.35;
+      if (maxHome2 >= minHome2) yHome = Math.max(minHome2, Math.min(maxHome2, y));
     }
 
-    var half = Math.min(maxHalf, Math.max(size * 0.4, metrics.w / 2));
-    var bend = 0;
-    if (t > 0 && half > 1) {
-      var want = Math.min(half * 0.4, up ? 13 : 11) * t;
-      if (!up) y0 += Math.min(want * 0.8, Math.max(0, (boxB - metrics.descent - 1) - y0));
-      bend = want;
+    /* Open the gaps by about how far this bow leans the tops together.
+       The letter shapes stay the same size. A line that has to ease its
+       arc opens only as much as that easier arc needs. */
+    function extraFor(tilt) {
+      if (!(tilt > 0.05) || gaps < 1) return 0;
+      var lean = Math.sin(tilt) * metrics.ascent;
+      var total = gaps === 1 ? lean * 1.05 : gaps === 2 ? lean * 0.28 : lean * 0.7;
+      var room = Math.max(0, maxHalf * 2 - metrics.w);
+      return Math.min(room, total);
+    }
+
+    function solve(extra) {
+      var span = Math.min(maxHalf * 2, metrics.w + extra);
+      function place(bend) {
+        var rough = Math.min(maxHalf, Math.max(0.5, span / 2));
+        var swing = Math.sin(tiltOf(rough, bend)) * metrics.ascent;
+        /* Leave room for the lean, so a wide line bows instead of going flat. */
+        var limit = Math.max(4, maxHalf - swing);
+        var half = halfFor(bend, span, limit);
+        var tilt = tiltOf(half, bend);
+        if (half + Math.sin(tilt) * metrics.ascent > maxHalf + 0.6) return null;
+        var cos = Math.cos(tilt);
+        if (up) {
+          if (yHome - metrics.ascent < boxT + 0.25) return null;
+          if (yHome + bend + metrics.descent * cos > circleTop - 0.65) return null;
+        } else if ((yHome - bend) - metrics.ascent * cos < circleBot + 0.65) return null;
+        else if (yHome + metrics.descent > boxB - 0.25) return null;
+        return { y0: yHome, half: half, tilt: tilt };
+      }
+      var bend = t > 0 ? askedBend(span) : 0;
+      var placed = bend >= 0.35 ? place(bend) : null;
       var guard = 0;
-      while (bend >= 0.4 && guard < 14) {
-        half = halfFor(bend, metrics.w + 2);
-        if (fits(y0, half, bend)) break;
-        bend *= 0.78;
+      while (bend >= 0.35 && !placed && guard < 18) {
+        bend *= 0.82;
+        placed = place(bend);
         guard++;
       }
-      if (bend < 0.4 || !fits(y0, half, bend)) {
-        bend = 0;
-        half = Math.min(maxHalf, Math.max(size * 0.4, metrics.w / 2));
-        if (up) {
-          var minA = boxT + metrics.ascent + 0.8;
-          var maxA = circleTop - metrics.descent - 1.6;
-          y0 = maxA < minA ? y : Math.max(minA, Math.min(maxA, y));
-        } else {
-          var minB = circleBot + metrics.ascent + 1.6;
-          var maxB = boxB - metrics.descent - 0.8;
-          y0 = maxB < minB ? y : Math.max(minB, Math.min(maxB, y));
-        }
-      }
+      if (!placed || bend < 0.35) return { bend: 0, placed: null, extra: extra };
+      return { bend: bend, placed: placed, extra: extra };
     }
 
-    var fontCls = cls + ' font-' + fontChoice().id;
-    if (bend < 0.4) {
+    var solved = solve(extraFor(tiltWant));
+    if (solved.placed && solved.placed.tilt < tiltWant * 0.72) {
+      solved = solve(extraFor(solved.placed.tilt));
+    }
+    var bend = solved.bend;
+    var placed = solved.placed;
+    var extra = solved.extra;
+
+    if (!placed || bend < 0.35) {
       var flatW = Math.min(maxHalf * 2, Math.max(size, metrics.w));
       var flat = svgEl('text', {
-        x: String(FACE.cx), y: y0.toFixed(2),
+        x: String(FACE.cx), y: yHome.toFixed(2),
         'text-anchor': 'middle', 'font-size': String(size), 'class': fontCls
       });
       flat.textContent = clean;
@@ -3120,10 +3139,10 @@ always</textarea>
       return;
     }
 
-    var len = arcLength(half, bend);
+    var len = arcLength(placed.half, bend);
     var id = cls + '-arc';
     holder.appendChild(svgEl('path', {
-      id: id, d: bowPath(y0, half, bend, up), fill: 'none', stroke: 'none'
+      id: id, d: bowPath(placed.y0, placed.half, bend, up), fill: 'none', stroke: 'none'
     }));
     var text = svgEl('text', {
       'font-size': String(size), 'class': fontCls, 'text-anchor': 'middle'
@@ -3131,11 +3150,15 @@ always</textarea>
     var tp = svgEl('textPath', { href: '#' + id, startOffset: '50%' });
     tp.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#' + id);
     tp.textContent = clean;
-    /* Pin the words to the path. A longer string used to run past the end
-       and those letters were never drawn. */
-    var fitLen = Math.max(size, len - 1.5);
-    text.setAttribute('textLength', Math.min(metrics.w, fitLen).toFixed(1));
-    text.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+    /* Open a short word along the bow without squashing the letters.
+       A word wider than the bow is fitted so none of it is left undrawn. */
+    if (extra > 0.3 && len + 0.2 >= metrics.w) {
+      text.setAttribute('textLength', len.toFixed(1));
+      text.setAttribute('lengthAdjust', 'spacing');
+    } else if (metrics.w > len + 0.4) {
+      text.setAttribute('textLength', Math.max(size, len - 1).toFixed(1));
+      text.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+    }
     text.appendChild(tp);
     holder.appendChild(text);
   }
