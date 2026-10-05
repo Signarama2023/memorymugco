@@ -2981,27 +2981,34 @@ always</textarea>
     syncSceneChrome();
   }
 
-  /* The photo is a box on the front of the print, with room for a line
-     of type above it and a short line under it. Not a full-bleed photo.
-     r is the half-size at 100%. */
+  /* The photo is a circle or a square on the front of the print, with
+     room for a line of type above it and a short line under it.
+     r is the half-size the page started with. */
   var FACE = { cx: 248, cy: 214, r: 38 };
-  /* Circle at 100% is the size the page shipped with. The buyer can
-     switch to a square and change how big the box sits on the mug. */
   var faceShape = 'circle';
-  var FACE_SIZE_MIN = 55;
-  var FACE_SIZE_MAX = 115;
-  var faceSize = 100;
+  /* Largest half-size that stays inside the art box, centered on the face.
+     A hair inside the edge so the outline is not clipped off the print.
+     100 percent of Size is this far: the photo spans the print. */
+  function artLimit() {
+    var left = FACE.cx - ART_BOX[0];
+    var right = ART_BOX[0] + ART_BOX[2] - FACE.cx;
+    var top = FACE.cy - ART_BOX[1];
+    var bottom = ART_BOX[1] + ART_BOX[3] - FACE.cy;
+    return Math.min(left, right, top, bottom) - 1;
+  }
+  var FACE_SIZE_MIN = 35;
+  var FACE_SIZE_MAX = 100;
+  var faceSize = Math.round(FACE.r / artLimit() * 100);
 
   function boxWord() {
     return faceShape === 'square' ? 'square' : 'circle';
   }
   function faceHalf() {
-    return FACE.r * faceSize / 100;
+    return artLimit() * faceSize / 100;
   }
-  /* Diameter of the crop ring as a fraction of the stage. 0.72 at the
-     default size matches the ring drawn in CSS. */
+  /* The crop ring stands for the art area. Full size nearly fills the stage. */
   function ringFraction() {
-    return 0.72 * faceSize / 100;
+    return Math.max(0.32, Math.min(0.92, 0.92 * faceHalf() / artLimit()));
   }
   var faceName = '';
   var faceLine = '';
@@ -3091,9 +3098,9 @@ always</textarea>
     if (!clean) return;
     var boxL = ART_BOX[0], boxT = ART_BOX[1];
     var boxR = ART_BOX[0] + ART_BOX[2], boxB = ART_BOX[1] + ART_BOX[3];
-    /* The lines keep their places until the box would cover them. A
-       bigger box nudges a line outward; a smaller one leaves it put. */
-    var edge = faceHalf();
+    /* The names stay on the circle the page was drawn around. The photo
+       can grow across the print without moving or shrinking these lines. */
+    var edge = FACE.r;
     var circleTop = FACE.cy - edge, circleBot = FACE.cy + edge;
     size = Math.max(8, Math.round(size));
     var metrics = letterMetrics(clean, size);
@@ -3491,7 +3498,7 @@ always</textarea>
   /** Words and crop, short enough to ride on the order. */
   function placementNote() {
     if (!ownPhoto) return '';
-    var bits = [boxWord() + ' on the front', 'box ' + Math.round(faceSize) + '%'];
+    var bits = [boxWord() + ' on the front', Math.round(faceSize) + '% of the print'];
     var words = faceWords();
     if (words) bits.push(words);
     bits.push(fontChoice().name);
@@ -3548,7 +3555,7 @@ always</textarea>
     if (boxSize && document.activeElement !== boxSize) {
       boxSize.value = String(Math.round(faceSize));
     }
-    if (boxSize) boxSize.setAttribute('aria-valuetext', Math.round(faceSize) + ' percent');
+    if (boxSize) boxSize.setAttribute('aria-valuetext', Math.round(faceSize) + ' percent of the print');
     Array.prototype.forEach.call(document.querySelectorAll('.shape-pick'), function (b) {
       var on = b.getAttribute('data-shape') === faceShape;
       b.classList.toggle('is-on', on);
@@ -3667,8 +3674,8 @@ always</textarea>
     nCrop.setAttribute('aria-hidden', 'true');
     cropStep.appendChild(nCrop);
     var cropB = el('div', 'flow-b');
-    cropB.appendChild(el('p', 'proof-head', 'Photo box'));
-    cropB.appendChild(el('p', 'proof-note', 'Circle or square, then a size. Drag the photo until it fills the box. That box is what prints.'));
+    cropB.appendChild(el('p', 'proof-head', 'Photo'));
+    cropB.appendChild(el('p', 'proof-note', 'Circle or square. Size is how much of the print the photo covers. Drag it to move the picture inside that shape.'));
     var shapeRow = el('div', 'proof-zoom shape-row');
     var shapeLab = el('span', 'proof-k', 'Shape');
     shapeLab.id = 'shape-label';
@@ -3699,15 +3706,15 @@ always</textarea>
     boxSize.type = 'range'; boxSize.id = 'face-size';
     boxSize.min = String(FACE_SIZE_MIN); boxSize.max = String(FACE_SIZE_MAX); boxSize.step = '1';
     boxSize.value = String(Math.round(faceSize));
-    boxSize.setAttribute('aria-label', 'Size of the photo on the mug');
+    boxSize.setAttribute('aria-label', 'How much of the print the photo covers');
     boxSize.setAttribute('aria-valuemin', String(FACE_SIZE_MIN));
     boxSize.setAttribute('aria-valuemax', String(FACE_SIZE_MAX));
-    boxSize.setAttribute('aria-valuetext', Math.round(faceSize) + ' percent');
+    boxSize.setAttribute('aria-valuetext', Math.round(faceSize) + ' percent of the print');
     boxSize.addEventListener('input', function () {
       var n = Number(boxSize.value);
       if (!isFinite(n)) return;
       faceSize = Math.max(FACE_SIZE_MIN, Math.min(FACE_SIZE_MAX, n));
-      boxSize.setAttribute('aria-valuetext', Math.round(faceSize) + ' percent');
+      boxSize.setAttribute('aria-valuetext', Math.round(faceSize) + ' percent of the print');
       if (ownPhoto) paintOwnPhoto(ownPhoto.dataUri);
     });
     sizeRow.appendChild(sizeLab); sizeRow.appendChild(boxSize);
