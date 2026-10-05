@@ -3049,9 +3049,9 @@ always</textarea>
 
   /**
    * One line on the face. Both lines take the same bow from the slider.
-   * A short word eases that bow before the letters fold together, and a
-   * line that is too tall eases its own arc. The size stays what the buyer
-   * set, and the other line is left alone.
+   * The letters stay apart on that bow: a short name opens its gaps, and a
+   * long name eases only its own arc when there is no room to open them.
+   * The size stays what the buyer set, and the other line is left alone.
    */
   function drawFaceLine(holder, str, y, cls, size, up) {
     var clean = String(str || '').replace(/\s+/g, ' ').trim();
@@ -3070,8 +3070,8 @@ always</textarea>
     var t = Math.max(0, Math.min(1, faceCurve));
     /* How far the middle lifts at a full curve. The same distance for both lines. */
     var FULL_BOW = 8;
-    /* Steeper than this and a short word stacks its letters. The slider scales it. */
-    var MAX_TILT = 0.42;
+    /* Steeper than this and the letters tip onto each other. The slider scales it. */
+    var MAX_TILT = 0.33;
     var fontCls = cls + ' font-' + fontChoice().id;
     var glyphs = clean.replace(/ /g, '').length || 1;
     var gaps = Math.max(0, glyphs - 1);
@@ -3118,27 +3118,31 @@ always</textarea>
       if (maxHome2 >= minHome2) yHome = Math.max(minHome2, Math.min(maxHome2, y));
     }
 
+    /* How much extra width this tilt needs so the tops do not meet.
+       The same opening on every gap, short names included. */
+    function gapNeed(tilt) {
+      if (!(tilt > 0.05) || gaps < 1) return 0;
+      return Math.sin(tilt) * metrics.ascent * gaps;
+    }
     /* Open the gaps by about how far this bow leans the tops together.
        The letter shapes stay the same size. A line that has to ease its
        arc opens only as much as that easier arc needs. */
     function extraFor(tilt) {
-      if (!(tilt > 0.05) || gaps < 1) return 0;
-      var lean = Math.sin(tilt) * metrics.ascent;
-      var total = gaps === 1 ? lean * 1.05 : gaps === 2 ? lean * 0.28 : lean * 0.7;
       var room = Math.max(0, maxHalf * 2 - metrics.w);
-      return Math.min(room, total);
+      return Math.min(room, gapNeed(tilt));
     }
 
     function solve(extra) {
       var span = Math.min(maxHalf * 2, metrics.w + extra);
       function place(bend) {
-        var rough = Math.min(maxHalf, Math.max(0.5, span / 2));
-        var swing = Math.sin(tiltOf(rough, bend)) * metrics.ascent;
-        /* Leave room for the lean, so a wide line bows instead of going flat. */
-        var limit = Math.max(4, maxHalf - swing);
-        var half = halfFor(bend, span, limit);
+        var half = halfFor(bend, span, maxHalf);
         var tilt = tiltOf(half, bend);
+        /* A bow that would push the tops out of the print eases.
+           So does one whose lean is wider than the gaps already opened,
+           and one that would have to squash the letters to fit. */
         if (half + Math.sin(tilt) * metrics.ascent > maxHalf + 0.6) return null;
+        if (gapNeed(tilt) > extra + 0.6) return null;
+        if (metrics.w > arcLength(half, bend) + 0.4) return null;
         var cos = Math.cos(tilt);
         if (up) {
           if (yHome - metrics.ascent < boxT + 0.25) return null;
