@@ -1986,8 +1986,41 @@ always</textarea>
 
   var handInput = document.getElementById('hand-text');
   if (handInput) handInput.addEventListener('input', repaintHand);
+  /* Seven typed lines, counting the breaks. An eighth line is refused,
+     whether it comes from Enter or from a paste. */
+  var RECIPE_MAX_LINES = 7;
+  function recipeLines(value) {
+    return String(value || '').replace(/\r\n/g, '\n').split('\n');
+  }
+  function recipeWithinLimit(value) {
+    var lines = recipeLines(value);
+    return lines.length <= RECIPE_MAX_LINES ? lines.join('\n') : lines.slice(0, RECIPE_MAX_LINES).join('\n');
+  }
+  function recipeEnterFits(el) {
+    var next = el.value.slice(0, el.selectionStart) + '\n' + el.value.slice(el.selectionEnd);
+    return recipeLines(next).length <= RECIPE_MAX_LINES;
+  }
   var recipeInput = document.getElementById('recipe-text');
-  if (recipeInput) recipeInput.addEventListener('input', repaintRecipe);
+  if (recipeInput) {
+    recipeInput.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+      if (!recipeEnterFits(recipeInput)) e.preventDefault();
+    });
+    recipeInput.addEventListener('beforeinput', function (e) {
+      if (e.inputType !== 'insertLineBreak' && e.inputType !== 'insertParagraph') return;
+      if (!recipeEnterFits(recipeInput)) e.preventDefault();
+    });
+    recipeInput.addEventListener('input', function () {
+      var next = recipeWithinLimit(recipeInput.value);
+      if (next !== recipeInput.value) {
+        var caret = recipeInput.selectionStart;
+        recipeInput.value = next;
+        var pos = Math.min(caret == null ? next.length : caret, next.length);
+        try { recipeInput.setSelectionRange(pos, pos); } catch (err) {}
+      }
+      repaintRecipe();
+    });
+  }
   repaintHand();
   repaintRecipe();
   if (document.fonts && document.fonts.load) {
