@@ -4324,11 +4324,15 @@ always</textarea>
         ownPhoto = { dataUri: dataUri, name: f.name,
                      w: (size && size.w) || 0, h: (size && size.h) || 0,
                      zoom: 1, ox: 0, oy: 0 };
-        if (styleKey() === 'custom') paintOwnPhoto(dataUri);
-        else {
-          var chip = $('chip-yours');
-          if (chip) { chip.hidden = false; chip.click(); }
-          else paintOwnPhoto(dataUri);
+        var yoursChip = $('chip-yours');
+        if (styleKey() === 'custom') {
+          paintOwnPhoto(dataUri);
+          if (yoursChip) yoursChip.hidden = false;
+        } else if (yoursChip) {
+          yoursChip.hidden = false;
+          yoursChip.click();
+        } else {
+          paintOwnPhoto(dataUri);
         }
         name.textContent = f.name;
         addDrop();
