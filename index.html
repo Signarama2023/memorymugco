@@ -132,7 +132,6 @@ section{scroll-margin-top:92px}
 .brand-mark{flex:none;color:var(--red)}
 .brand-text{display:flex;flex-direction:column;line-height:1.1}
 .brand-name{font-family:var(--f-display);font-weight:600;font-size:1.24rem;letter-spacing:-.012em}
-.brand-sub{font-weight:700;font-size:.63rem;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3);margin-top:3px}
 .site-nav{display:flex;gap:24px}
 .site-nav a{
   text-decoration:none;font-weight:600;font-size:.96rem;color:var(--ink-2);
@@ -146,7 +145,6 @@ section{scroll-margin-top:92px}
   .site-nav a{padding-block:8px;font-size:.92rem}
 }
 @media (max-width:720px){
-  .brand-sub{display:none}
   .header-row{gap:8px}
   .header-row .btn--sm{padding:10px 14px;font-size:.875rem}
 }
@@ -881,7 +879,6 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
       </svg>
       <span class="brand-text">
         <span class="brand-name">Memory Mug Co.</span>
-        <span class="brand-sub">By <span data-cfg="operatorName">H3 Customs</span></span>
       </span>
     </a>
     <nav class="site-nav" aria-label="Main">
@@ -907,7 +904,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   <div class="hero-grid">
     <div class="stage">
       <div class="hero-head">
-        <p class="eyebrow">Custom photo mugs · By <span data-cfg="operatorName">H3 Customs</span></p>
+        <p class="eyebrow">Custom photo mugs</p>
         <h1>Put your <em>favorite people</em> on a mug.</h1>
         <p class="lede">
           Crop a face from your photo, add a name, and put the mug on your order.
@@ -1271,10 +1268,8 @@ always</textarea>
         Run your thumb across a finished one. You'll feel glaze, not a sticker.
       </p>
       <p>
-        <span data-cfg="operatorName">H3 Customs</span> has been running presses in-house for years — tumblers, apparel, signage,
-        one-off custom work. Same bench, same heat profiles, same color correction that keeps
-        everybody's face from going orange. Memory Mug Company is that shop pointed at the
-        thing people ask for most.
+        We run the presses in-house. Same bench, same heat profiles, same color correction that keeps
+        everybody's face from going orange.
       </p>
     </div>
 
@@ -1363,10 +1358,7 @@ always</textarea>
       <details>
         <summary>Do you make anything besides mugs?</summary>
         <div class="faq-a">
-          Mugs are the whole focus here — but the shop behind this does plenty more. <span data-cfg="operatorName">H3 Customs</span>
-          runs custom tumblers in 20 oz and 30 oz, apparel, signage, and one-off fabrication.
-          If you need something that isn't a mug, head over to
-          <a href="https://h3customs.com" data-cfg-href="operatorUrl"><span data-cfg="operatorDomain">h3customs.com</span></a> and we'll take care of you.
+          Mugs are the whole focus here.
         </div>
       </details>
     </div>
@@ -1401,9 +1393,7 @@ always</textarea>
       <div class="foot-brand">
         <span class="brand-name">Memory Mug Company</span>
         <p>
-          Custom photo mugs, proofed and pressed by hand. A shop of
-          <a href="https://h3customs.com" data-cfg-href="operatorUrl"><span data-cfg="operatorName">H3 Customs</span></a> — tumblers, apparel, signage
-          and custom work since day one.
+          Custom photo mugs, proofed and pressed by hand.
         </p>
       </div>
       <div class="foot-links">
@@ -1421,7 +1411,6 @@ always</textarea>
         <div class="foot-col">
           <h4>Reach us</h4>
           <a href="mailto:hello@memorymugco.com" data-cfg-mail="supportEmail"><span data-cfg="supportEmail">hello@memorymugco.com</span></a>
-          <a href="https://h3customs.com" data-cfg-href="operatorUrl"><span data-cfg="operatorDomain">h3customs.com</span></a>
         </div>
       </div>
     </div>
@@ -1429,7 +1418,7 @@ always</textarea>
       <button type="button" class="owner-link" id="owner-link">Shop owner? Open admin</button>
     </div>
     <div class="foot-base">
-      <span>© 2026 Memory Mug Company · <span data-cfg="operatorName">H3 Customs</span></span>
+      <span>© 2026 Memory Mug Company</span>
       <span>Dishwasher safe · Pressed in-house</span>
     </div>
   </div>
@@ -2123,9 +2112,9 @@ always</textarea>
 
   /* ADMIN-CONFIG-START */
   var SITE_CONFIG = {
-    operatorName:   'H3 Customs',
-    operatorUrl:    'https://h3customs.com',
-    operatorDomain: 'h3customs.com',
+    operatorName:   'Memory Mug Company',
+    operatorUrl:    'https://www.memorymugco.com',
+    operatorDomain: 'www.memorymugco.com',
 
     /* Opens the admin panel. NOT security — it is in this file, in plain sight,
        and anyone can read it. It only keeps the panel out of a customer's way. */
