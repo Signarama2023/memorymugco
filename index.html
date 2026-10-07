@@ -182,6 +182,14 @@ section{scroll-margin-top:92px}
   width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   background:var(--ink);color:#FFFFFF;font-weight:700;font-size:.85rem;line-height:1;
 }
+.flow-step.is-locked .flow-n{
+  background:var(--surface-2);color:var(--ink-2);
+  box-shadow:inset 0 0 0 2px var(--rule-2);
+}
+.proof-promise{
+  margin:0;font-weight:700;font-size:1rem;line-height:1.45;color:var(--ink);
+  background:var(--red-soft);border-radius:var(--r-sm);padding:10px 12px;
+}
 .flow-b{display:flex;flex-direction:column;gap:8px;min-width:0;padding-top:3px}
 .order-bar{
   background:var(--red-soft);border-radius:var(--r-md);padding:12px 12px 14px;margin-top:2px;
@@ -433,6 +441,16 @@ section{scroll-margin-top:92px}
 .mug-svg .stop-b{stop-color:var(--surface)}
 .memory{opacity:0;transition:opacity .45s ease}
 .memory.is-on{opacity:1}
+/* The buyer's photo replaces the sample at once. A fade left both pictures
+   up, and multiply made the new photo see-through. */
+.mug-svg:has(.memory[data-key="yours"].is-on) .memory,
+.mug-svg:has(.memory[data-key="custom"].is-on) .memory,
+.mug-svg.show-mine .memory{transition:none}
+.mug-svg:has(.memory[data-key="yours"].is-on) .memory:not(.is-on),
+.mug-svg:has(.memory[data-key="custom"].is-on) .memory:not(.is-on),
+.mug-svg.show-mine .memory:not(.is-on){
+  visibility:hidden;opacity:0
+}
 .steam{animation:rise 5s ease-in-out infinite}
 .steam-b{animation-delay:.8s}
 .steam-c{animation-delay:1.7s}
@@ -457,6 +475,8 @@ section{scroll-margin-top:92px}
 .chip[aria-pressed="true"]{background:var(--red);border-color:var(--red);color:#FFFFFF}
 .chip[aria-pressed="true"]:hover{background:var(--red-deep);color:#FFFFFF}
 .chip--more{border-style:dashed;color:var(--ink-3)}
+.chip--idea{border-style:dashed;border-color:var(--red);color:var(--ink)}
+.chip--idea[aria-pressed="true"]{border-style:solid}
 .stage-caption{font-size:.9375rem;color:var(--ink-2);text-align:center;max-width:42ch;min-height:2.6em}
 /* Handwriting and Recipe are typed, not photographs. The box sits with the chips. */
 .hand-box,.recipe-box{width:100%;max-width:420px;min-width:0}
@@ -743,7 +763,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 .line-thumb img{width:100%;height:100%;object-fit:cover}
 .line-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
 .line-main b{font-family:var(--f-display);font-weight:600;font-size:1rem}
-.line-sub{display:block;font-size:.85rem;color:var(--ink-3)}
+.line-sub{display:block;font-size:.85rem;color:var(--ink-3);white-space:pre-wrap}
 .line-qty{display:flex;align-items:center;gap:10px}
 .line-price{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 .line-rm{background:none;border:0;padding:0;font:inherit;font-size:.83rem;font-weight:600;color:var(--ink-3);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
@@ -774,7 +794,10 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
    and the customer's own photo, still multiply so the glaze reads through. */
 .mug-svg.has-photo .mug-drawn{display:none}
 .mug-svg.has-photo .scene-draw{mix-blend-mode:multiply}
-.mug-svg.has-photo .memory[data-key="yours"]{mix-blend-mode:multiply}
+/* The buyer's own photo stays solid. Multiply ghosted the sample through it.
+   The shop cuts the photo out; this page only shows the picture they picked. */
+.mug-svg.has-photo .memory[data-key="yours"],
+.mug-svg.has-photo .memory[data-key="custom"]{mix-blend-mode:normal}
 .memory.has-cut .scene-draw{display:none}
 
 .field{display:flex;flex-direction:column;gap:6px}
@@ -888,6 +911,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         <h1>Put your <em>favorite people</em> on a mug.</h1>
         <p class="lede">
           Crop a face from your photo, add a name, and put the mug on your order.
+          Want something else? We'll design it.
         </p>
       </div>
       <div class="mug-dock">
@@ -1119,6 +1143,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
             <!-- THE CUSTOMER'S OWN PHOTO — filled in on this device only -->
             <g class="memory" data-key="yours"></g>
 
+            <!-- SOMETHING ELSE — same photo preview. The shop designs the rest. -->
+            <g class="memory" data-key="custom"></g>
+
             <!-- THE CREW — a shop badge, for team and logo mugs -->
             <g class="memory" data-key="team">
              <g class="scene-draw">
@@ -1145,7 +1172,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
           <rect class="s-rule2 mug-drawn" id="panel-edge" x="178" y="146" width="140" height="172" rx="7" fill="none" stroke-width="1.6" opacity=".8"/>
         </svg>
       </div>
-      <p class="ask-preview" id="photo-ask" hidden><span class="ask-k">Received</span><span id="photo-ask-text"></span></p>
+      <p class="ask-preview" id="photo-ask" hidden><span class="ask-k">Goes with your order</span><span id="photo-ask-text"></span></p>
       </div>
 
       <div class="stage-foot">
@@ -1155,6 +1182,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         <button type="button" class="chip" id="chip-pet" data-key="pet" aria-pressed="false">The dog</button>
         <button type="button" class="chip" id="chip-hand" data-key="hand" aria-pressed="false">Handwriting</button>
         <button type="button" class="chip" id="chip-recipe" data-key="recipe" aria-pressed="false">Recipe</button>
+        <button type="button" class="chip chip--idea" id="chip-custom" data-key="custom" aria-pressed="false">We'll design it</button>
         <button type="button" class="chip" id="chip-team" data-key="team" aria-pressed="false">The crew</button>
         <button type="button" class="chip" id="chip-yours" data-key="yours" aria-pressed="false" hidden>Your photo</button>
       </div>
@@ -1186,7 +1214,7 @@ always</textarea>
   <div class="wrap">
     <div class="ticker-row">
       <div class="ticker-cell"><span class="ticker-k">Order as few as</span><span class="ticker-v">One mug</span></div>
-      <div class="ticker-cell"><span class="ticker-k">Proof lands in</span><span class="ticker-v">1 business day</span></div>
+      <div class="ticker-cell"><span class="ticker-k">Proof lands in</span><span class="ticker-v">24 hours</span></div>
       <div class="ticker-cell"><span class="ticker-k">On your counter in</span><span class="ticker-v">5–7 days</span></div>
       <div class="ticker-cell"><span class="ticker-k">Pressed</span><span class="ticker-v">In our own shop</span></div>
     </div>
@@ -1206,12 +1234,12 @@ always</textarea>
       <div class="step">
         <span class="step-n">1</span>
         <h3 id="step1-h">Send the photo</h3>
-        <p id="step1-p">Place the photo on this page, then email it after you order. Straight off your phone is fine. If it's too small to print well, we'll tell you before you pay a dime.</p>
+        <p id="step1-p">Place the photo on this page, then email it to hello@memorymugco.com after you order. Straight off your phone is fine. If it's too small to print well, we'll tell you before you pay a dime.</p>
       </div>
       <div class="step">
         <span class="step-n">2</span>
         <h3>Say yes to the proof</h3>
-        <p>Within a day you get a picture of the actual mug. Want it bigger, moved over, a different photo entirely? Just say so — nothing gets printed until you're happy.</p>
+        <p>Within 24 hours you get a picture of the actual mug. Want it bigger, moved over, a different photo entirely? Just say so — nothing gets printed until you're happy.</p>
       </div>
       <div class="step">
         <span class="step-n">3</span>
@@ -1260,7 +1288,7 @@ always</textarea>
         <dt>Print area</dt><dd>Full wrap, edge to edge</dd>
         <dt>Color</dt><dd>Hand-corrected per photo</dd>
         <dt>Care</dt><dd>Dishwasher + microwave safe</dd>
-        <dt>Proof</dt><dd>Digital, 1 business day</dd>
+        <dt>Proof</dt><dd>Within 24 hours</dd>
         <dt>Turnaround</dt><dd>5–7 business days</dd>
         <dt>Minimum</dt><dd>One. Seriously, one.</dd>
       </dl>
@@ -1305,7 +1333,7 @@ always</textarea>
       <details>
         <summary id="faq-send-q">How do I get you the photo?</summary>
         <div class="faq-a" id="faq-send-a">
-          Place the photo here so we can see the size and shape, then email it after you order.
+          Place the photo here so we can see the size and shape, then email it to hello@memorymugco.com after you order.
           Straight off your phone is fine.
         </div>
       </details>
@@ -1353,7 +1381,7 @@ always</textarea>
       <h2>Email the photo and we'll start the mug.</h2>
       <p class="lede">
         Payment runs on Shopify once the shop is connected. Until then, write to us and
-        attach the picture. We send a proof before anything is printed.
+        attach the picture. We'll send you a proof within 24 hours, before anything is printed.
       </p>
     </div>
     <div class="signup">
@@ -1420,7 +1448,7 @@ always</textarea>
         <label for="cart-note">Anything we should know about the photo?</label>
         <textarea id="cart-note" rows="3"
           placeholder="e.g. The beach one of all four of us — please take the background out"></textarea>
-        <span class="hint">Optional. This rides along with the order, and we'll email you for the photo itself.</span>
+        <span class="hint" id="cart-note-hint">Optional. This rides along with the order. Your photo stays on this device. After you order, email it to hello@memorymugco.com.</span>
       </div>
       <!-- A Shopify product URL carries no order note, so on the upload flow this
            box is hidden rather than silently throwing away what was typed in it. -->
@@ -1713,7 +1741,8 @@ always</textarea>
     hand:   "Type a few words. They show up on the mug.",
     recipe: "Type a recipe. The words show up on the mug.",
     team:   "A crew, printed on the white base.",
-    yours:  "Your photo on the front. Drag it until it sits in the box."
+    yours:  "Your photo on the front. Drag it until it sits in the box.",
+    custom: "Something else? Upload a photo and tell us what to add."
   };
 
   var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
@@ -1740,6 +1769,7 @@ always</textarea>
 
   function fineLine(key) {
     if (key === 'hand' || key === 'recipe') return 'Our 15 oz mug. The words are what you typed.';
+    if (key === 'custom') return 'Our 15 oz mug. Tell us the idea and we will design it.';
     var svg = document.querySelector('.hero .mug-svg');
     if (svg && svg.classList.contains('has-photo')) {
       return 'Our 15 oz mug. The photograph on it is an example \u2014 yours carries your photo.';
@@ -2143,7 +2173,7 @@ always</textarea>
       { key:'mug', title:'The Memory Mug', price:28, variantId:'', image:'',
         blurb:'White ceramic, 15 oz. Your photo on the front, in a circle or a square.',
         includes:[
-          'A digital proof before anything is printed',
+          'A digital proof within 24 hours, before anything is printed',
           'Color correction by hand, every time',
           'Background removal if you want it — no charge',
           'Dishwasher and microwave safe, for good',
@@ -2326,12 +2356,15 @@ always</textarea>
     /* The small print has to match what is actually on screen. */
     var fine = $('stage-fineprint');
     if (fine) {
+      var customOn = document.querySelector('#chip-custom[aria-pressed="true"]');
       var typedOn = document.querySelector('#chip-hand[aria-pressed="true"], #chip-recipe[aria-pressed="true"]');
-      fine.textContent = typedOn
-        ? 'Our 15 oz mug. The words are what you typed.'
-        : (src
-          ? 'Our 15 oz mug. The photograph on it is an example \u2014 yours carries your photo.'
-          : 'An example on the mug. Yours carries your photo.');
+      fine.textContent = customOn
+        ? 'Our 15 oz mug. Tell us the idea and we will design it.'
+        : (typedOn
+          ? 'Our 15 oz mug. The words are what you typed.'
+          : (src
+            ? 'Our 15 oz mug. The photograph on it is an example \u2014 yours carries your photo.'
+            : 'An example on the mug. Yours carries your photo.'));
     }
 
     var fit = svg.querySelector('#panel-fit');
@@ -2391,6 +2424,53 @@ always</textarea>
   function uploadFlow(c) {
     c = c || cfg();
     return c.artworkFlow === 'uploadery' && !!productHandle(c.productHandle) && !!host(c);
+  }
+
+  function supportMail() {
+    return (cfg().supportEmail || 'hello@memorymugco.com');
+  }
+
+  /**
+   * How a photo gets from this page to the shop. One wording for the email
+   * flow, one for the Shopify upload flow. The picker, the cart, How it
+   * works, and the FAQ all read this — so they cannot disagree.
+   * The file itself never leaves the browser on the email flow.
+   */
+  function photoCopy() {
+    var mail = supportMail();
+    var proof = 'We\'ll send you a proof within 24 hours.';
+    if (uploadFlow()) {
+      var attach = 'Attach the same photo on the next page. It goes with the order.';
+      return {
+        before: 'Preview on this device. Pick a photo to see it on the mug, then attach the same file on the Shopify page. ' + proof,
+        after: 'This is a preview, not a proof. Nothing has been sent — the photo is still only in this browser. ' + attach + ' ' + proof,
+        cart: attach,
+        cartAlt: 'You\'ll attach your photo on the next page, and there\'s a box there for anything we should know.',
+        process: 'Checkout happens on Shopify, where you attach your photo to the order. ' + proof,
+        stepH: 'Upload the photo',
+        stepP: 'Place the photo on this page, then attach the same photo on the Shopify page. '
+          + 'Straight off your phone is fine. If it\'s too small to print well, we\'ll tell you before we print anything.',
+        faqQ: 'How do I send you the photo?',
+        faqA: 'Place the photo here so we can see the size and shape, then attach the same photo on the Shopify page. It arrives with the order. Straight off your phone is fine.',
+        noStore: 'This page cannot take payment. Attach your photo when the shop\'s checkout is open. ' + proof,
+        proof: proof
+      };
+    }
+    var send = 'Your photo stays on this device. After you order, email it to ' + mail + '.';
+    return {
+      before: send + ' ' + proof,
+      after: 'This is a preview, not a proof. ' + send + ' ' + proof,
+      cart: 'This rides along with the order. ' + send,
+      cartAlt: '',
+      process: send + ' ' + proof,
+      stepH: 'Send the photo',
+      stepP: 'Place the photo on this page, then email it to ' + mail + ' after you order. '
+        + 'Straight off your phone is fine. If it\'s too small to print well, we\'ll tell you before you pay a dime.',
+      faqQ: 'How do I get you the photo?',
+      faqA: 'Place the photo here so we can see the size and shape, then email it to ' + mail + ' after you order. Straight off your phone is fine.',
+      noStore: 'This page cannot take payment. ' + send + ' ' + proof,
+      proof: proof
+    };
   }
 
   /** Accepts a raw number or a Storefront GID; anything else comes back empty. */
@@ -2528,6 +2608,7 @@ always</textarea>
 
     var step3 = el('div', 'flow-step order-bar');
     var n3 = el('span', 'flow-n', '5');
+    n3.id = 'order-n';
     n3.setAttribute('aria-hidden', 'true');
     step3.appendChild(n3);
     var step3b = el('div', 'flow-b');
@@ -2545,7 +2626,7 @@ always</textarea>
     var askEcho = el('p', 'order-ask');
     askEcho.id = 'order-ask';
     askEcho.hidden = true;
-    askEcho.appendChild(el('span', 'ask-k', 'Received'));
+    askEcho.appendChild(el('span', 'ask-k', 'Goes with your order'));
     var askEchoText = el('span', null, '');
     askEchoText.id = 'order-ask-text';
     askEcho.appendChild(askEchoText);
@@ -2554,7 +2635,7 @@ always</textarea>
     var buy = el('div', 'single-buy');
     var qty = document.createElement('select');
     qty.setAttribute('aria-label', 'How many mugs');
-    for (var q = 1; q <= 24; q++) {
+    for (var q = 1; q <= QTY_MAX; q++) {
       var o = document.createElement('option');
       o.value = String(q);
       o.textContent = q === 1 ? '1 mug' : q + ' mugs';
@@ -2577,14 +2658,13 @@ always</textarea>
       if (priceB) priceB.textContent = money(unit);
       if (extra) {
         extra.hidden = false;
-        extra.textContent = chosenBg
-          ? money(p.price) + ' mug + $' + BG_EXTRA + ' ' + chosenBg.name + ' background'
-          : money(p.price) + ' for the mug. A background adds $' + BG_EXTRA + '.';
+        extra.textContent = priceLine(p);
       }
       nudgeInto(nudge, Number(qty.value) * unit, unit);
     };
     qty.addEventListener('change', refreshPrice);
     refreshPrice();
+    syncDesignMode();
 
     if (p.includes.length) {
       var ul = el('ul', 'single-list');
@@ -2594,12 +2674,7 @@ always</textarea>
 
     /* Said before payment, not after, so nobody discovers how the photo gets to
        us only once they have already paid. */
-    box.appendChild(el('p', 'buy-process', uploadFlow(c)
-      ? 'Checkout happens on Shopify, where you attach your photo to the order. '
-        + 'We send a proof back before anything is printed.'
-      : 'After checkout, email your photo with your order number to ' + (c.supportEmail || '')
-        + ' and we\u2019ll put it on the mug. We write to you as soon as the order lands, '
-        + 'so you can just reply to that.'));
+    box.appendChild(el('p', 'buy-process', photoCopy().process));
 
     box.appendChild(el('p', 'single-fine', c.shipNote || ''));
 
@@ -2633,6 +2708,8 @@ always</textarea>
      $8 ride along as a cart attribute on the cart-permalink path. A product
      URL cannot carry that attribute. */
   var BG_EXTRA = 8;
+  /* The order card and the cart use the same ceiling. */
+  var QTY_MAX = 24;
   /* Cell size in the wrap's own units. The range stays a repeating pattern:
      smaller packs more motifs, and the largest size is still several across. */
   var PATTERN_MIN = 22;
@@ -2765,9 +2842,41 @@ always</textarea>
     return Math.max(1, Math.round(patternSize / w * 100));
   }
 
+  function styleKey() {
+    var on = document.querySelector('.chip[aria-pressed="true"]');
+    return (on && on.getAttribute('data-key')) || 'family';
+  }
+  function isCustom() { return styleKey() === 'custom'; }
+  function orderKind() {
+    var k = styleKey();
+    if (k === 'custom' || k === 'recipe' || k === 'hand') return k;
+    return 'photo';
+  }
+  /* The repeating pattern belongs on the buyer's own photo. Recipe,
+     handwriting, the examples, and a design we make leave it off, so the
+     price matches the mug on screen. */
+  function bgApplies() { return styleKey() === 'yours' && !!chosenBg; }
+  function activeBg() { return bgApplies() ? chosenBg : null; }
+
   function unitPrice(p) {
     var base = p ? Number(p.price) || 0 : 0;
-    return base + (chosenBg ? BG_EXTRA : 0);
+    return base + (activeBg() ? BG_EXTRA : 0);
+  }
+
+  function priceLine(p) {
+    var base = money(p.price);
+    var kind = orderKind();
+    var off = chosenBg && !bgApplies()
+      ? ' The ' + chosenBg.name + ' background is off on this design, and it is not in the price.'
+      : '';
+    if (kind === 'custom') {
+      return base + ' for the mug. We design what you describe.' + off;
+    }
+    if (kind === 'recipe') return base + ' for the mug. The words on it are your recipe.' + off;
+    if (kind === 'hand') return base + ' for the mug. The words on it are your handwriting.' + off;
+    if (activeBg()) return base + ' mug + $' + BG_EXTRA + ' ' + activeBg().name + ' background';
+    if (off) return base + ' for the mug.' + off;
+    return base + ' for the mug. A background adds $' + BG_EXTRA + '.';
   }
 
   /**
@@ -2908,21 +3017,29 @@ always</textarea>
   /** Shows the wrap and the photo-on-top only while the customer's mug is the scene. */
   function syncSceneChrome() {
     var on = document.querySelector('.memory.is-on');
-    var yours = !!(on && on.getAttribute('data-key') === 'yours');
+    var key = on && on.getAttribute('data-key');
+    var yours = key === 'yours';
+    var custom = key === 'custom';
     var wrap = document.querySelector('#mug-wrap');
     if (wrap) {
-      if (chosenBg && yours) wrap.removeAttribute('hidden');
+      if (activeBg()) wrap.removeAttribute('hidden');
       else wrap.setAttribute('hidden', '');
     }
     var over = $('photo-over');
     if (over) {
-      if (chosenBg && yours && ownPhoto) over.removeAttribute('hidden');
+      if (activeBg() && ownPhoto) over.removeAttribute('hidden');
       else over.setAttribute('hidden', '');
     }
+    var svg = document.querySelector('.hero .mug-svg');
+    if (svg) svg.classList.toggle('show-mine', !!(yours || custom));
     var cap = $('mug-caption');
-    if (cap && yours && ownPhoto) {
-      cap.textContent = chosenBg
-        ? 'Your photo on ' + chosenBg.name + '. The pattern stays behind the ' + boxWord() + '.'
+    if (cap && custom) {
+      cap.textContent = ownPhoto
+        ? 'Your photo on the front. Tell us what to add and we will design the rest.'
+        : 'Something else? Upload a photo and tell us what you would like.';
+    } else if (cap && yours && ownPhoto) {
+      cap.textContent = activeBg()
+        ? 'Your photo on ' + activeBg().name + '. The pattern stays behind the ' + boxWord() + '.'
         : 'Your photo, in a ' + boxWord() + ' on the front. Drag it until it sits in the box.';
     } else if (cap && yours && chosenBg) {
       cap.textContent = chosenBg.name + ' wraps the mug. Your photo sits on the front.';
@@ -2931,7 +3048,7 @@ always</textarea>
     var opts = $('bg-options');
     if (opts) opts.hidden = false;
     var note = $('bg-note');
-    if (note) note.hidden = !chosenBg;
+    if (note) note.hidden = !activeBg();
     var add = $('bg-add');
     if (add) {
       var onBg = !!chosenBg;
@@ -3250,7 +3367,7 @@ always</textarea>
     holder.appendChild(text);
   }
   var faceAsk = '';
-  var faceAskSent = '';
+  var customAsk = '';
 
   /**
    * Where the photo sits relative to a box of the given half-size.
@@ -3290,7 +3407,7 @@ always</textarea>
   function rememberLettering() {
     var words = faceWords();
     var curve = Math.round(faceCurve * 100);
-    var fontName = fontChoice().name;
+    var fontName = fontChoice().label;
     var nameSize = faceName ? faceNameSize : 0;
     var lineSize = faceLine ? faceLineSize : 0;
     var dirty = false;
@@ -3314,38 +3431,60 @@ always</textarea>
     return String(raw || '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
   }
   function cleanAsk() { return tidyAsk(faceAsk); }
-  /** Only what they submitted. Typing alone does not change this. */
-  function sentAsk() { return tidyAsk(faceAskSent); }
+  function sentAsk() { return tidyAsk(faceAsk); }
 
-  /** Shows the submitted words under the mug, in the confirmation, and on the order. */
+  function typedBox(id) {
+    var n = document.getElementById(id);
+    return n ? tidyAsk(n.value) : '';
+  }
+
+  /** The words that ride on the order for whichever design is on screen. */
+  function ridingText() {
+    var kind = orderKind();
+    if (kind === 'custom') return tidyAsk(customAsk);
+    if (kind === 'recipe') return typedBox('recipe-text');
+    if (kind === 'hand') return typedBox('hand-text');
+    return tidyAsk(faceAsk);
+  }
+
+  /** Shows the note under the mug and on the order as soon as it is typed. */
   function syncAskPreview() {
-    var clean = sentAsk();
+    var custom = isCustom();
+    var focus = tidyAsk(faceAsk);
+    var clean = custom ? tidyAsk(customAsk) : focus;
     var on = document.querySelector('.memory.is-on');
-    var yours = !!(on && on.getAttribute('data-key') === 'yours' && ownPhoto);
+    var key = on && on.getAttribute('data-key');
+    var showOnMug = !!clean && ((key === 'yours' && !!ownPhoto) || key === 'custom');
     var text = $('photo-ask-text');
     var preview = $('photo-ask');
     if (text) text.textContent = clean;
-    if (preview) preview.hidden = !clean || !yours;
+    if (preview) preview.hidden = !showOnMug;
     var box = $('ask-confirm');
     var boxText = $('ask-confirm-text');
-    if (boxText) boxText.textContent = clean;
-    if (box) box.hidden = !clean;
+    if (boxText) boxText.textContent = focus;
+    if (box) box.hidden = custom || !focus;
     var echo = $('order-ask');
     var echoText = $('order-ask-text');
     if (echoText) echoText.textContent = clean;
     if (echo) echo.hidden = !clean;
-    var btn = $('ask-submit');
-    if (btn) btn.textContent = (clean && cleanAsk() !== clean) ? 'Submit again' : 'Submit note';
+  }
+
+  function syncIdeaPreview() {
+    var clean = tidyAsk(customAsk);
+    var box = $('idea-confirm');
+    var boxText = $('idea-confirm-text');
+    if (boxText) boxText.textContent = clean;
+    if (box) box.hidden = !clean;
   }
 
   /**
-   * Keeps the cart note equal to the prompt plus anything else typed there.
+   * Keeps the cart note equal to the request plus anything else typed there.
    * The note is what already rides on the order, so this does not add a new field.
    */
   function applyAskToNote() {
     var noteEl = $('cart-note');
     if (!noteEl) return;
-    var ask = sentAsk();
+    var ask = ridingText();
     var prev = applyAskToNote.prev || '';
     var cur = noteEl.value.replace(/\s+$/, '');
     if (prev && cur.indexOf(prev) === 0) cur = cur.slice(prev.length).replace(/^\n+/, '');
@@ -3357,13 +3496,18 @@ always</textarea>
     lsSet(LS_NOTE, cur);
   }
 
-  function publishAsk() {
-    faceAskSent = cleanAsk();
-    syncAskPreview();
-    var clean = sentAsk();
+  /** If this design is already in the order, keep its words in step with the box. */
+  function rememberRequest() {
+    var kind = orderKind();
+    var ask = kind === 'custom' ? tidyAsk(customAsk) : (kind === 'photo' ? tidyAsk(faceAsk) : '');
+    var words = (kind === 'recipe' || kind === 'hand') ? ridingText().replace(/\n+/g, ' / ') : null;
     var dirty = false;
     cart.forEach(function (l) {
-      if (l.key === 'mug' && l.ask !== clean) { l.ask = clean; dirty = true; }
+      if (l.key !== 'mug' || (l.kind || 'photo') !== kind) return;
+      if ((kind === 'custom' || kind === 'photo') && l.ask !== ask) { l.ask = ask; dirty = true; }
+      if (words != null && (l.words !== words || l.font !== 'Handwriting')) {
+        l.words = words; l.font = 'Handwriting'; dirty = true;
+      }
     });
     if (dirty) save();
     applyAskToNote();
@@ -3382,9 +3526,14 @@ always</textarea>
   }
 
   function paintOwnPhoto(dataUri) {
-    var g = document.querySelector('.memory[data-key="yours"]');
+    var hostKey = styleKey() === 'custom' ? 'custom' : 'yours';
+    var g = document.querySelector('.memory[data-key="' + hostKey + '"]');
     var over = document.querySelector('#photo-over-fit');
     if (!g) return;
+    ['yours', 'custom'].forEach(function (k) {
+      var node = document.querySelector('.memory[data-key="' + k + '"]');
+      if (node && node !== g) node.innerHTML = '';
+    });
     g.innerHTML = '';
     if (over) over.innerHTML = '';
     var frame = document.querySelector('.hero .mug-frame');
@@ -3404,7 +3553,7 @@ always</textarea>
 
     var half = faceHalf();
     var placed = layoutCrop(half);
-    var parent = chosenBg && over ? over : g;
+    var parent = activeBg() && over ? over : g;
     var holder = svgEl('g');
     /* The print box is mapped with a different scale on each axis, which
        turns a circle into an oval and a square into a rectangle. Undo that
@@ -3501,7 +3650,7 @@ always</textarea>
     var bits = [boxWord() + ' on the front', Math.round(faceSize) + '% of the print'];
     var words = faceWords();
     if (words) bits.push(words);
-    bits.push(fontChoice().name);
+    bits.push(fontChoice().label);
     var curvePct = Math.round(faceCurve * 100);
     if (curvePct) bits.push('arc ' + curvePct + '%');
     if (faceName) bits.push('above size ' + faceNameSize);
@@ -3535,16 +3684,71 @@ always</textarea>
     paintOwnPhoto(ownPhoto.dataUri);
   }
 
+  /**
+   * Steps 2 and 3 stay on the card before a photo is chosen, marked locked,
+   * so the numbers do not skip. Custom design swaps the name and background
+   * for the idea box and renumbers what is left.
+   */
+  function syncDesignMode() {
+    var custom = isCustom();
+    var has = !!ownPhoto;
+    var crop = $('face-crop');
+    var words = $('face-words');
+    var idea = $('idea-step');
+    var bg = $('bg-step');
+    var tools = $('face-tools');
+    var wordTools = $('face-word-tools');
+    var cropHint = $('face-crop-hint');
+    var wordHint = $('face-word-hint');
+    var askBox = $('face-ask');
+    if (crop) {
+      crop.hidden = false;
+      crop.classList.toggle('is-locked', !has);
+    }
+    if (tools) tools.hidden = !has;
+    if (cropHint) cropHint.hidden = has;
+    if (words) {
+      words.hidden = custom;
+      words.classList.toggle('is-locked', !has);
+    }
+    if (wordTools) wordTools.hidden = !has;
+    if (wordHint) wordHint.hidden = has;
+    if (askBox) askBox.hidden = custom;
+    if (idea) idea.hidden = !custom;
+    if (bg) bg.hidden = custom;
+    var cropN = $('crop-n');
+    var wordN = $('word-n');
+    var ideaN = $('idea-n');
+    var bgN = $('bg-n');
+    var orderN = $('order-n');
+    if (cropN) cropN.textContent = '2';
+    if (custom) {
+      if (ideaN) ideaN.textContent = '3';
+      if (orderN) orderN.textContent = '4';
+    } else {
+      if (wordN) wordN.textContent = '3';
+      if (bgN) bgN.textContent = '4';
+      if (orderN) orderN.textContent = '5';
+    }
+    var paused = $('bg-paused');
+    if (paused) {
+      var showPaused = !!chosenBg && !bgApplies() && !custom;
+      paused.hidden = !showPaused;
+      if (showPaused) {
+        paused.textContent = 'The ' + chosenBg.name + ' background is for your photo. It is off on this design, and it is not in the price.';
+      }
+    }
+    syncAskPreview();
+    syncIdeaPreview();
+    refreshPrice();
+  }
+
   /** Keeps the slider and the hint in step with the photo's actual state. */
   function syncPhotoControls() {
     var box = $('photo-tools');
     var sizeRow = $('pattern-size-row');
-    if (sizeRow) sizeRow.hidden = !chosenBg;
-    var crop = $('face-crop');
-    var words = $('face-words');
-    if (crop) crop.hidden = !ownPhoto;
-    if (words) words.hidden = !ownPhoto;
-    if (box) box.hidden = !ownPhoto && !chosenBg;
+    if (sizeRow) sizeRow.hidden = !activeBg();
+    if (box) box.hidden = !ownPhoto && !activeBg();
     var size = $('pattern-size');
     if (size && document.activeElement !== size) size.value = String(patternSize);
     var slider = $('face-zoom');
@@ -3556,6 +3760,7 @@ always</textarea>
       boxSize.value = String(Math.round(faceSize));
     }
     if (boxSize) boxSize.setAttribute('aria-valuetext', Math.round(faceSize) + ' percent of the print');
+    if ($('face-crop') || $('idea-step')) syncDesignMode();
     Array.prototype.forEach.call(document.querySelectorAll('.shape-pick'), function (b) {
       var on = b.getAttribute('data-shape') === faceShape;
       b.classList.toggle('is-on', on);
@@ -3596,7 +3801,8 @@ always</textarea>
 
     var active = function () {
       var on = document.querySelector('.memory.is-on');
-      return !!ownPhoto && !!on && on.getAttribute('data-key') === 'yours';
+      var key = on && on.getAttribute('data-key');
+      return !!ownPhoto && (key === 'yours' || key === 'custom');
     };
     /* The print area's width and height in screen pixels, so a drag of n
        pixels becomes the right fraction whatever size the mug is drawn at. */
@@ -3669,13 +3875,21 @@ always</textarea>
 
     var cropStep = el('div', 'flow-step');
     cropStep.id = 'face-crop';
-    cropStep.hidden = true;
+    if (!ownPhoto) cropStep.classList.add('is-locked');
     var nCrop = el('span', 'flow-n', '2');
+    nCrop.id = 'crop-n';
     nCrop.setAttribute('aria-hidden', 'true');
     cropStep.appendChild(nCrop);
     var cropB = el('div', 'flow-b');
     cropB.appendChild(el('p', 'proof-head', 'Photo'));
-    cropB.appendChild(el('p', 'proof-note', 'Circle or square. Size is how much of the print the photo covers. Drag it to move the picture inside that shape.'));
+    var cropHint = el('p', 'proof-note', 'Choose a photo first. Then you can pick a circle or a square, the size, and where it sits.');
+    cropHint.id = 'face-crop-hint';
+    cropHint.hidden = !!ownPhoto;
+    cropB.appendChild(cropHint);
+    var faceTools = el('div', 'face-tools');
+    faceTools.id = 'face-tools';
+    faceTools.hidden = !ownPhoto;
+    faceTools.appendChild(el('p', 'proof-note', 'Circle or square. Size is how much of the print the photo covers. Drag it to move the picture inside that shape.'));
     var shapeRow = el('div', 'proof-zoom shape-row');
     var shapeLab = el('span', 'proof-k', 'Shape');
     shapeLab.id = 'shape-label';
@@ -3698,7 +3912,7 @@ always</textarea>
     });
     shapeRow.appendChild(shapeLab);
     shapeRow.appendChild(shapePicks);
-    cropB.appendChild(shapeRow);
+    faceTools.appendChild(shapeRow);
     var sizeRow = el('div', 'proof-zoom face-zoom');
     var sizeLab = el('label', null, 'Size');
     sizeLab.setAttribute('for', 'face-size');
@@ -3718,7 +3932,7 @@ always</textarea>
       if (ownPhoto) paintOwnPhoto(ownPhoto.dataUri);
     });
     sizeRow.appendChild(sizeLab); sizeRow.appendChild(boxSize);
-    cropB.appendChild(sizeRow);
+    faceTools.appendChild(sizeRow);
     var faceRow = el('div', 'face-row');
     var stage = el('div', 'face-stage');
     stage.id = 'face-stage';
@@ -3743,7 +3957,7 @@ always</textarea>
     side.appendChild(inset);
     side.appendChild(el('p', null, 'On the mug'));
     faceRow.appendChild(side);
-    cropB.appendChild(faceRow);
+    faceTools.appendChild(faceRow);
     var zoomRow = el('div', 'proof-zoom face-zoom');
     var zlab = el('label', null, 'Zoom');
     zlab.setAttribute('for', 'face-zoom');
@@ -3757,8 +3971,9 @@ always</textarea>
     center.type = 'button';
     center.onclick = function () { centerPhoto(); };
     zoomRow.appendChild(zlab); zoomRow.appendChild(zoom); zoomRow.appendChild(center);
-    cropB.appendChild(zoomRow);
+    faceTools.appendChild(zoomRow);
     var askBox = el('div', 'face-ask');
+    askBox.id = 'face-ask';
     var askLab = el('label', null, 'What to keep in focus');
     askLab.setAttribute('for', 'photo-ask-input');
     var askIn = document.createElement('textarea');
@@ -3767,36 +3982,45 @@ always</textarea>
     askIn.maxLength = 400;
     askIn.placeholder = "Focus on the dog's face. Remove the couch and the other dog.";
     askIn.value = faceAsk;
-    askIn.addEventListener('input', function () { faceAsk = askIn.value; syncAskPreview(); });
-    var askBtn = el('button', 'btn btn--fill btn--sm', 'Submit note');
-    askBtn.type = 'button';
-    askBtn.id = 'ask-submit';
-    askBtn.addEventListener('click', function () { publishAsk(); });
+    askIn.addEventListener('input', function () {
+      faceAsk = askIn.value;
+      syncAskPreview();
+      rememberRequest();
+    });
     var asked = el('div', 'ask-confirm');
     asked.id = 'ask-confirm';
-    asked.hidden = true;
+    asked.hidden = !tidyAsk(faceAsk);
     asked.setAttribute('role', 'status');
-    asked.appendChild(el('span', 'ask-k', 'Received'));
+    asked.appendChild(el('span', 'ask-k', 'Goes with your order'));
     var askedText = el('p');
     askedText.id = 'ask-confirm-text';
+    askedText.textContent = tidyAsk(faceAsk);
     asked.appendChild(askedText);
     askBox.appendChild(askLab);
-    askBox.appendChild(el('p', 'proof-note', 'Say what to leave in, and what to take out, then submit it.'));
+    askBox.appendChild(el('p', 'proof-note', 'This goes with your order. Say what to leave in, and what the shop should change.'));
     askBox.appendChild(askIn);
-    askBox.appendChild(askBtn);
     askBox.appendChild(asked);
-    cropB.appendChild(askBox);
+    faceTools.appendChild(askBox);
+    cropB.appendChild(faceTools);
     cropStep.appendChild(cropB);
     wrap.appendChild(cropStep);
 
     var wordStep = el('div', 'flow-step');
     wordStep.id = 'face-words';
-    wordStep.hidden = true;
+    if (!ownPhoto) wordStep.classList.add('is-locked');
     var nWords = el('span', 'flow-n', '3');
+    nWords.id = 'word-n';
     nWords.setAttribute('aria-hidden', 'true');
     wordStep.appendChild(nWords);
     var wordB = el('div', 'flow-b');
     wordB.appendChild(el('p', 'proof-head', 'Name'));
+    var wordHint = el('p', 'proof-note', 'Choose a photo first. Then you can add a name.');
+    wordHint.id = 'face-word-hint';
+    wordHint.hidden = !!ownPhoto;
+    wordB.appendChild(wordHint);
+    var wordTools = el('div');
+    wordTools.id = 'face-word-tools';
+    wordTools.hidden = !ownPhoto;
     var fields = el('div', 'face-fields');
     var nameLab = el('label', null, 'Above the face');
     nameLab.setAttribute('for', 'face-name');
@@ -3837,8 +4061,8 @@ always</textarea>
     fields.appendChild(sizeSlider('face-name-size', 'Size of the line above the face', 10, 17, faceNameSize, function (n) { faceNameSize = n; }));
     fields.appendChild(lineLab); fields.appendChild(lineIn);
     fields.appendChild(sizeSlider('face-line-size', 'Size of the line under the face', 14, 28, faceLineSize, function (n) { faceLineSize = n; }));
-    wordB.appendChild(fields);
-    wordB.appendChild(el('p', 'proof-note', 'Both lines use this face.'));
+    wordTools.appendChild(fields);
+    wordTools.appendChild(el('p', 'proof-note', 'Both lines use this face.'));
     var picks = el('div', 'font-picks');
     picks.id = 'font-picks';
     picks.setAttribute('role', 'radiogroup');
@@ -3866,8 +4090,8 @@ always</textarea>
       });
       picks.appendChild(b);
     });
-    wordB.appendChild(picks);
-    wordB.appendChild(el('p', 'proof-note', 'Flat, or a gentle arc around the photo.'));
+    wordTools.appendChild(picks);
+    wordTools.appendChild(el('p', 'proof-note', 'Flat, or a gentle arc around the photo.'));
     var curveRow = el('div', 'proof-zoom face-zoom');
     var curveLab = el('label', null, 'Curve');
     curveLab.setAttribute('for', 'face-curve');
@@ -3885,7 +4109,8 @@ always</textarea>
       rememberLettering();
     });
     curveRow.appendChild(curveLab); curveRow.appendChild(curve);
-    wordB.appendChild(curveRow);
+    wordTools.appendChild(curveRow);
+    wordB.appendChild(wordTools);
     wordStep.appendChild(wordB);
     wrap.appendChild(wordStep);
 
@@ -3918,8 +4143,53 @@ always</textarea>
       movePhoto(d[0] * (e.shiftKey ? 0.02 : 0.06), d[1] * (e.shiftKey ? 0.02 : 0.06));
     });
 
+    var ideaStep = el('div', 'flow-step');
+    ideaStep.id = 'idea-step';
+    ideaStep.hidden = styleKey() !== 'custom';
+    var nIdea = el('span', 'flow-n', '3');
+    nIdea.id = 'idea-n';
+    nIdea.setAttribute('aria-hidden', 'true');
+    ideaStep.appendChild(nIdea);
+    var ideaB = el('div', 'flow-b');
+    ideaB.appendChild(el('p', 'proof-head', 'Your idea'));
+    ideaB.appendChild(el('p', 'proof-note', 'Tell us what to add or change. A designer here does that work.'));
+    var ideaBox = el('div', 'face-ask');
+    var ideaLab = el('label', null, 'What should we add?');
+    ideaLab.setAttribute('for', 'custom-ask');
+    var ideaIn = document.createElement('textarea');
+    ideaIn.id = 'custom-ask';
+    ideaIn.rows = 4;
+    ideaIn.maxLength = 500;
+    ideaIn.placeholder = 'Add the kids\' names under the photo, and take the parking lot out.';
+    ideaIn.value = customAsk;
+    ideaIn.addEventListener('input', function () {
+      customAsk = ideaIn.value;
+      syncIdeaPreview();
+      syncAskPreview();
+      rememberRequest();
+    });
+    var ideaConfirm = el('div', 'ask-confirm');
+    ideaConfirm.id = 'idea-confirm';
+    ideaConfirm.hidden = !tidyAsk(customAsk);
+    ideaConfirm.setAttribute('role', 'status');
+    ideaConfirm.appendChild(el('span', 'ask-k', 'Goes with your order'));
+    var ideaConfirmText = el('p');
+    ideaConfirmText.id = 'idea-confirm-text';
+    ideaConfirmText.textContent = tidyAsk(customAsk);
+    ideaConfirm.appendChild(ideaConfirmText);
+    ideaBox.appendChild(ideaLab);
+    ideaBox.appendChild(ideaIn);
+    ideaBox.appendChild(el('p', 'proof-note', 'This goes with your order.'));
+    ideaBox.appendChild(ideaConfirm);
+    ideaB.appendChild(ideaBox);
+    ideaB.appendChild(el('p', 'proof-promise', 'We\'ll send you a proof within 24 hours.'));
+    ideaStep.appendChild(ideaB);
+    wrap.appendChild(ideaStep);
+
     var step2 = el('div', 'flow-step');
+    step2.id = 'bg-step';
     var n2 = el('span', 'flow-n', '4');
+    n2.id = 'bg-n';
     n2.setAttribute('aria-hidden', 'true');
     step2.appendChild(n2);
     var step2b = el('div', 'flow-b');
@@ -3989,6 +4259,10 @@ always</textarea>
     bgNote.id = 'bg-note';
     bgNote.hidden = true;
     step2b.appendChild(bgNote);
+    var bgPaused = el('p', 'proof-note');
+    bgPaused.id = 'bg-paused';
+    bgPaused.hidden = true;
+    step2b.appendChild(bgPaused);
     step2.appendChild(step2b);
     wrap.appendChild(step2);
 
@@ -4021,34 +4295,25 @@ always</textarea>
       drop.onclick = function () {
         ownPhoto = null; input.value = '';
         paintOwnPhoto(null);
-        if (!chosenBg) {
+        if (!chosenBg && styleKey() !== 'custom') {
           var chip = $('chip-yours');
           if (chip) { chip.hidden = true; chip.setAttribute('aria-pressed','false'); }
           var back = $('chip-family');
           if (back) back.click();
         } else {
           syncSceneChrome();
+          syncDesignMode();
         }
         name.textContent = ''; drop.remove(); setNote();
       };
       row.appendChild(drop);
     };
 
-    /* Two honest versions of the same sentence. Neither claims the file has
-       gone anywhere, because at this point it has not: on both flows the picker
-       only paints the image onto the mug in this browser. What differs is where
-       it goes next \u2014 the Shopify product page, or an email. */
+    /* The picker only paints the image in this browser. photoCopy() is the
+       same sentence the cart and the rest of the page use. */
     var setNote = function () {
-      var up = uploadFlow();
-      note.innerHTML = '';
-      note.appendChild(el('b', null,
-        ownPhoto ? 'This is a preview, not a proof. '
-                 : up ? 'Your photo uploads at checkout. ' : 'Preview on this device. '));
-      note.appendChild(document.createTextNode(ownPhoto
-        ? (up ? 'Nothing has been sent yet \u2014 it is still only in this browser. You attach this same file on the next page, and we send a real proof before anything is printed.'
-              : 'Your photo has not been sent \u2014 it stays in this browser. Email it after checkout and we\u2019ll send you a real proof before anything is printed.')
-        : (up ? 'Pick it here to see it on the mug, then attach the same file on the Shopify page and it lands straight on your order.'
-              : 'Your photo stays on your device. After checkout you email it over, and we send a real proof before we print.')));
+      var copy = photoCopy();
+      note.textContent = ownPhoto ? copy.after : copy.before;
     };
 
     input.onchange = function () {
@@ -4059,9 +4324,12 @@ always</textarea>
         ownPhoto = { dataUri: dataUri, name: f.name,
                      w: (size && size.w) || 0, h: (size && size.h) || 0,
                      zoom: 1, ox: 0, oy: 0 };
-        paintOwnPhoto(dataUri);
-        var chip = $('chip-yours');
-        if (chip) { chip.hidden = false; chip.click(); }
+        if (styleKey() === 'custom') paintOwnPhoto(dataUri);
+        else {
+          var chip = $('chip-yours');
+          if (chip) { chip.hidden = false; chip.click(); }
+          else paintOwnPhoto(dataUri);
+        }
         name.textContent = f.name;
         addDrop();
         setNote();
@@ -4080,29 +4348,60 @@ always</textarea>
   function save() { lsSet(LS_CART, cart); renderCart(); }
   function count() { return cart.reduce(function (n, l) { return n + l.qty; }, 0); }
 
+  function buyerFont(stored, kind) {
+    if (kind === 'recipe' || kind === 'hand') return 'Handwriting';
+    var map = {
+      'Outfit': 'Simple',
+      'Libre Baskerville': 'Serif',
+      'Caveat': 'Script',
+      'Lilita One': 'Display',
+      'Fredoka': 'Rounded'
+    };
+    if (map[stored]) return map[stored];
+    if (stored === 'Simple' || stored === 'Serif' || stored === 'Script' ||
+        stored === 'Display' || stored === 'Rounded' || stored === 'Handwriting') return stored;
+    return stored || '';
+  }
+
   function add(p, qty) {
-    qty = Math.max(1, Math.min(99, Number(qty) || 1));
+    qty = Math.max(1, Math.min(QTY_MAX, Number(qty) || 1));
+    var kind = orderKind();
     var price = unitPrice(p);
-    var background = chosenBg ? chosenBg.name : '';
-    var bgSize = chosenBg ? patternPct() : 0;
+    var bg = activeBg();
+    var background = bg ? bg.name : '';
+    var bgSize = bg ? patternPct() : 0;
+    var words = faceWords();
+    var fontLabel = fontChoice().label;
+    var curve = Math.round(faceCurve * 100);
+    var nameSize = faceName ? faceNameSize : 0;
+    var lineSize = faceLine ? faceLineSize : 0;
+    var ask = kind === 'custom' ? tidyAsk(customAsk) : tidyAsk(faceAsk);
+    if (kind === 'recipe' || kind === 'hand') {
+      words = ridingText().replace(/\n+/g, ' / ');
+      fontLabel = 'Handwriting';
+      curve = 0; nameSize = 0; lineSize = 0;
+      ask = '';
+      background = ''; bgSize = 0;
+    }
+    if (kind === 'custom') { background = ''; bgSize = 0; }
     var line = null;
     cart.forEach(function (l) { if (l.key === p.key) line = l; });
     if (line) {
-      line.qty = Math.min(99, line.qty + qty);
+      line.qty = Math.min(QTY_MAX, line.qty + qty);
       line.price = price;
       line.background = background;
       line.bgSize = bgSize;
-      line.words = faceWords();
-      line.curve = Math.round(faceCurve * 100);
-      line.font = fontChoice().name;
-      line.nameSize = faceName ? faceNameSize : 0;
-      line.lineSize = faceLine ? faceLineSize : 0;
-      line.ask = sentAsk();
+      line.words = words;
+      line.curve = curve;
+      line.font = fontLabel;
+      line.nameSize = nameSize;
+      line.lineSize = lineSize;
+      line.ask = ask;
+      line.kind = kind;
     } else {
       cart.push({ key:p.key, title:p.title, price:price, image:p.image || '', qty:qty,
-        background:background, bgSize:bgSize, words:faceWords(), curve:Math.round(faceCurve * 100),
-        font:fontChoice().name, nameSize: faceName ? faceNameSize : 0,
-        lineSize: faceLine ? faceLineSize : 0, ask:sentAsk() });
+        background:background, bgSize:bgSize, words:words, curve:curve,
+        font:fontLabel, nameSize:nameSize, lineSize:lineSize, ask:ask, kind:kind });
     }
     save();
     applyAskToNote();
@@ -4137,13 +4436,16 @@ always</textarea>
 
       var main = el('div', 'line-main');
       main.appendChild(el('b', null, l.title));
-      if (l.words || l.font || l.curve || l.nameSize || l.lineSize) {
+      if (l.kind === 'custom') main.appendChild(el('span', 'line-sub', 'We\'ll design it'));
+      var letterKind = l.kind === 'recipe' || l.kind === 'hand';
+      var font = buyerFont(l.font, l.kind);
+      if (l.words || l.curve || l.nameSize || l.lineSize || letterKind) {
         var letter = l.words || '';
-        if (l.font) letter = letter ? letter + ', ' + l.font : l.font;
-        if (l.curve) letter = letter ? letter + ', arc ' + l.curve + '%' : 'Arc ' + l.curve + '%';
-        if (l.nameSize) letter = letter ? letter + ', above size ' + l.nameSize : 'Above size ' + l.nameSize;
-        if (l.lineSize) letter = letter ? letter + ', under size ' + l.lineSize : 'Under size ' + l.lineSize;
-        main.appendChild(el('span', 'line-sub', letter));
+        if (font && (l.words || letterKind)) letter = letter ? letter + ', ' + font : font;
+        if (!letterKind && l.curve) letter = letter ? letter + ', arc ' + l.curve + '%' : 'Arc ' + l.curve + '%';
+        if (!letterKind && l.nameSize) letter = letter ? letter + ', above size ' + l.nameSize : 'Above size ' + l.nameSize;
+        if (!letterKind && l.lineSize) letter = letter ? letter + ', under size ' + l.lineSize : 'Under size ' + l.lineSize;
+        if (letter) main.appendChild(el('span', 'line-sub', letter));
       }
       if (l.ask) main.appendChild(el('span', 'line-sub', l.ask));
       if (l.background) {
@@ -4155,12 +4457,13 @@ always</textarea>
       var qtyRow = el('div', 'line-qty');
       var sel = document.createElement('select');
       sel.setAttribute('aria-label', 'Quantity for ' + l.title);
-      for (var q = 1; q <= 50; q++) {
+      if (l.qty > QTY_MAX) l.qty = QTY_MAX;
+      for (var q = 1; q <= QTY_MAX; q++) {
         var o = document.createElement('option');
         o.value = String(q); o.textContent = String(q);
         sel.appendChild(o);
       }
-      sel.value = String(Math.min(l.qty, 50));
+      sel.value = String(l.qty);
       sel.onchange = function () { l.qty = Number(sel.value); save(); };
       qtyRow.appendChild(sel);
 
@@ -4238,7 +4541,8 @@ always</textarea>
     var via = (location.hostname && location.hostname.indexOf('.') > 0)
       ? location.hostname.replace(/^www\./, '') : 'memorymugco.com';
     qs.push('attributes[Ordered via]=' + encodeURIComponent(via));
-    if (ownPhoto && ownPhoto.name) {
+    var photoOrder = cart.some(function (l) { return l.kind !== 'recipe' && l.kind !== 'hand'; });
+    if (photoOrder && ownPhoto && ownPhoto.name) {
       qs.push('attributes[Photo to expect]=' + encodeURIComponent(ownPhoto.name));
     }
     /* The page price includes the $8. Shopify charges the variant, so the
@@ -4250,8 +4554,10 @@ always</textarea>
         qs.push('attributes[Background]=' + encodeURIComponent(label));
       }
     });
-    var place = placementNote();
-    if (place) qs.push('attributes[Photo placement]=' + encodeURIComponent(place));
+    if (photoOrder) {
+      var place = placementNote();
+      if (place) qs.push('attributes[Photo placement]=' + encodeURIComponent(place));
+    }
     return { url: 'https://' + host(c) + '/cart/' + parts.join(',') + '?' + qs.join('&') };
   }
 
@@ -4259,8 +4565,7 @@ always</textarea>
     var box = $('checkout-status');
 
     if (!host()) {
-      statusBox(box, 'info', 'No Shopify store linked yet.',
-        'This page cannot take payment. Email the shop and attach your photo, and we send a proof before anything is printed.');
+      statusBox(box, 'info', 'No Shopify store linked yet.', photoCopy().noStore);
       if (!box.querySelector('.checkout-mail')) {
         var jump = document.createElement('a');
         jump.href = '#start';
@@ -4338,22 +4643,15 @@ always</textarea>
    */
   function applyArtworkCopy(c) {
     var up = uploadFlow(c || cfg());
+    var copy = photoCopy();
     var set = function (id, text) { var n = $(id); if (n) n.textContent = text; };
 
-    set('step1-h', up ? 'Upload the photo' : 'Send the photo');
-    set('step1-p', up
-      ? 'Place the photo on this page, then attach the same photo on the Shopify page. '
-        + 'Straight off your phone is fine. If it\u2019s too small to print well, we\u2019ll tell you '
-        + 'before we print anything.'
-      : 'Place the photo on this page, then email it after you order. Straight off your '
-        + 'phone is fine. If it\u2019s too small to print well, we\u2019ll tell you before you pay a dime.');
-
-    set('faq-send-q', up ? 'How do I send you the photo?' : 'How do I get you the photo?');
-    set('faq-send-a', up
-      ? 'Place the photo here so we can see the size and shape, then attach the same photo on the '
-        + 'Shopify page. It arrives with the order. Straight off your phone is fine.'
-      : 'Place the photo here so we can see the size and shape, then email it after you order. '
-        + 'Straight off your phone is fine.');
+    set('step1-h', copy.stepH);
+    set('step1-p', copy.stepP);
+    set('faq-send-q', copy.faqQ);
+    set('faq-send-a', copy.faqA);
+    set('cart-note-hint', 'Optional. ' + copy.cart);
+    set('cart-note-alt', copy.cartAlt);
 
     var noteField = $('cart-note-field'), noteAlt = $('cart-note-alt');
     if (noteField) noteField.hidden = up;
@@ -4953,26 +5251,35 @@ always</textarea>
     Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
       chip.addEventListener('click', function () {
         if (!chip.getAttribute('data-key')) return;
-        syncSceneChrome();
+        if (ownPhoto) paintOwnPhoto(ownPhoto.dataUri);
+        else syncSceneChrome();
+        syncDesignMode();
       });
     });
     applyConfig();
     preloadLetterFonts();
     buildVariantFields();
     cart.forEach(function (l) {
-      if (l.key === 'mug' && l.ask) {
-        if (!faceAskSent) faceAskSent = l.ask;
-        if (!faceAsk) faceAsk = l.ask;
-      }
+      if (l.key !== 'mug' || !l.ask) return;
+      if (l.kind === 'custom') { if (!customAsk) customAsk = l.ask; }
+      else if (!faceAsk) faceAsk = l.ask;
     });
     renderShop();
     renderCart();
 
     var note = lsGet(LS_NOTE);
     if (note && $('cart-note')) $('cart-note').value = note;
-    if (sentAsk() && $('cart-note') && $('cart-note').value.indexOf(sentAsk()) === -1) applyAskToNote();
-    else applyAskToNote.prev = sentAsk();
+    if (ridingText() && $('cart-note') && $('cart-note').value.indexOf(ridingText()) === -1) applyAskToNote();
+    else applyAskToNote.prev = ridingText();
     syncAskPreview();
+    ['recipe-text', 'hand-text'].forEach(function (id) {
+      var box = document.getElementById(id);
+      if (!box) return;
+      box.addEventListener('input', function () {
+        var key = id === 'recipe-text' ? 'recipe' : 'hand';
+        if (styleKey() === key) rememberRequest();
+      });
+    });
 
     var dialogs = [$('cart-dlg'), $('connect-dlg'), $('gate-dlg')];
     $('cart-btn').onclick = openCart;
