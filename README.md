@@ -165,9 +165,16 @@ order, so it is safe to put live early.
 
 Two options, set in the admin panel under **Customer artwork**.
 
-**Emailed after checkout** (the default, needs no apps). The order goes to Shopify
-through a cart permalink. The customer emails the photo afterwards, and the filename
-they picked rides along on the order as `Photo to expect` so it can be matched up.
+**Details travel with the order** (the default, needs no apps). The buyer crops the
+photo on this page. The order goes to Shopify through a cart permalink. The note and
+the cart attributes carry the style, the quote or handwriting, the crop (as
+percentages of the original), the placement, which side of the mug, the gift address,
+the anonymous flag, the gift note, and an order reference. The cropped JPEG cannot
+ride that link. It is kept in this browser (`mmc.order.v1`) and the buyer can save
+an HTML copy of the order, with the image embedded, from the cart. The page does not
+ask them to email the photo. Until a storage host or Uploadery is connected, the
+shop only receives the text. The filename still rides as `Photo to expect` so a
+later file can be matched.
 
 **Uploaded with the order** — [Uploadery](https://apps.shopify.com/uploadery) by
 ShopPad, a paid Shopify app. It puts a real file field on the Shopify *product* page
@@ -180,26 +187,25 @@ assign it to the mug product, then put the product's handle (`/products/the-memo
 
 Every sentence on the page about sending photos is generated from the same check the
 link itself uses, so the copy and the handover cannot drift apart. A missing or
-misspelled handle falls back to the email flow on its own rather than sending anyone
+misspelled handle falls back to the no-app flow on its own rather than sending anyone
 to a dead page.
 
-### The photo picker is a preview, not an upload
+### The photo picker crops in the browser
 
-On both flows, the "See your photo on the mug" picker reads the image **in the
-customer's own browser** and draws it on the mug. The file never leaves their device
-from this page — a Shopify cart permalink can carry text but not a file. The wording
-on the page says exactly that, and it must keep saying it unless the underlying
-behaviour changes.
+On both flows, the photo picker reads the image **in the customer's own browser**.
+They crop a rectangle or a circle (drag the box, drag a corner, zoom) before it is
+placed on the mug. The page does not remove the background. A circle crop is a
+square of the photo, drawn as a circle on the mug, not a transparent cut-out.
 
-They can place it, though. Dragging the photo on the mug moves it, a zoom slider
-crops in, arrow keys do the same for anyone not using a pointer, and **Center** puts
-it back. However far it is dragged, the photo keeps covering the print area, so the
-preview never shows a crop the press could not produce.
+After that, dragging the photo on the mug moves it, a zoom slider crops in further,
+arrow keys do the same for anyone not using a pointer, and **Center** puts it back.
+However far it is dragged, the photo keeps covering the print area, so the preview
+never shows a crop the press could not produce.
 
 Where they do adjust it, the placement rides along on the order as
-`Photo placement: zoom 165%, offset -12% across, -4% down`, so the work is not thrown
-away at checkout. Nothing is added when they leave it alone, and this only applies to
-the cart-permalink flow — a Shopify product URL carries no attributes.
+`Photo placement: zoom 165%, offset -12% across, -4% down`, and the earlier crop
+rides as `Crop`. Nothing is added when they leave placement alone, and this only
+applies to the cart-permalink flow — a Shopify product URL carries no attributes.
 
 ---
 
