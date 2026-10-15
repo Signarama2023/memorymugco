@@ -198,8 +198,9 @@ placed on the mug. Zoom all the way out, or use Fit whole photo, and the whole
 picture sits inside the box, square or circle, with white space if it does not
 already fill that shape. The mug shows that same box. The picture is never
 stretched. After the crop is placed, Remove background takes a first pass
-in the browser. It is a rough cut, and the designer touches it up before the
-proof. A circle is not a transparent cut-out by itself.
+in the browser, on the fuller photo, then trims the edge. It is still a rough
+cut, and the designer touches it up before the proof. Erase and Restore paint
+over spots the model missed. A circle is not a transparent cut-out by itself.
 
 After that, the zoom slider on the mug crops in further. Dragging moves the
 picture once it is larger than the shape, arrow keys do the same for anyone not

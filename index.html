@@ -324,6 +324,11 @@ section{scroll-margin-top:92px}
 .cut-status{font-size:.9375rem;font-weight:600;color:var(--ink-2)}
 .cut-status:empty{display:none}
 .cut-status.is-bad{color:var(--red-deep)}
+.touch-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-width:0}
+.touch-row[hidden]{display:none}
+.touch-row .cut-btn{flex:0 0 auto}
+.touch-row .proof-note{flex:1 1 140px;margin:0}
+.face-stage.is-brush{cursor:crosshair}
 .face-fields{display:flex;flex-direction:column;gap:8px}
 .face-fields label{font-weight:700;font-size:.9375rem}
 .face-fields input{
@@ -3905,10 +3910,17 @@ always</textarea>
   }
 
   /* Loaded only when the buyer asks. The library is AGPL; the ISNet model
-     and the ONNX runtime are MIT. The small model is the quantized one. */
+     and the ONNX runtime are MIT. fp16 is the one without the quantized
+     model's edge artifacts. The full-precision file is about twice as big
+     and not visibly better. */
   var BG_REMOVE_URL = 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.7.0/+esm';
   var cutLib = null;
   var cutJob = 0;
+  var brushMode = '';
+  var brushDrag = false;
+  var brushCanvas = null;
+  var brushPlain = null;
+  var brushFrame = false;
 
   /* The runtime wants several WASM threads, which need cross-origin
      isolation this page does not have. One thread still runs. */
@@ -3919,6 +3931,183 @@ always</textarea>
         get: function () { return 1; }
       });
     } catch (e) {}
+  }
+
+  /* Specks go. Small enclosed holes get filled. A hard fringe whose color
+     does not match the subject is peeled, one or two pixels, then the edge
+     is feathered so it does not sit as a line on the white mug. Letter
+     counters and the gap between two people are left alone. */
+  function refineCutout(imageData) {
+    var w = imageData.width, h = imageData.height, d = imageData.data;
+    var n = w * h;
+    var alpha = new Uint8Array(n);
+    var bin = new Uint8Array(n);
+    var i, p, x, y, k;
+    for (i = 0; i < n; i++) {
+      alpha[i] = d[i * 4 + 3];
+      bin[i] = alpha[i] > 18 ? 1 : 0;
+    }
+    var label = new Int32Array(n);
+    var qx = new Int32Array(n);
+    var qy = new Int32Array(n);
+    var areas = [0];
+    var id = 0;
+    for (y = 0; y < h; y++) {
+      for (x = 0; x < w; x++) {
+        p = y * w + x;
+        if (!bin[p] || label[p]) continue;
+        id++;
+        var qh = 0, qt = 0, area = 0;
+        qx[qt] = x; qy[qt] = y; qt++;
+        label[p] = id;
+        while (qh < qt) {
+          var cx = qx[qh], cy = qy[qh]; qh++;
+          area++;
+          var neigh = [cx - 1, cy, cx + 1, cy, cx, cy - 1, cx, cy + 1];
+          for (k = 0; k < 4; k++) {
+            var nx = neigh[k * 2], ny = neigh[k * 2 + 1];
+            if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+            var np = ny * w + nx;
+            if (!bin[np] || label[np]) continue;
+            label[np] = id;
+            qx[qt] = nx; qy[qt] = ny; qt++;
+          }
+        }
+        areas[id] = area;
+      }
+    }
+    var maxArea = 0;
+    for (i = 1; i < areas.length; i++) if (areas[i] > maxArea) maxArea = areas[i];
+    var speck = Math.max(64, Math.round(n * 0.0012));
+    for (i = 0; i < n; i++) {
+      if (!label[i]) continue;
+      var piece = areas[label[i]];
+      if (piece < speck && piece < maxArea * 0.05) {
+        bin[i] = 0;
+        alpha[i] = 0;
+      }
+    }
+    var exterior = new Uint8Array(n);
+    var qh2 = 0, qt2 = 0;
+    function pushExt(px, py) {
+      if (px < 0 || py < 0 || px >= w || py >= h) return;
+      var ip = py * w + px;
+      if (bin[ip] || exterior[ip]) return;
+      exterior[ip] = 1;
+      qx[qt2] = px; qy[qt2] = py; qt2++;
+    }
+    for (x = 0; x < w; x++) { pushExt(x, 0); pushExt(x, h - 1); }
+    for (y = 0; y < h; y++) { pushExt(0, y); pushExt(w - 1, y); }
+    while (qh2 < qt2) {
+      var ex = qx[qh2], ey = qy[qh2]; qh2++;
+      pushExt(ex - 1, ey); pushExt(ex + 1, ey); pushExt(ex, ey - 1); pushExt(ex, ey + 1);
+    }
+    var hole = new Uint8Array(n);
+    var holeMax = Math.max(180, Math.round(n * 0.003));
+    var holeSeen = new Uint8Array(n);
+    for (y = 0; y < h; y++) {
+      for (x = 0; x < w; x++) {
+        p = y * w + x;
+        if (bin[p] || exterior[p] || holeSeen[p]) continue;
+        var pixels = [];
+        var fq = 0;
+        pixels.push(p);
+        holeSeen[p] = 1;
+        while (fq < pixels.length) {
+          var fp = pixels[fq++];
+          var fx = fp % w, fy = (fp / w) | 0;
+          var nb = [fx - 1, fy, fx + 1, fy, fx, fy - 1, fx, fy + 1];
+          for (k = 0; k < 4; k++) {
+            var bx = nb[k * 2], by = nb[k * 2 + 1];
+            if (bx < 0 || by < 0 || bx >= w || by >= h) continue;
+            var bp = by * w + bx;
+            if (bin[bp] || exterior[bp] || holeSeen[bp]) continue;
+            holeSeen[bp] = 1;
+            pixels.push(bp);
+          }
+        }
+        if (pixels.length > holeMax) continue;
+        for (i = 0; i < pixels.length; i++) {
+          bin[pixels[i]] = 1;
+          hole[pixels[i]] = 1;
+          alpha[pixels[i]] = 255;
+        }
+      }
+    }
+    function interiorColor(ix, iy) {
+      var rs = 0, gs = 0, bs = 0, c = 0;
+      var dy, dx;
+      for (dy = -4; dy <= 4; dy++) {
+        for (dx = -4; dx <= 4; dx++) {
+          if (dx * dx + dy * dy > 18) continue;
+          var nx = ix + dx, ny = iy + dy;
+          if (nx <= 0 || ny <= 0 || nx >= w - 1 || ny >= h - 1) continue;
+          var np = ny * w + nx;
+          if (!bin[np] || hole[np] || alpha[np] < 230) continue;
+          if (!bin[np - 1] || !bin[np + 1] || !bin[np - w] || !bin[np + w]) continue;
+          var o = np * 4;
+          rs += d[o]; gs += d[o + 1]; bs += d[o + 2];
+          c++;
+        }
+      }
+      if (!c) return null;
+      return [rs / c, gs / c, bs / c];
+    }
+    var pass;
+    for (pass = 0; pass < 2; pass++) {
+      var drop = new Uint8Array(n);
+      for (y = 1; y < h - 1; y++) {
+        for (x = 1; x < w - 1; x++) {
+          p = y * w + x;
+          if (!bin[p] || hole[p] || alpha[p] < 200) continue;
+          if (bin[p - 1] && bin[p + 1] && bin[p - w] && bin[p + w]) continue;
+          var col = interiorColor(x, y);
+          if (!col) continue;
+          var o = p * 4;
+          var dr = d[o] - col[0], dg = d[o + 1] - col[1], db = d[o + 2] - col[2];
+          if (dr * dr + dg * dg + db * db > 55 * 55) drop[p] = 1;
+        }
+      }
+      for (i = 0; i < n; i++) {
+        if (!drop[i]) continue;
+        bin[i] = 0;
+        alpha[i] = 0;
+      }
+    }
+    var soft = new Uint8ClampedArray(n);
+    for (y = 0; y < h; y++) {
+      for (x = 0; x < w; x++) {
+        var sum = 0, cnt = 0, dy2, dx2;
+        for (dy2 = -1; dy2 <= 1; dy2++) {
+          for (dx2 = -1; dx2 <= 1; dx2++) {
+            var sx = x + dx2, sy = y + dy2;
+            if (sx < 0 || sy < 0 || sx >= w || sy >= h) continue;
+            var sp = sy * w + sx;
+            sum += bin[sp] ? alpha[sp] : 0;
+            cnt++;
+          }
+        }
+        soft[y * w + x] = Math.round(sum / cnt);
+      }
+    }
+    for (y = 0; y < h; y++) {
+      for (x = 0; x < w; x++) {
+        p = y * w + x;
+        var oi = p * 4;
+        var al = soft[p];
+        if (!al) { d[oi + 3] = 0; continue; }
+        if (al < 250 || hole[p]) {
+          var tone = interiorColor(x, y);
+          if (tone) {
+            d[oi] = Math.round(tone[0]);
+            d[oi + 1] = Math.round(tone[1]);
+            d[oi + 2] = Math.round(tone[2]);
+          }
+        }
+        d[oi + 3] = al;
+      }
+    }
+    return imageData;
   }
 
   function yieldPaint() {
@@ -3934,6 +4123,19 @@ always</textarea>
     status.classList.toggle('is-bad', !!bad);
   }
 
+  function setBrush(mode) {
+    brushMode = mode || '';
+    ['erase', 'restore'].forEach(function (m) {
+      var b = $('touch-' + m);
+      if (!b) return;
+      var on = brushMode === m;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    var stage = $('face-stage');
+    if (stage) stage.classList.toggle('is-brush', !!brushMode);
+  }
+
   function syncCutout() {
     var btn = $('cut-bg');
     if (!btn) return;
@@ -3943,6 +4145,9 @@ always</textarea>
     btn.classList.toggle('is-on', on);
     btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     btn.disabled = busy || !ownPhoto;
+    var touch = $('touch-row');
+    if (touch) touch.hidden = !on;
+    if (!on) setBrush('');
   }
 
   function rememberCutout() {
@@ -3965,6 +4170,7 @@ always</textarea>
     ownPhoto.w = w || ownPhoto.w;
     ownPhoto.h = h || ownPhoto.h;
     ownPhoto.cutBusy = false;
+    brushCanvas = null;
     paintOwnPhoto(ownPhoto.dataUri);
     rememberCutout();
     setCutStatus('');
@@ -3983,10 +4189,93 @@ always</textarea>
     syncCutout();
   }
 
+  function cutProgress(photo, job) {
+    return function (key, current, total) {
+      if (job !== cutJob || ownPhoto !== photo) return;
+      var compute = key && String(key).indexOf('compute:') === 0;
+      if (!compute && total > 0) {
+        setCutStatus('Removing background… ' + Math.min(100, Math.round(current / total * 100)) + '%');
+      } else {
+        setCutStatus('Removing background…');
+      }
+    };
+  }
+
+  function askModel(mod, source, device, progress) {
+    return mod.removeBackground(source, {
+      model: 'isnet_fp16',
+      device: device,
+      output: { format: 'image/png', quality: 1 },
+      progress: progress
+    });
+  }
+
+  /* device:'gpu' does not throw when an adapter exists but cannot compile
+     fp16 shaders. It returns a fully transparent PNG. Ask for the GPU only
+     when shader-f16 is actually present. */
+  function gpuCapable() {
+    var gpu = navigator.gpu;
+    if (!gpu || !gpu.requestAdapter) return Promise.resolve(false);
+    return gpu.requestAdapter().then(function (adapter) {
+      return !!(adapter && adapter.features && adapter.features.has('shader-f16'));
+    }).catch(function () { return false; });
+  }
+
+  function matteUsable(canvas) {
+    var w = canvas.width, h = canvas.height;
+    if (!w || !h) return false;
+    var data = canvas.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, w, h).data;
+    var step = Math.max(1, Math.floor(Math.sqrt((w * h) / 4000)));
+    var n = 0, clear = 0, solid = 0, y, x, a;
+    for (y = 0; y < h; y += step) {
+      for (x = 0; x < w; x += step) {
+        a = data[(y * w + x) * 4 + 3];
+        n++;
+        if (a < 8) clear++;
+        else if (a > 247) solid++;
+      }
+    }
+    if (!n) return false;
+    if (clear / n > 0.97) return false;
+    if (solid / n > 0.995) return false;
+    return true;
+  }
+
+  function canvasFromBlob(blob) {
+    return createImageBitmap(blob).then(function (bmp) {
+      var c = document.createElement('canvas');
+      c.width = bmp.width;
+      c.height = bmp.height;
+      var ctx = c.getContext('2d', { willReadFrequently: true });
+      ctx.drawImage(bmp, 0, 0);
+      if (bmp.close) bmp.close();
+      return c;
+    });
+  }
+
+  /* The model sees the fuller photo. The buyer's crop is applied after,
+     so the mug still matches the box they placed. */
+  function cropMatte(src, crop, outW, outH) {
+    var c = document.createElement('canvas');
+    c.width = Math.max(1, outW || src.width);
+    c.height = Math.max(1, outH || src.height);
+    var ctx = c.getContext('2d');
+    if (!crop || !(crop.w > 0) || !(crop.h > 0)) {
+      ctx.drawImage(src, 0, 0, c.width, c.height);
+      return c;
+    }
+    ctx.drawImage(src,
+      crop.x * src.width, crop.y * src.height,
+      crop.w * src.width, crop.h * src.height,
+      0, 0, c.width, c.height);
+    return c;
+  }
+
   function runCutout() {
     var photo = ownPhoto;
     if (!photo) return;
-    var source = photo.plain || photo.dataUri;
+    var full = photo.original && photo.original.matteUri;
+    var source = full || photo.plain || photo.dataUri;
     if (!source) return;
     var job = ++cutJob;
     photo.cutBusy = true;
@@ -4000,42 +4289,128 @@ always</textarea>
       return yieldPaint().then(function () { return mod; });
     }).then(function (mod) {
       if (!mod || job !== cutJob || ownPhoto !== photo) return null;
-      return mod.removeBackground(source, {
-        model: 'small',
-        device: 'cpu',
-        output: { format: 'image/png', quality: 0.8 },
-        progress: function (key, current, total) {
-          if (job !== cutJob || ownPhoto !== photo) return;
-          var compute = key && String(key).indexOf('compute:') === 0;
-          if (!compute && total > 0) {
-            setCutStatus('Removing background… ' + Math.min(100, Math.round(current / total * 100)) + '%');
-          } else {
-            setCutStatus('Removing background…');
-          }
-        }
+      var progress = cutProgress(photo, job);
+      return gpuCapable().then(function (gpu) {
+        if (job !== cutJob || ownPhoto !== photo) return null;
+        var device = gpu ? 'gpu' : 'cpu';
+        document.documentElement.dataset.cutDevice = device;
+        return askModel(mod, source, device, progress).then(function (blob) {
+          return { blob: blob, device: device, mod: mod };
+        });
       });
-    }).then(function (blob) {
-      if (!blob || job !== cutJob || ownPhoto !== photo) return null;
-      return new Promise(function (resolve, reject) {
-        var fr = new FileReader();
-        fr.onload = function () { resolve(String(fr.result || '')); };
-        fr.onerror = function () { reject(new Error('read')); };
-        fr.readAsDataURL(blob);
+    }).then(function (got) {
+      if (!got || !got.blob || job !== cutJob || ownPhoto !== photo) return null;
+      return canvasFromBlob(got.blob).then(function (canvas) {
+        if (job !== cutJob || ownPhoto !== photo) return null;
+        if (matteUsable(canvas)) return canvas;
+        if (got.device !== 'gpu') throw new Error('empty matte');
+        setCutStatus('Removing background…');
+        return askModel(got.mod, source, 'cpu', cutProgress(photo, job)).then(function (blob) {
+          if (!blob || job !== cutJob || ownPhoto !== photo) return null;
+          return canvasFromBlob(blob);
+        }).then(function (cpuCanvas) {
+          if (!cpuCanvas || job !== cutJob || ownPhoto !== photo) return null;
+          if (!matteUsable(cpuCanvas)) throw new Error('empty matte');
+          return cpuCanvas;
+        });
       });
-    }).then(function (uri) {
-      if (!uri || job !== cutJob || ownPhoto !== photo) return;
-      var im = new Image();
-      im.onload = function () {
-        if (job !== cutJob || ownPhoto !== photo) return;
-        photo.cutMs = Date.now() - started;
-        applyCutout(uri, im.naturalWidth || im.width, im.naturalHeight || im.height);
-      };
-      im.onerror = function () { failCut(photo, job); };
-      im.src = uri;
+    }).then(function (canvas) {
+      if (!canvas || job !== cutJob || ownPhoto !== photo) return null;
+      setCutStatus('Cleaning up the edges…');
+      return yieldPaint().then(function () { return canvas; });
+    }).then(function (canvas) {
+      if (!canvas || job !== cutJob || ownPhoto !== photo) return null;
+      var ctx = canvas.getContext('2d', { willReadFrequently: true });
+      ctx.putImageData(refineCutout(ctx.getImageData(0, 0, canvas.width, canvas.height)), 0, 0);
+      var outW = photo.plainW || photo.w || canvas.width;
+      var outH = photo.plainH || photo.h || canvas.height;
+      var cropped = full ? cropMatte(canvas, photo.crop, outW, outH) : canvas;
+      photo.cutMs = Date.now() - started;
+      applyCutout(cropped.toDataURL('image/png'), cropped.width, cropped.height);
     }).catch(function (err) {
       if (typeof console !== 'undefined' && console.error) console.error(err);
       failCut(photo, job);
     });
+  }
+
+  function loadBrushCanvas(uri) {
+    return new Promise(function (resolve, reject) {
+      var im = new Image();
+      im.onload = function () {
+        var c = document.createElement('canvas');
+        c.width = im.naturalWidth || im.width;
+        c.height = im.naturalHeight || im.height;
+        c.getContext('2d').drawImage(im, 0, 0);
+        resolve(c);
+      };
+      im.onerror = function () { reject(new Error('brush')); };
+      im.src = uri;
+    });
+  }
+
+  function paintStamp(e) {
+    if (!brushCanvas || !ownPhoto) return;
+    var img = $('face-img');
+    if (!img) return;
+    var r = img.getBoundingClientRect();
+    if (r.width < 2 || r.height < 2) return;
+    var x = (e.clientX - r.left) / r.width * brushCanvas.width;
+    var y = (e.clientY - r.top) / r.height * brushCanvas.height;
+    if (x < -20 || y < -20 || x > brushCanvas.width + 20 || y > brushCanvas.height + 20) return;
+    var screen = e.pointerType === 'touch' ? 28 : 16;
+    var radius = Math.max(8, screen / r.width * brushCanvas.width);
+    var ctx = brushCanvas.getContext('2d');
+    ctx.save();
+    if (brushMode === 'erase') {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (brushPlain) {
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.drawImage(brushPlain, 0, 0, brushCanvas.width, brushCanvas.height);
+    }
+    ctx.restore();
+    if (brushFrame) return;
+    brushFrame = true;
+    requestAnimationFrame(function () {
+      brushFrame = false;
+      var live = $('face-img');
+      if (live && brushCanvas) live.src = brushCanvas.toDataURL('image/png');
+    });
+  }
+
+  function beginBrush(e) {
+    var photo = ownPhoto;
+    var mode = brushMode;
+    if (!photo || !photo.cutout || !photo.plain) return;
+    var cutReady = brushCanvas && brushCanvas._uri === photo.cutout
+      ? Promise.resolve(brushCanvas) : loadBrushCanvas(photo.cutout);
+    var plainReady = brushPlain && brushPlain._uri === photo.plain
+      ? Promise.resolve(brushPlain) : loadBrushCanvas(photo.plain);
+    Promise.all([cutReady, plainReady]).then(function (pair) {
+      if (ownPhoto !== photo || brushMode !== mode) return;
+      brushCanvas = pair[0];
+      brushCanvas._uri = photo.cutout;
+      brushPlain = pair[1];
+      brushPlain._uri = photo.plain;
+      paintStamp(e);
+    }).catch(function () {});
+  }
+
+  function commitBrush() {
+    if (!brushCanvas || !ownPhoto || !ownPhoto.backgroundRemoved) return;
+    var uri = brushCanvas.toDataURL('image/png');
+    brushCanvas._uri = uri;
+    ownPhoto.cutout = uri;
+    ownPhoto.cutW = brushCanvas.width;
+    ownPhoto.cutH = brushCanvas.height;
+    ownPhoto.dataUri = uri;
+    ownPhoto.w = brushCanvas.width;
+    ownPhoto.h = brushCanvas.height;
+    paintOwnPhoto(uri);
   }
 
   function toggleCutout() {
@@ -4045,6 +4420,7 @@ always</textarea>
       ownPhoto.backgroundRemoved = false;
       ownPhoto.dataUri = ownPhoto.plain || ownPhoto.dataUri;
       if (ownPhoto.plainW) { ownPhoto.w = ownPhoto.plainW; ownPhoto.h = ownPhoto.plainH; }
+      brushCanvas = null;
       paintOwnPhoto(ownPhoto.dataUri);
       rememberCutout();
       return;
@@ -4359,6 +4735,21 @@ always</textarea>
     cutRow.appendChild(cutBtn);
     cutRow.appendChild(cutNote);
     cutRow.appendChild(cutStatus);
+    var touchRow = el('div', 'touch-row');
+    touchRow.id = 'touch-row';
+    touchRow.hidden = true;
+    function touchBtn(id, label, mode) {
+      var b = el('button', 'cut-btn', label);
+      b.type = 'button';
+      b.id = id;
+      b.setAttribute('aria-pressed', 'false');
+      b.addEventListener('click', function () { setBrush(brushMode === mode ? '' : mode); });
+      return b;
+    }
+    touchRow.appendChild(touchBtn('touch-erase', 'Erase', 'erase'));
+    touchRow.appendChild(touchBtn('touch-restore', 'Restore', 'restore'));
+    touchRow.appendChild(el('p', 'proof-note', 'Paint on the photo. Erase takes more away. Restore puts the background back.'));
+    cutRow.appendChild(touchRow);
     faceTools.appendChild(cutRow);
     var askBox = el('div', 'face-ask');
     askBox.id = 'face-ask';
@@ -4505,18 +4896,32 @@ always</textarea>
     var cropDrag = null;
     stage.addEventListener('pointerdown', function (e) {
       if (!ownPhoto) return;
+      if (brushMode && ownPhoto.backgroundRemoved) {
+        brushDrag = true;
+        try { stage.setPointerCapture(e.pointerId); } catch (err) {}
+        e.preventDefault();
+        beginBrush(e);
+        return;
+      }
       cropDrag = [e.clientX, e.clientY];
       try { stage.setPointerCapture(e.pointerId); } catch (err) {}
       stage.classList.add('dragging');
       e.preventDefault();
     });
     stage.addEventListener('pointermove', function (e) {
+      if (brushDrag) { paintStamp(e); return; }
       if (!cropDrag) return;
       var d = Math.max(1, stage.clientWidth * ringFraction());
       movePhoto((e.clientX - cropDrag[0]) / d, (e.clientY - cropDrag[1]) / d);
       cropDrag = [e.clientX, e.clientY];
     });
     var stopCrop = function (e) {
+      if (brushDrag) {
+        brushDrag = false;
+        commitBrush();
+        try { stage.releasePointerCapture(e.pointerId); } catch (err) {}
+        return;
+      }
       if (!cropDrag) return;
       cropDrag = null;
       stage.classList.remove('dragging');
@@ -4752,7 +5157,10 @@ always</textarea>
           dataUri: dataUri,
           name: f.name,
           w: (size && size.w) || 0,
-          h: (size && size.h) || 0
+          h: (size && size.h) || 0,
+          matteUri: size && size.matteUri,
+          matteW: size && size.matteW,
+          matteH: size && size.matteH
         }, useCropped);
       });
     };
@@ -5352,7 +5760,7 @@ always</textarea>
     var size = svgPixelSize(text);
     var src = text;
     if (size) {
-      var max = 900;
+      var max = 1280;
       var sc = max / Math.max(size.w, size.h);
       var pw = Math.max(1, Math.round(size.w * sc));
       var ph = Math.max(1, Math.round(size.h * sc));
@@ -5376,20 +5784,30 @@ always</textarea>
       var nw = im.naturalWidth || im.width;
       var nh = im.naturalHeight || im.height;
       if (!(nw > 0) || !(nh > 0)) { cb(null, 'That image could not be decoded.'); return; }
-      var max = 900, scale = Math.min(1, max / Math.max(nw, nh));
-      var c = document.createElement('canvas');
-      c.width = Math.max(1, Math.round(nw * scale));
-      c.height = Math.max(1, Math.round(nh * scale));
-      var ctx = c.getContext('2d');
-      /* JPEG has no alpha, so a cut-out PNG would come back with black
-         corners. White matches both the page and the mug. */
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(0, 0, c.width, c.height);
-      ctx.drawImage(im, 0, 0, c.width, c.height);
-      var uri;
-      try { uri = c.toDataURL('image/jpeg', 0.82); }
-      catch (e) { cb(null, 'That image could not be converted.'); return; }
-      cb(uri, null, { w: c.width, h: c.height });
+      function draw(max, quality) {
+        var scale = Math.min(1, max / Math.max(nw, nh));
+        var c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(nw * scale));
+        c.height = Math.max(1, Math.round(nh * scale));
+        var ctx = c.getContext('2d');
+        /* JPEG has no alpha, so a cut-out PNG would come back with black
+           corners. White matches both the page and the mug. */
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(im, 0, 0, c.width, c.height);
+        return { uri: c.toDataURL('image/jpeg', quality), w: c.width, h: c.height };
+      }
+      var view, matte;
+      try {
+        /* The page keeps a 900px JPEG. Background removal uses the fuller
+           one, up to 1280 on the long side, and crops afterwards. */
+        matte = draw(1280, 0.92);
+        view = draw(900, 0.82);
+      } catch (e) { cb(null, 'That image could not be converted.'); return; }
+      cb(view.uri, null, {
+        w: view.w, h: view.h,
+        matteUri: matte.uri, matteW: matte.w, matteH: matte.h
+      });
     };
     im.src = src;
   }
