@@ -3,7 +3,7 @@
 **Live at [www.memorymugco.com](https://www.memorymugco.com)** — served by GitHub Pages,
 republished on every push to `main`.
 
-A one-page storefront for custom photo mugs, operated by [H3 Customs](https://h3customs.com).
+A one-page storefront for custom photo mugs.
 
 One product: a 15 oz white ceramic mug, $28, the customer's photo wrapped around it.
 The page takes the order and hands it to Shopify to be paid for. **No card, no payment
