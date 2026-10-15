@@ -416,20 +416,22 @@ section{scroll-margin-top:92px}
   position:relative;width:100%;height:min(62vh,420px);min-height:220px;
   background:var(--surface-2);border-radius:var(--r-md);overflow:hidden;touch-action:none;
 }
-.crop-stage img{position:absolute;max-width:none;user-select:none;pointer-events:none}
+.crop-stage img,.crop-fill{position:absolute;max-width:none;user-select:none;pointer-events:none}
+.crop-fill{background:var(--surface)}
 .crop-box{
-  position:absolute;border:2px solid var(--surface);touch-action:none;cursor:move;
+  position:absolute;border:2px solid var(--ink);touch-action:none;cursor:move;
   box-shadow:0 0 0 9999px color-mix(in srgb, var(--ink) 45%, transparent);
 }
 .crop-box.is-circle{border-radius:50%}
 .crop-handle{
-  position:absolute;width:22px;height:22px;border-radius:50%;
+  position:absolute;width:32px;height:32px;border-radius:50%;
   background:var(--surface);border:2px solid var(--red-deep);touch-action:none;
 }
-.crop-handle[data-h="nw"]{left:-11px;top:-11px;cursor:nwse-resize}
-.crop-handle[data-h="ne"]{right:-11px;top:-11px;cursor:nesw-resize}
-.crop-handle[data-h="sw"]{left:-11px;bottom:-11px;cursor:nesw-resize}
-.crop-handle[data-h="se"]{right:-11px;bottom:-11px;cursor:nwse-resize}
+.crop-handle[data-h="nw"]{left:-16px;top:-16px;cursor:nwse-resize}
+.crop-handle[data-h="ne"]{right:-16px;top:-16px;cursor:nesw-resize}
+.crop-handle[data-h="sw"]{left:-16px;bottom:-16px;cursor:nesw-resize}
+.crop-handle[data-h="se"]{right:-16px;bottom:-16px;cursor:nwse-resize}
+.crop-fit{width:100%}
 @media (max-width:420px){
   .gift-grid{grid-template-columns:minmax(0,1fr)}
   .crop-stage{height:min(54vh,360px)}
@@ -1709,10 +1711,11 @@ always</textarea>
       <button type="button" class="panel-x" data-close aria-label="Close crop">&times;</button>
     </div>
     <div class="panel-body">
-      <p>Drag the box. Drag a corner to resize. Use the slider to zoom. This crops a rectangle. It does not cut the background out.</p>
+      <p>Drag the box to move it. Drag a corner to resize. The slider zooms in. Fit whole photo zooms back out and selects the entire picture, portrait or landscape. This does not cut the background out.</p>
       <div class="crop-stage" id="crop-stage">
+        <div class="crop-fill" id="crop-fill"></div>
         <img id="crop-img" alt="">
-        <div id="crop-box" role="application" tabindex="0" aria-label="Crop box. Drag to move it. Drag a handle to resize.">
+        <div class="crop-box" id="crop-box" role="application" tabindex="0" aria-label="Crop box. Drag to move it. Drag a handle to resize.">
           <span class="crop-handle" data-h="nw"></span>
           <span class="crop-handle" data-h="ne"></span>
           <span class="crop-handle" data-h="sw"></span>
@@ -1727,9 +1730,10 @@ always</textarea>
         <button type="button" class="shape-pick is-on" id="crop-shape-rect" data-crop-shape="rect">Rectangle</button>
         <button type="button" class="shape-pick" id="crop-shape-circle" data-crop-shape="circle">Circle</button>
       </div>
-      <p class="hint" id="crop-shape-note">A rectangle crop. You can still choose a circle or a square on the mug.</p>
+      <p class="hint" id="crop-shape-note">The box is the part that prints. Fit whole photo selects the entire picture.</p>
     </div>
     <div class="panel-foot">
+      <button type="button" class="btn btn--line crop-fit" id="crop-fit">Fit whole photo</button>
       <button type="button" class="btn btn--line" id="crop-cancel">Back</button>
       <button type="button" class="btn btn--fill" id="crop-use">Place this crop on the mug</button>
     </div>
@@ -4748,11 +4752,7 @@ always</textarea>
       if (l.ask) lines.push('Note on the photo: ' + l.ask);
       if (l.background) lines.push('Background: ' + l.background);
     });
-    if (ownPhoto && ownPhoto.crop) {
-      var cr = ownPhoto.crop;
-      lines.push('Crop: left ' + Math.round(cr.x * 100) + '%, top ' + Math.round(cr.y * 100) +
-        '%, ' + Math.round(cr.w * 100) + '% wide, ' + Math.round(cr.h * 100) + '% tall.');
-    }
+    if (ownPhoto && ownPhoto.crop) lines.push('Crop: ' + cropDescribes(ownPhoto.crop) + '.');
     var place = placementNote();
     if (place) lines.push('Placement: ' + place);
     var gift = giftState();
@@ -4918,10 +4918,7 @@ always</textarea>
       var place = placementNote();
       if (place) qs.push('attributes[Photo placement]=' + encodeURIComponent(place));
       if (ownPhoto && ownPhoto.crop) {
-        var cr = ownPhoto.crop;
-        qs.push('attributes[Crop]=' + encodeURIComponent(
-          'left ' + Math.round(cr.x * 100) + '%, top ' + Math.round(cr.y * 100) +
-          '%, width ' + Math.round(cr.w * 100) + '%, height ' + Math.round(cr.h * 100) + '% of the photo'));
+        qs.push('attributes[Crop]=' + encodeURIComponent(cropDescribes(ownPhoto.crop)));
       }
     }
     cart.forEach(function (l) {
@@ -5625,8 +5622,19 @@ always</textarea>
     box.appendChild(s);
   }
 
-  /* ══ Crop tool. A rectangle or a circle, before the photo is placed. ══ */
+  /* ══ Crop tool. The box is stored in the photo's own pixels, so the
+       export matches the selection. Zoom 1 fits the whole photo. A circle
+       may be a square larger than the short side, with white in the spare. ══ */
   var cropSession = null;
+
+  function cropDescribes(cr) {
+    if (!cr) return '';
+    var covers = cr.x <= 0.005 && cr.y <= 0.005 && (cr.x + cr.w) >= 0.995 && (cr.y + cr.h) >= 0.995;
+    if (covers && cr.shape === 'circle') return 'the whole photo, in a square with white space beside it';
+    if (covers) return 'the whole photo';
+    return 'left ' + Math.round(cr.x * 100) + '%, top ' + Math.round(cr.y * 100) +
+      '%, ' + Math.round(cr.w * 100) + '% wide, ' + Math.round(cr.h * 100) + '% tall';
+  }
 
   function openCropper(src, onDone) {
     var dlg = $('crop-dlg');
@@ -5634,152 +5642,245 @@ always</textarea>
     if (!dlg || !img || !src || !src.dataUri) return;
     cropSession = {
       src: src, onDone: onDone, natW: src.w || 1, natH: src.h || 1,
-      zoom: 1, shape: 'rect', ix: 0, iy: 0, x: 20, y: 20, w: 80, h: 80
+      zoom: 1, shape: 'rect', panX: 0, panY: 0, cx: 0, cy: 0, cw: src.w || 1, ch: src.h || 1
     };
-    var zoom = $('crop-zoom');
-    if (zoom) zoom.value = '100';
-    setCropShape('rect');
+    markCropShape('rect');
     img.onload = function () {
+      if (!cropSession) return;
       if (img.naturalWidth) {
         cropSession.natW = img.naturalWidth;
         cropSession.natH = img.naturalHeight;
       }
-      resetCropBox();
-      paintCropper();
+      whenCropReady(function () { fitWholePhoto(); });
     };
-    img.src = src.dataUri;
     if (!dlg.open) dlg.showModal();
-    requestAnimationFrame(function () {
-      if (img.naturalWidth) img.onload();
-    });
+    img.src = src.dataUri;
+    if (img.complete && img.naturalWidth) img.onload();
   }
 
-  function cropScale() {
-    var stage = $('crop-stage');
-    if (!stage || !cropSession) return 1;
-    var fit = Math.min(stage.clientWidth / cropSession.natW, stage.clientHeight / cropSession.natH);
-    if (!isFinite(fit) || fit <= 0) fit = 1;
-    return fit * cropSession.zoom;
-  }
-
-  function resetCropBox() {
-    var stage = $('crop-stage');
-    if (!stage || !cropSession) return;
-    var sw = stage.clientWidth, sh = stage.clientHeight;
-    var scale = Math.min(sw / cropSession.natW, sh / cropSession.natH) * cropSession.zoom;
-    var dw = cropSession.natW * scale, dh = cropSession.natH * scale;
-    cropSession.ix = (sw - dw) / 2;
-    cropSession.iy = (sh - dh) / 2;
-    var w = dw * 0.82, h = dh * 0.82;
-    if (cropSession.shape === 'circle') {
-      var s = Math.min(w, h);
-      w = s; h = s;
+  function whenCropReady(cb) {
+    var tries = 0;
+    function tick() {
+      var st = cropStageBox();
+      if (st.w > 20 && st.h > 20) cb();
+      else if (tries++ < 40) requestAnimationFrame(tick);
     }
-    cropSession.x = cropSession.ix + (dw - w) / 2;
-    cropSession.y = cropSession.iy + (dh - h) / 2;
-    cropSession.w = w;
-    cropSession.h = h;
+    requestAnimationFrame(tick);
   }
 
-  function imageRect() {
-    var scale = cropScale();
+  function cropStageBox() {
+    var stage = $('crop-stage');
+    if (!stage) return { w: 0, h: 0 };
+    return { w: stage.clientWidth, h: stage.clientHeight };
+  }
+
+  /* Screen pixels per photo pixel when zoom is 1. Circle mode fits the
+     square that can hold the whole photo, so the spare white is on screen. */
+  function cropBaseFit() {
+    var st = cropStageBox();
+    var pad = 28;
+    var fw = Math.max(1, st.w - pad * 2);
+    var fh = Math.max(1, st.h - pad * 2);
+    var needW = cropSession.natW, needH = cropSession.natH;
+    if (cropSession.shape === 'circle') {
+      var side = Math.max(cropSession.natW, cropSession.natH);
+      needW = side;
+      needH = side;
+    }
+    var fit = Math.min(fw / needW, fh / needH);
+    if (!isFinite(fit) || fit <= 0) return 1;
+    return fit;
+  }
+
+  function cropView() {
+    var scale = cropBaseFit() * cropSession.zoom;
+    var st = cropStageBox();
+    var dw = cropSession.natW * scale;
+    var dh = cropSession.natH * scale;
     return {
-      x: cropSession.ix, y: cropSession.iy,
-      w: cropSession.natW * scale, h: cropSession.natH * scale, scale: scale
+      scale: scale,
+      x: (st.w - dw) / 2 + cropSession.panX,
+      y: (st.h - dh) / 2 + cropSession.panY
     };
   }
 
-  function clampCrop() {
-    var im = imageRect();
-    var min = 36;
+  function cropMinSide() {
+    return Math.max(8, Math.min(cropSession.natW, cropSession.natH) * 0.08);
+  }
+
+  function clampCropRect() {
+    var natW = cropSession.natW, natH = cropSession.natH;
+    var min = cropMinSide();
     if (cropSession.shape === 'circle') {
-      var s = Math.max(min, Math.min(cropSession.w, cropSession.h));
-      cropSession.w = s;
-      cropSession.h = s;
+      var cap = Math.max(natW, natH);
+      var side = Math.max(min, Math.min(cap, Math.max(cropSession.cw, cropSession.ch)));
+      var overlap = Math.min(side, min);
+      cropSession.cx = Math.max(overlap - side, Math.min(cropSession.cx, natW - overlap));
+      cropSession.cy = Math.max(overlap - side, Math.min(cropSession.cy, natH - overlap));
+      cropSession.cw = side;
+      cropSession.ch = side;
+      return;
     }
-    cropSession.w = Math.max(min, Math.min(cropSession.w, im.w));
-    cropSession.h = Math.max(min, Math.min(cropSession.h, im.h));
-    cropSession.x = Math.max(im.x, Math.min(cropSession.x, im.x + im.w - cropSession.w));
-    cropSession.y = Math.max(im.y, Math.min(cropSession.y, im.y + im.h - cropSession.h));
+    var w = Math.max(min, Math.min(cropSession.cw, natW));
+    var h = Math.max(min, Math.min(cropSession.ch, natH));
+    cropSession.cx = Math.max(0, Math.min(cropSession.cx, natW - w));
+    cropSession.cy = Math.max(0, Math.min(cropSession.cy, natH - h));
+    cropSession.cw = w;
+    cropSession.ch = h;
+  }
+
+  function clampCropPan() {
+    var st = cropStageBox();
+    var scale = cropBaseFit() * cropSession.zoom;
+    var dw = cropSession.natW * scale;
+    var dh = cropSession.natH * scale;
+    var ox = (st.w - dw) / 2;
+    var oy = (st.h - dh) / 2;
+    var margin = 48;
+    var minX = margin - ox - dw;
+    var maxX = st.w - margin - ox;
+    var minY = margin - oy - dh;
+    var maxY = st.h - margin - oy;
+    cropSession.panX = minX > maxX ? 0 : Math.max(minX, Math.min(maxX, cropSession.panX));
+    cropSession.panY = minY > maxY ? 0 : Math.max(minY, Math.min(maxY, cropSession.panY));
+  }
+
+  function centerCropInView() {
+    var st = cropStageBox();
+    var scale = cropBaseFit() * cropSession.zoom;
+    var dw = cropSession.natW * scale;
+    var dh = cropSession.natH * scale;
+    var ox = (st.w - dw) / 2;
+    var oy = (st.h - dh) / 2;
+    var bx = ox + cropSession.cx * scale;
+    var by = oy + cropSession.cy * scale;
+    cropSession.panX = st.w / 2 - (bx + cropSession.cw * scale / 2);
+    cropSession.panY = st.h / 2 - (by + cropSession.ch * scale / 2);
+    clampCropPan();
   }
 
   function paintCropper() {
     if (!cropSession) return;
-    clampCrop();
+    clampCropRect();
+    var o = cropView();
     var img = $('crop-img');
     var box = $('crop-box');
-    var im = imageRect();
+    var fill = $('crop-fill');
     if (img) {
-      img.style.width = im.w + 'px';
-      img.style.height = im.h + 'px';
-      img.style.left = im.x + 'px';
-      img.style.top = im.y + 'px';
+      img.style.width = (cropSession.natW * o.scale) + 'px';
+      img.style.height = (cropSession.natH * o.scale) + 'px';
+      img.style.left = o.x + 'px';
+      img.style.top = o.y + 'px';
     }
-    if (box) {
-      box.style.left = cropSession.x + 'px';
-      box.style.top = cropSession.y + 'px';
-      box.style.width = cropSession.w + 'px';
-      box.style.height = cropSession.h + 'px';
-      box.classList.toggle('is-circle', cropSession.shape === 'circle');
-    }
+    var bx = o.x + cropSession.cx * o.scale;
+    var by = o.y + cropSession.cy * o.scale;
+    var bw = cropSession.cw * o.scale;
+    var bh = cropSession.ch * o.scale;
+    [fill, box].forEach(function (el) {
+      if (!el) return;
+      el.style.left = bx + 'px';
+      el.style.top = by + 'px';
+      el.style.width = bw + 'px';
+      el.style.height = bh + 'px';
+    });
+    if (box) box.classList.toggle('is-circle', cropSession.shape === 'circle');
+    if (fill) fill.style.borderRadius = cropSession.shape === 'circle' ? '50%' : '0';
   }
 
-  function setCropZoom(z) {
-    if (!cropSession) return;
-    var old = cropScale();
-    var cx = cropSession.x + cropSession.w / 2;
-    var cy = cropSession.y + cropSession.h / 2;
-    var imgX = old ? (cx - cropSession.ix) / old : 0;
-    var imgY = old ? (cy - cropSession.iy) / old : 0;
-    cropSession.zoom = Math.max(1, Math.min(3, z));
-    var scale = cropScale();
-    cropSession.ix = cx - imgX * scale;
-    cropSession.iy = cy - imgY * scale;
-    paintCropper();
-  }
-
-  function setCropShape(shape) {
-    if (cropSession) {
-      cropSession.shape = shape;
-      if (shape === 'circle') {
-        var s = Math.min(cropSession.w, cropSession.h);
-        cropSession.x += (cropSession.w - s) / 2;
-        cropSession.y += (cropSession.h - s) / 2;
-        cropSession.w = s;
-        cropSession.h = s;
-      }
-    }
+  function markCropShape(shape) {
     var rect = $('crop-shape-rect');
     var circ = $('crop-shape-circle');
     if (rect) { rect.classList.toggle('is-on', shape !== 'circle'); rect.setAttribute('aria-checked', shape !== 'circle' ? 'true' : 'false'); }
     if (circ) { circ.classList.toggle('is-on', shape === 'circle'); circ.setAttribute('aria-checked', shape === 'circle' ? 'true' : 'false'); }
     var note = $('crop-shape-note');
     if (note) note.textContent = shape === 'circle'
-      ? 'A circle crop is a square of the photo, shown as a circle on the mug.'
-      : 'A rectangle crop. You can still choose a circle or a square on the mug.';
-    if (cropSession) paintCropper();
+      ? 'A circle is a square on the mug. Fit whole photo keeps the entire picture in that square, with white space if it is not already square.'
+      : 'The box is the part that prints. Fit whole photo selects the entire picture.';
+  }
+
+  function setCropZoom(z) {
+    if (!cropSession) return;
+    cropSession.zoom = Math.max(1, Math.min(3, z));
+    var slider = $('crop-zoom');
+    if (slider && document.activeElement !== slider) slider.value = String(Math.round(cropSession.zoom * 100));
+    if (slider) slider.setAttribute('aria-valuetext', cropSession.zoom <= 1.01 ? 'Whole photo' : 'Zoom ' + Math.round(cropSession.zoom * 100) + ' percent');
+    centerCropInView();
+    paintCropper();
+  }
+
+  function setCropShape(shape) {
+    if (!cropSession) { markCropShape(shape); return; }
+    var prev = cropSession.shape;
+    cropSession.shape = shape;
+    if (shape === 'circle' && prev !== 'circle') {
+      var side = Math.min(Math.max(cropSession.natW, cropSession.natH), Math.max(cropSession.cw, cropSession.ch));
+      var mx = cropSession.cx + cropSession.cw / 2;
+      var my = cropSession.cy + cropSession.ch / 2;
+      cropSession.cx = mx - side / 2;
+      cropSession.cy = my - side / 2;
+      cropSession.cw = side;
+      cropSession.ch = side;
+    } else if (shape !== 'circle' && prev === 'circle') {
+      var x0 = Math.max(0, cropSession.cx);
+      var y0 = Math.max(0, cropSession.cy);
+      var x1 = Math.min(cropSession.natW, cropSession.cx + cropSession.cw);
+      var y1 = Math.min(cropSession.natH, cropSession.cy + cropSession.ch);
+      cropSession.cx = x0;
+      cropSession.cy = y0;
+      cropSession.cw = Math.max(1, x1 - x0);
+      cropSession.ch = Math.max(1, y1 - y0);
+    }
+    markCropShape(shape);
+    setCropZoom(cropSession.zoom);
+  }
+
+  function fitWholePhoto() {
+    if (!cropSession) return;
+    cropSession.zoom = 1;
+    cropSession.panX = 0;
+    cropSession.panY = 0;
+    if (cropSession.shape === 'circle') {
+      var side = Math.max(cropSession.natW, cropSession.natH);
+      cropSession.cx = (cropSession.natW - side) / 2;
+      cropSession.cy = (cropSession.natH - side) / 2;
+      cropSession.cw = side;
+      cropSession.ch = side;
+    } else {
+      cropSession.cx = 0;
+      cropSession.cy = 0;
+      cropSession.cw = cropSession.natW;
+      cropSession.ch = cropSession.natH;
+    }
+    var slider = $('crop-zoom');
+    if (slider) {
+      slider.value = '100';
+      slider.setAttribute('aria-valuetext', 'Whole photo');
+    }
+    paintCropper();
   }
 
   function applyCrop() {
     if (!cropSession) return;
-    var im = imageRect();
-    var sx = (cropSession.x - im.x) / im.scale;
-    var sy = (cropSession.y - im.y) / im.scale;
-    var sw = cropSession.w / im.scale;
-    var sh = cropSession.h / im.scale;
-    sx = Math.max(0, Math.min(cropSession.natW - 1, sx));
-    sy = Math.max(0, Math.min(cropSession.natH - 1, sy));
-    sw = Math.max(1, Math.min(cropSession.natW - sx, sw));
-    sh = Math.max(1, Math.min(cropSession.natH - sy, sh));
+    clampCropRect();
+    var natW = cropSession.natW, natH = cropSession.natH;
+    var cx = cropSession.cx, cy = cropSession.cy, cw = cropSession.cw, ch = cropSession.ch;
     var canvas = document.createElement('canvas');
     var max = 900;
-    var sc = Math.min(1, max / Math.max(sw, sh));
-    canvas.width = Math.max(1, Math.round(sw * sc));
-    canvas.height = Math.max(1, Math.round(sh * sc));
+    var sc = Math.min(1, max / Math.max(cw, ch));
+    canvas.width = Math.max(1, Math.round(cw * sc));
+    canvas.height = Math.max(1, Math.round(ch * sc));
     var ctx = canvas.getContext('2d');
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage($('crop-img'), sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+    var ix0 = Math.max(0, cx), iy0 = Math.max(0, cy);
+    var ix1 = Math.min(natW, cx + cw), iy1 = Math.min(natH, cy + ch);
+    var img = $('crop-img');
+    if (img && ix1 - ix0 > 0.5 && iy1 - iy0 > 0.5) {
+      ctx.drawImage(img,
+        ix0, iy0, ix1 - ix0, iy1 - iy0,
+        (ix0 - cx) / cw * canvas.width, (iy0 - cy) / ch * canvas.height,
+        (ix1 - ix0) / cw * canvas.width, (iy1 - iy0) / ch * canvas.height);
+    }
     var uri;
     try { uri = canvas.toDataURL('image/jpeg', 0.82); }
     catch (e) { return; }
@@ -5790,8 +5891,7 @@ always</textarea>
       dataUri: uri, name: src.name, w: canvas.width, h: canvas.height,
       zoom: 1, ox: 0, oy: 0, original: src,
       crop: {
-        x: sx / cropSession.natW, y: sy / cropSession.natH,
-        w: sw / cropSession.natW, h: sh / cropSession.natH,
+        x: cx / natW, y: cy / natH, w: cw / natW, h: ch / natH,
         shape: cropSession.shape
       }
     };
@@ -5799,6 +5899,13 @@ always</textarea>
     var dlg = $('crop-dlg');
     if (dlg && dlg.open) dlg.close();
     if (done) done(cropped);
+  }
+
+  function pointerToImage(e) {
+    var stage = $('crop-stage');
+    var r = stage.getBoundingClientRect();
+    var o = cropView();
+    return { x: (e.clientX - r.left - o.x) / o.scale, y: (e.clientY - r.top - o.y) / o.scale };
   }
 
   function wireCropper() {
@@ -5812,39 +5919,51 @@ always</textarea>
       if (!cropSession) return;
       var handle = e.target.getAttribute && e.target.getAttribute('data-h');
       var onBox = e.target === box || (e.target.closest && e.target.closest('#crop-box'));
+      var anchor = null;
+      if (handle) {
+        var east = handle.indexOf('e') >= 0, south = handle.indexOf('s') >= 0;
+        anchor = {
+          x: east ? cropSession.cx : cropSession.cx + cropSession.cw,
+          y: south ? cropSession.cy : cropSession.cy + cropSession.ch
+        };
+      }
       drag = {
         kind: handle ? 'handle' : (onBox ? 'box' : 'pan'),
         h: handle || '',
         x: e.clientX, y: e.clientY,
-        bx: cropSession.x, by: cropSession.y, bw: cropSession.w, bh: cropSession.h,
-        ix: cropSession.ix, iy: cropSession.iy
+        cx: cropSession.cx, cy: cropSession.cy,
+        panX: cropSession.panX, panY: cropSession.panY,
+        anchor: anchor
       };
       try { stage.setPointerCapture(e.pointerId); } catch (err) {}
       e.preventDefault();
     });
     stage.addEventListener('pointermove', function (e) {
       if (!drag || !cropSession) return;
-      var dx = e.clientX - drag.x, dy = e.clientY - drag.y;
       if (drag.kind === 'pan') {
-        cropSession.ix = drag.ix + dx;
-        cropSession.iy = drag.iy + dy;
+        cropSession.panX = drag.panX + (e.clientX - drag.x);
+        cropSession.panY = drag.panY + (e.clientY - drag.y);
+        clampCropPan();
       } else if (drag.kind === 'box') {
-        cropSession.x = drag.bx + dx;
-        cropSession.y = drag.by + dy;
+        var o = cropView();
+        cropSession.cx = drag.cx + (e.clientX - drag.x) / o.scale;
+        cropSession.cy = drag.cy + (e.clientY - drag.y) / o.scale;
       } else {
-        var h = drag.h;
-        var x = drag.bx, y = drag.by, w = drag.bw, hh = drag.bh;
-        if (h.indexOf('w') >= 0) { x = drag.bx + dx; w = drag.bw - dx; }
-        if (h.indexOf('e') >= 0) { w = drag.bw + dx; }
-        if (h.indexOf('n') >= 0) { y = drag.by + dy; hh = drag.bh - dy; }
-        if (h.indexOf('s') >= 0) { hh = drag.bh + dy; }
+        var p = pointerToImage(e);
+        var ax = drag.anchor.x, ay = drag.anchor.y;
         if (cropSession.shape === 'circle') {
-          var s = Math.max(36, (w + hh) / 2);
-          if (h.indexOf('w') >= 0) x = drag.bx + drag.bw - s;
-          if (h.indexOf('n') >= 0) y = drag.by + drag.bh - s;
-          w = s; hh = s;
+          var side = Math.max(Math.abs(p.x - ax), Math.abs(p.y - ay));
+          var west = drag.h.indexOf('w') >= 0, north = drag.h.indexOf('n') >= 0;
+          cropSession.cx = west ? ax - side : ax;
+          cropSession.cy = north ? ay - side : ay;
+          cropSession.cw = side;
+          cropSession.ch = side;
+        } else {
+          cropSession.cx = Math.min(p.x, ax);
+          cropSession.cy = Math.min(p.y, ay);
+          cropSession.cw = Math.abs(p.x - ax);
+          cropSession.ch = Math.abs(p.y - ay);
         }
-        cropSession.x = x; cropSession.y = y; cropSession.w = w; cropSession.h = hh;
       }
       paintCropper();
     });
@@ -5854,7 +5973,6 @@ always</textarea>
     var zoom = $('crop-zoom');
     if (zoom) zoom.addEventListener('input', function () {
       setCropZoom(Number(zoom.value) / 100);
-      zoom.setAttribute('aria-valuetext', 'Zoom ' + zoom.value + ' percent');
     });
     var use = $('crop-use');
     if (use) use.onclick = function () { applyCrop(); };
@@ -5863,10 +5981,16 @@ always</textarea>
       cropSession = null;
       if ($('crop-dlg') && $('crop-dlg').open) $('crop-dlg').close();
     };
+    var fit = $('crop-fit');
+    if (fit) fit.onclick = function () { fitWholePhoto(); };
     Array.prototype.forEach.call(document.querySelectorAll('[data-crop-shape]'), function (b) {
       b.addEventListener('click', function () { setCropShape(b.getAttribute('data-crop-shape')); });
     });
-    window.addEventListener('resize', function () { if (cropSession) paintCropper(); });
+    window.addEventListener('resize', function () {
+      if (!cropSession) return;
+      centerCropInView();
+      paintCropper();
+    });
   }
 
   function syncGift() {

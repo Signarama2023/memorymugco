@@ -194,8 +194,10 @@ to a dead page.
 
 On both flows, the photo picker reads the image **in the customer's own browser**.
 They crop a rectangle or a circle (drag the box, drag a corner, zoom) before it is
-placed on the mug. The page does not remove the background. A circle crop is a
-square of the photo, drawn as a circle on the mug, not a transparent cut-out.
+placed on the mug. Zoom all the way out, or use Fit whole photo, to select the
+entire picture at any aspect ratio. A circle can hold that whole picture in a
+square, with white space if the photo is not square. The page does not remove
+the background, and a circle is not a transparent cut-out.
 
 After that, dragging the photo on the mug moves it, a zoom slider crops in further,
 arrow keys do the same for anyone not using a pointer, and **Center** puts it back.
