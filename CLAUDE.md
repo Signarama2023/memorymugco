@@ -46,14 +46,21 @@ box exists at all.
 Keep it that way. If you add copy about sending photos, drive it from
 `applyArtworkCopy()` rather than writing a second source of truth.
 
-## The customer's photo keeps covering the print
+## The photo fits inside the shape at zoom 1
 
-`photoRect()` works out where the customer's photo is drawn and clamps the offset
-back into range on every call, so panning and zooming can never open a white gap
-along an edge. Anything that moves the photo goes through `movePhoto`, `zoomPhoto`
-or `centerPhoto` and then repaints — do not write to `ownPhoto.ox`/`oy`/`zoom` and
-paint separately, or the clamp is skipped and the preview starts promising a crop
-the press cannot produce.
+`layoutCrop()` places the customer's photo. Zoom 1 fits the whole picture inside
+the square (by the long side) or the circle (by the diagonal), so a wide logo
+keeps its edges and white space in the spare is expected. A circle crop from the
+picker is already that composed square; do not shrink it a second time. Above
+zoom 1 the offset is clamped so panning cannot open a gap. Anything that moves
+the photo goes through `movePhoto`, `zoomPhoto` or `centerPhoto` and then
+repaints — do not write to `ownPhoto.ox`/`oy`/`zoom` and paint separately, or
+the clamp is skipped.
+
+An SVG with no width or height decodes at a browser default (often 300×150).
+`readImage()` sizes it from the viewBox before drawing, or the canvas stretches
+the artwork. JPEG has no alpha; the white fill under the draw is what keeps a
+transparent PNG or SVG from coming back with black corners.
 
 The mug only becomes a drag target while the customer's own photo is the scene on
 show. That is also the only time `touch-action: none` applies, because otherwise a

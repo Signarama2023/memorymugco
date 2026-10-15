@@ -285,10 +285,12 @@ section{scroll-margin-top:92px}
   touch-action:none;cursor:grab;
 }
 .face-stage.dragging{cursor:grabbing}
-.face-stage img,.face-inset img{position:absolute;max-width:none;user-select:none;pointer-events:none}
+.face-stage img,.face-inset img{position:absolute;z-index:1;max-width:none;max-height:none;user-select:none;pointer-events:none}
+.face-mat{position:absolute;z-index:0;background:#fff;border-radius:50%;pointer-events:none}
+.face-mat.is-square{border-radius:0}
 .proof-nudge button:disabled{opacity:.45;cursor:default}
 .face-ring{
-  position:absolute;left:14%;top:14%;width:72%;height:72%;border-radius:50%;
+  position:absolute;z-index:2;left:14%;top:14%;width:72%;height:72%;border-radius:50%;
   border:2.5px dashed var(--red-deep);pointer-events:none;
   box-shadow:0 0 0 240px rgba(22,19,17,.42);
 }
@@ -305,7 +307,7 @@ section{scroll-margin-top:92px}
 .face-side{display:flex;flex-direction:column;align-items:center;gap:4px;flex:none}
 .face-inset{
   position:relative;width:88px;height:88px;border-radius:50%;overflow:hidden;
-  background:var(--surface-2);box-shadow:0 0 0 2px var(--surface),0 0 0 3px var(--rule-2);
+  background:#fff;box-shadow:0 0 0 2px var(--surface),0 0 0 3px var(--rule-2);
 }
 .face-inset.is-square{border-radius:0}
 .face-side p{font-size:.75rem;font-weight:700;color:var(--ink-3);text-align:center}
@@ -331,6 +333,7 @@ section{scroll-margin-top:92px}
 .font-display{font-family:"Lilita One",Outfit,sans-serif;font-weight:400}
 .font-round{font-family:Fredoka,Outfit,sans-serif;font-weight:600}
 .mug-svg .face-edge{stroke:var(--surface);fill:none}
+.mug-svg .face-plate{fill:#fff}
 .face-ask{display:flex;flex-direction:column;gap:6px;margin-top:4px}
 .face-ask label{font-weight:700;font-size:.9375rem}
 .face-ask textarea{
@@ -417,7 +420,7 @@ section{scroll-margin-top:92px}
   background:var(--surface-2);border-radius:var(--r-md);overflow:hidden;touch-action:none;
 }
 .crop-stage img,.crop-fill{position:absolute;max-width:none;user-select:none;pointer-events:none}
-.crop-fill{background:var(--surface)}
+.crop-fill{background:#fff}
 .crop-box{
   position:absolute;border:2px solid var(--ink);touch-action:none;cursor:move;
   box-shadow:0 0 0 9999px color-mix(in srgb, var(--ink) 45%, transparent);
@@ -2816,8 +2819,8 @@ always</textarea>
      and the filename, not the file. The cropped JPEG is kept in this browser
      and in the order copy the buyer can save. */
   /* { dataUri, name, w, h, zoom, ox, oy } — in memory only, never stored.
-     zoom 1 is the photo just covering the print; above that it crops in.
-     ox/oy are the offset from centre as a fraction of the print's own width
+     zoom 1 fits the whole photo inside the shape. Above that it crops in.
+     ox/oy are the offset from centre as a fraction of the shape's own width
      and height. */
   var ownPhoto = null;
 
@@ -3548,19 +3551,28 @@ always</textarea>
 
   /**
    * Where the photo sits relative to a box of the given half-size.
-   * ox/oy are a fraction of the box's width. Clamped on every call
-   * so the box cannot open onto empty space.
+   * Zoom 1 fits the whole picture inside the shape: the long side for a
+   * square, the diagonal for a circle, so nothing is clipped or stretched.
+   * A circle crop from the picker is already that square, so it fills the
+   * circle instead of being shrunk a second time. ox/oy are a fraction of
+   * the box's width. Once the picture is larger than the box, the offset
+   * is clamped so panning cannot slide it off and open a gap.
    */
   function layoutCrop(radius) {
     if (!ownPhoto || !ownPhoto.w || !ownPhoto.h || !(radius > 0)) return null;
     var z = Number(ownPhoto.zoom);
     if (!isFinite(z)) z = 1;
     ownPhoto.zoom = Math.max(1, Math.min(3, z));
-    var short = Math.min(ownPhoto.w, ownPhoto.h);
-    var scale = (2 * radius * ownPhoto.zoom) / short;
-    var iw = ownPhoto.w * scale, ih = ownPhoto.h * scale;
-    var maxX = Math.max(0, (iw / 2 - radius) / (2 * radius));
-    var maxY = Math.max(0, (ih / 2 - radius) / (2 * radius));
+    var w = ownPhoto.w, h = ownPhoto.h;
+    var box = 2 * radius;
+    var fromCircle = !!(ownPhoto.crop && ownPhoto.crop.shape === 'circle');
+    var fit = (faceShape === 'circle' && !fromCircle)
+      ? box / Math.sqrt(w * w + h * h)
+      : box / Math.max(w, h);
+    var scale = fit * ownPhoto.zoom;
+    var iw = w * scale, ih = h * scale;
+    var maxX = Math.max(0, (iw / 2 - radius) / box);
+    var maxY = Math.max(0, (ih / 2 - radius) / box);
     var ox = Number(ownPhoto.ox), oy = Number(ownPhoto.oy);
     if (!isFinite(ox)) ox = 0;
     if (!isFinite(oy)) oy = 0;
@@ -3697,7 +3709,7 @@ always</textarea>
     img.setAttribute('y', (cy + frame.y).toFixed(3));
     img.setAttribute('width', frame.w.toFixed(3));
     img.setAttribute('height', frame.h.toFixed(3));
-    img.setAttribute('preserveAspectRatio', 'none');
+    img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
     img.setAttribute('href', src);
     img.setAttributeNS(XLINK, 'xlink:href', src);
   }
@@ -3755,12 +3767,16 @@ always</textarea>
     defs.appendChild(clip);
     face.appendChild(defs);
     var pic = svgEl('g', { 'clip-path': 'url(#faceClip)' });
+    var plateAttrs = {};
+    var sk;
+    for (sk in shapeAttrs) plateAttrs[sk] = shapeAttrs[sk];
+    plateAttrs['class'] = 'face-plate';
+    pic.appendChild(svgEl(faceShape === 'square' ? 'rect' : 'circle', plateAttrs));
     var img = svgEl('image');
     if (placed) placeFaceImage(img, placed, FACE.cx, FACE.cy);
     pic.appendChild(img);
     face.appendChild(pic);
     var edgeAttrs = {};
-    var sk;
     for (sk in shapeAttrs) edgeAttrs[sk] = shapeAttrs[sk];
     edgeAttrs.id = 'face-edge';
     edgeAttrs['stroke-width'] = '1.5';
@@ -3801,6 +3817,8 @@ always</textarea>
       if (!frame) return;
       var cx = box / 2, cy = box / 2;
       imgEl.src = src;
+      imgEl.style.maxWidth = 'none';
+      imgEl.style.maxHeight = 'none';
       imgEl.style.width = frame.w + 'px';
       imgEl.style.height = frame.h + 'px';
       imgEl.style.left = (cx + frame.x) + 'px';
@@ -3808,6 +3826,8 @@ always</textarea>
     }
     var size = stage.clientWidth || 220;
     var frac = ringFraction();
+    var mat = stage.querySelector('.face-mat');
+    if (mat) mat.classList.toggle('is-square', square);
     if (ring) {
       var pct = frac * 100;
       var insetPct = (100 - pct) / 2;
@@ -3815,6 +3835,12 @@ always</textarea>
       ring.style.top = insetPct + '%';
       ring.style.width = pct + '%';
       ring.style.height = pct + '%';
+      if (mat) {
+        mat.style.left = insetPct + '%';
+        mat.style.top = insetPct + '%';
+        mat.style.width = pct + '%';
+        mat.style.height = pct + '%';
+      }
     }
     park(photo, size, size * frac / 2, ownPhoto.dataUri);
     var isz = inset.clientWidth || 88;
@@ -4039,7 +4065,7 @@ always</textarea>
     step1b.appendChild(el('p', 'proof-head', 'Your photo'));
     var row = el('div', 'proof-row');
     var input = document.createElement('input');
-    input.type = 'file'; input.id = 'own-photo'; input.accept = 'image/*';
+    input.type = 'file'; input.id = 'own-photo'; input.accept = 'image/*,.svg';
     var pick = el('label', 'proof-pick', 'Choose a photo');
     pick.setAttribute('for', 'own-photo');
     row.appendChild(pick);
@@ -4066,7 +4092,7 @@ always</textarea>
     var faceTools = el('div', 'face-tools');
     faceTools.id = 'face-tools';
     faceTools.hidden = !ownPhoto;
-    faceTools.appendChild(el('p', 'proof-note', 'Circle or square. Size is how much of the print the photo covers. Drag it to move the picture inside that shape.'));
+    faceTools.appendChild(el('p', 'proof-note', 'Circle or square. Size is how much of the print that shape covers. Zoomed out, the whole photo sits inside it. Drag to move the picture once it is larger than the shape.'));
     var shapeRow = el('div', 'proof-zoom shape-row');
     var shapeLab = el('span', 'proof-k', 'Shape');
     shapeLab.id = 'shape-label';
@@ -4097,7 +4123,7 @@ always</textarea>
     boxSize.type = 'range'; boxSize.id = 'face-size';
     boxSize.min = String(FACE_SIZE_MIN); boxSize.max = String(FACE_SIZE_MAX); boxSize.step = '1';
     boxSize.value = String(Math.round(faceSize));
-    boxSize.setAttribute('aria-label', 'How much of the print the photo covers');
+    boxSize.setAttribute('aria-label', 'How much of the print the shape covers');
     boxSize.setAttribute('aria-valuemin', String(FACE_SIZE_MIN));
     boxSize.setAttribute('aria-valuemax', String(FACE_SIZE_MAX));
     boxSize.setAttribute('aria-valuetext', Math.round(faceSize) + ' percent of the print');
@@ -4120,6 +4146,7 @@ always</textarea>
     stageImg.id = 'face-img';
     stageImg.alt = '';
     stageImg.draggable = false;
+    stage.appendChild(el('div', 'face-mat'));
     stage.appendChild(stageImg);
     stage.appendChild(el('div', 'face-ring'));
     faceRow.appendChild(stage);
@@ -5069,30 +5096,97 @@ always</textarea>
 
   /** Shrinks to 900px and re-encodes, so a 6 MB phone photo doesn't bloat the page. */
   function readImage(file, cb) {
-    if (!/^image\//.test(file.type)) return cb(null, 'That is not an image file.');
+    var svg = /svg/i.test(file.type || '') || /\.svg$/i.test(file.name || '');
+    if (!svg && !/^image\//.test(file.type || '')) return cb(null, 'That is not an image file.');
     var fr = new FileReader();
     fr.onerror = function () { cb(null, 'The file could not be read.'); };
     fr.onload = function () {
-      var im = new Image();
-      im.onerror = function () { cb(null, 'That image could not be decoded.'); };
-      im.onload = function () {
-        var max = 900, scale = Math.min(1, max / Math.max(im.width, im.height));
-        var c = document.createElement('canvas');
-        c.width = Math.max(1, Math.round(im.width * scale));
-        c.height = Math.max(1, Math.round(im.height * scale));
-        var ctx = c.getContext('2d');
-        /* JPEG has no alpha, so a cut-out PNG would come back with black
-           corners. White matches both the page and the mug. */
-        ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, c.width, c.height);
-        ctx.drawImage(im, 0, 0, c.width, c.height);
-        var uri;
-        try { uri = c.toDataURL('image/jpeg', 0.82); }
-        catch (e) { cb(null, 'That image could not be converted.'); return; }
-        cb(uri, null, { w: c.width, h: c.height });
-      };
-      im.src = fr.result;
+      if (svg) rasterSvg(String(fr.result || ''), cb);
+      else paintBitmap(fr.result, cb);
     };
-    fr.readAsDataURL(file);
+    if (svg) fr.readAsText(file);
+    else fr.readAsDataURL(file);
+  }
+
+  /**
+   * A viewBox-only SVG has no pixel size. Browsers then invent one — often
+   * 300 wide, and 150 tall when the viewBox is missing — and drawing that
+   * box stretches the artwork. Size the file from its own viewBox first.
+   */
+  function svgPixelSize(text) {
+    var m = String(text).match(/<svg\b[\s\S]*?>/i);
+    if (!m) return null;
+    var tag = m[0];
+    function attr(name) {
+      var a = tag.match(new RegExp('\\s' + name + '\\s*=\\s*("([^"]*)"|\'([^\']*)\'|([^\\s>]+))', 'i'));
+      if (!a) return '';
+      return (a[2] || a[3] || a[4] || '').trim();
+    }
+    function len(raw) {
+      if (!raw || /%/.test(raw)) return 0;
+      var n = parseFloat(raw);
+      if (!isFinite(n) || n <= 0) return 0;
+      if (/in$/i.test(raw)) return n * 96;
+      if (/cm$/i.test(raw)) return n * 96 / 2.54;
+      if (/mm$/i.test(raw)) return n * 96 / 25.4;
+      if (/pt$/i.test(raw)) return n * 96 / 72;
+      if (/pc$/i.test(raw)) return n * 16;
+      return n;
+    }
+    var vb = attr('viewBox').split(/[\s,]+/).map(Number);
+    var vbOk = vb.length === 4 && vb[2] > 0 && vb[3] > 0 && isFinite(vb[2]) && isFinite(vb[3]);
+    var ww = len(attr('width')), hh = len(attr('height'));
+    /* The viewBox is the artwork. Width and height, and preserveAspectRatio
+       "none", are how a file asks to be stretched into some other box. */
+    if (vbOk) return { w: vb[2], h: vb[3] };
+    if (ww && hh) return { w: ww, h: hh };
+    return null;
+  }
+
+  function rasterSvg(text, cb) {
+    var size = svgPixelSize(text);
+    var src = text;
+    if (size) {
+      var max = 900;
+      var sc = max / Math.max(size.w, size.h);
+      var pw = Math.max(1, Math.round(size.w * sc));
+      var ph = Math.max(1, Math.round(size.h * sc));
+      src = text.replace(/<svg\b[\s\S]*?>/i, function (tag) {
+        var cleaned = tag
+          .replace(/\s(?:width|height|preserveAspectRatio)\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/ig, '');
+        return cleaned.replace(/>$/, ' width="' + pw + '" height="' + ph + '" preserveAspectRatio="xMidYMid meet">');
+      });
+    }
+    var url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(src);
+    paintBitmap(url, function (uri, problem, dim) {
+      if (uri || src === text) return cb(uri, problem, dim);
+      paintBitmap('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(text), cb);
+    });
+  }
+
+  function paintBitmap(src, cb) {
+    var im = new Image();
+    im.onerror = function () { cb(null, 'That image could not be decoded.'); };
+    im.onload = function () {
+      var nw = im.naturalWidth || im.width;
+      var nh = im.naturalHeight || im.height;
+      if (!(nw > 0) || !(nh > 0)) { cb(null, 'That image could not be decoded.'); return; }
+      var max = 900, scale = Math.min(1, max / Math.max(nw, nh));
+      var c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(nw * scale));
+      c.height = Math.max(1, Math.round(nh * scale));
+      var ctx = c.getContext('2d');
+      /* JPEG has no alpha, so a cut-out PNG would come back with black
+         corners. White matches both the page and the mug. */
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.drawImage(im, 0, 0, c.width, c.height);
+      var uri;
+      try { uri = c.toDataURL('image/jpeg', 0.82); }
+      catch (e) { cb(null, 'That image could not be converted.'); return; }
+      cb(uri, null, { w: c.width, h: c.height });
+    };
+    im.src = src;
   }
 
   /** Merges one patch into the saved config, or says why it could not. */
@@ -5624,13 +5718,14 @@ always</textarea>
 
   /* ══ Crop tool. The box is stored in the photo's own pixels, so the
        export matches the selection. Zoom 1 fits the whole photo. A circle
-       may be a square larger than the short side, with white in the spare. ══ */
+       is big enough that the whole picture sits inside it, with white
+       in the spare. ══ */
   var cropSession = null;
 
   function cropDescribes(cr) {
     if (!cr) return '';
     var covers = cr.x <= 0.005 && cr.y <= 0.005 && (cr.x + cr.w) >= 0.995 && (cr.y + cr.h) >= 0.995;
-    if (covers && cr.shape === 'circle') return 'the whole photo, in a square with white space beside it';
+    if (covers && cr.shape === 'circle') return 'the whole photo, inside a circle, with white space around it';
     if (covers) return 'the whole photo';
     return 'left ' + Math.round(cr.x * 100) + '%, top ' + Math.round(cr.y * 100) +
       '%, ' + Math.round(cr.w * 100) + '% wide, ' + Math.round(cr.h * 100) + '% tall';
@@ -5674,8 +5769,13 @@ always</textarea>
     return { w: stage.clientWidth, h: stage.clientHeight };
   }
 
+  /* The smallest square whose circle can hold the whole photo. */
+  function circleContainSide(w, h) {
+    return Math.sqrt(w * w + h * h);
+  }
+
   /* Screen pixels per photo pixel when zoom is 1. Circle mode fits the
-     square that can hold the whole photo, so the spare white is on screen. */
+     square whose circle holds the whole photo, so the spare white is on screen. */
   function cropBaseFit() {
     var st = cropStageBox();
     var pad = 28;
@@ -5683,7 +5783,7 @@ always</textarea>
     var fh = Math.max(1, st.h - pad * 2);
     var needW = cropSession.natW, needH = cropSession.natH;
     if (cropSession.shape === 'circle') {
-      var side = Math.max(cropSession.natW, cropSession.natH);
+      var side = circleContainSide(cropSession.natW, cropSession.natH);
       needW = side;
       needH = side;
     }
@@ -5712,7 +5812,7 @@ always</textarea>
     var natW = cropSession.natW, natH = cropSession.natH;
     var min = cropMinSide();
     if (cropSession.shape === 'circle') {
-      var cap = Math.max(natW, natH);
+      var cap = circleContainSide(natW, natH);
       var side = Math.max(min, Math.min(cap, Math.max(cropSession.cw, cropSession.ch)));
       var overlap = Math.min(side, min);
       cropSession.cx = Math.max(overlap - side, Math.min(cropSession.cx, natW - overlap));
@@ -5794,7 +5894,7 @@ always</textarea>
     if (circ) { circ.classList.toggle('is-on', shape === 'circle'); circ.setAttribute('aria-checked', shape === 'circle' ? 'true' : 'false'); }
     var note = $('crop-shape-note');
     if (note) note.textContent = shape === 'circle'
-      ? 'A circle is a square on the mug. Fit whole photo keeps the entire picture in that square, with white space if it is not already square.'
+      ? 'Fit whole photo keeps the entire picture inside the circle, with white space around it if the picture is not round.'
       : 'The box is the part that prints. Fit whole photo selects the entire picture.';
   }
 
@@ -5813,7 +5913,11 @@ always</textarea>
     var prev = cropSession.shape;
     cropSession.shape = shape;
     if (shape === 'circle' && prev !== 'circle') {
-      var side = Math.min(Math.max(cropSession.natW, cropSession.natH), Math.max(cropSession.cw, cropSession.ch));
+      var side = Math.max(cropSession.cw, cropSession.ch);
+      var coversAll = cropSession.cx <= 0.5 && cropSession.cy <= 0.5 &&
+        cropSession.cx + cropSession.cw >= cropSession.natW - 0.5 &&
+        cropSession.cy + cropSession.ch >= cropSession.natH - 0.5;
+      if (coversAll) side = circleContainSide(cropSession.natW, cropSession.natH);
       var mx = cropSession.cx + cropSession.cw / 2;
       var my = cropSession.cy + cropSession.ch / 2;
       cropSession.cx = mx - side / 2;
@@ -5840,7 +5944,7 @@ always</textarea>
     cropSession.panX = 0;
     cropSession.panY = 0;
     if (cropSession.shape === 'circle') {
-      var side = Math.max(cropSession.natW, cropSession.natH);
+      var side = circleContainSide(cropSession.natW, cropSession.natH);
       cropSession.cx = (cropSession.natW - side) / 2;
       cropSession.cy = (cropSession.natH - side) / 2;
       cropSession.cw = side;

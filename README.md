@@ -194,15 +194,17 @@ to a dead page.
 
 On both flows, the photo picker reads the image **in the customer's own browser**.
 They crop a rectangle or a circle (drag the box, drag a corner, zoom) before it is
-placed on the mug. Zoom all the way out, or use Fit whole photo, to select the
-entire picture at any aspect ratio. A circle can hold that whole picture in a
-square, with white space if the photo is not square. The page does not remove
-the background, and a circle is not a transparent cut-out.
+placed on the mug. Zoom all the way out, or use Fit whole photo, and the whole
+picture sits inside the box, square or circle, with white space if it does not
+already fill that shape. The mug shows that same box. The picture is never
+stretched. The page does not remove the background, and a circle is not a
+transparent cut-out.
 
-After that, dragging the photo on the mug moves it, a zoom slider crops in further,
-arrow keys do the same for anyone not using a pointer, and **Center** puts it back.
-However far it is dragged, the photo keeps covering the print area, so the preview
-never shows a crop the press could not produce.
+After that, the zoom slider on the mug crops in further. Dragging moves the
+picture once it is larger than the shape, arrow keys do the same for anyone not
+using a pointer, and **Center** puts it back, zoomed out, with the whole picture
+in the box. Once the picture is larger than the shape, panning cannot slide it
+off and open a gap.
 
 Where they do adjust it, the placement rides along on the order as
 `Photo placement: zoom 165%, offset -12% across, -4% down`, and the earlier crop
