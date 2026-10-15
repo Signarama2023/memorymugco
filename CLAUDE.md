@@ -62,6 +62,14 @@ An SVG with no width or height decodes at a browser default (often 300×150).
 the artwork. JPEG has no alpha; the white fill under the draw is what keeps a
 transparent PNG or SVG from coming back with black corners.
 
+Remove background is a separate step, after the crop. It lazy-loads
+`@imgly/background-removal` from a CDN the first time the button is pressed
+and stores a PNG with alpha on `ownPhoto.cutout`. Do not run that result
+through `toDataURL('image/jpeg')`. Skip the white `face-plate` while the
+cutout is showing, or a pattern cannot show through. Re-cropping replaces
+`ownPhoto`, which is what clears the cutout. The runtime is pinned to one
+WASM thread because this page is not cross-origin isolated.
+
 The mug only becomes a drag target while the customer's own photo is the scene on
 show. That is also the only time `touch-action: none` applies, because otherwise a
 finger on the mug could not scroll the page.
