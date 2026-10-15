@@ -197,8 +197,9 @@ They crop a rectangle or a circle (drag the box, drag a corner, zoom) before it 
 placed on the mug. Zoom all the way out, or use Fit whole photo, and the whole
 picture sits inside the box, square or circle, with white space if it does not
 already fill that shape. The mug shows that same box. The picture is never
-stretched. The page does not remove the background, and a circle is not a
-transparent cut-out.
+stretched. After the crop is placed, Remove background takes a first pass
+in the browser. It is a rough cut, and the designer touches it up before the
+proof. A circle is not a transparent cut-out by itself.
 
 After that, the zoom slider on the mug crops in further. Dragging moves the
 picture once it is larger than the shape, arrow keys do the same for anyone not
@@ -208,7 +209,8 @@ off and open a gap.
 
 Where they do adjust it, the placement rides along on the order as
 `Photo placement: zoom 165%, offset -12% across, -4% down`, and the earlier crop
-rides as `Crop`. Nothing is added when they leave placement alone, and this only
+rides as `Crop`. If they remove the background, the order also carries
+`Background removed`. Nothing is added when they leave placement alone, and this only
 applies to the cart-permalink flow — a Shopify product URL carries no attributes.
 
 ---

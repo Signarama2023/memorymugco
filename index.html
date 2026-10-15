@@ -312,6 +312,18 @@ section{scroll-margin-top:92px}
 .face-inset.is-square{border-radius:0}
 .face-side p{font-size:.75rem;font-weight:700;color:var(--ink-3);text-align:center}
 .face-zoom{margin-top:2px}
+.cut-row{display:flex;flex-direction:column;gap:6px;min-width:0}
+.cut-btn{
+  font-family:var(--f-body);font-weight:700;font-size:1rem;line-height:1.2;
+  padding:10px 14px;border-radius:var(--r-sm);cursor:pointer;text-align:center;
+  border:2px solid var(--ink);background:var(--surface);color:var(--ink);
+}
+.cut-btn.is-on{background:var(--red-soft);color:var(--red-deep)}
+.cut-btn:disabled{opacity:.55;cursor:default}
+.cut-btn:focus-visible{outline:2px solid var(--red-deep);outline-offset:2px}
+.cut-status{font-size:.9375rem;font-weight:600;color:var(--ink-2)}
+.cut-status:empty{display:none}
+.cut-status.is-bad{color:var(--red-deep)}
 .face-fields{display:flex;flex-direction:column;gap:8px}
 .face-fields label{font-weight:700;font-size:.9375rem}
 .face-fields input{
@@ -882,8 +894,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
    and the customer's own photo, still multiply so the glaze reads through. */
 .mug-svg.has-photo .mug-drawn{display:none}
 .mug-svg.has-photo .scene-draw{mix-blend-mode:multiply}
-/* The buyer's own photo stays solid. Multiply ghosted the sample through it.
-   The shop cuts the photo out; this page only shows the picture they picked. */
+/* The buyer's own photo stays solid until they remove the background.
+   Multiply ghosted the sample through it. A cutout is a transparent PNG,
+   so the white mug or a pattern shows through. Do not JPEG that result. */
 .mug-svg.has-photo .memory[data-key="yours"],
 .mug-svg.has-photo .memory[data-key="custom"]{mix-blend-mode:normal}
 .memory.has-cut .scene-draw{display:none}
@@ -1714,7 +1727,7 @@ always</textarea>
       <button type="button" class="panel-x" data-close aria-label="Close crop">&times;</button>
     </div>
     <div class="panel-body">
-      <p>Drag the box to move it. Drag a corner to resize. The slider zooms in. Fit whole photo zooms back out and selects the entire picture, portrait or landscape. This does not cut the background out.</p>
+      <p>Drag the box to move it. Drag a corner to resize. The slider zooms in. Fit whole photo zooms back out and selects the entire picture, portrait or landscape. Removing the background is a separate step, after you place this crop.</p>
       <div class="crop-stage" id="crop-stage">
         <div class="crop-fill" id="crop-fill"></div>
         <img id="crop-img" alt="">
@@ -3771,7 +3784,11 @@ always</textarea>
     var sk;
     for (sk in shapeAttrs) plateAttrs[sk] = shapeAttrs[sk];
     plateAttrs['class'] = 'face-plate';
-    pic.appendChild(svgEl(faceShape === 'square' ? 'rect' : 'circle', plateAttrs));
+    /* A cutout has to stay transparent. A white plate under it would hide
+       the ceramic and any pattern the buyer picked. */
+    if (!ownPhoto.backgroundRemoved) {
+      pic.appendChild(svgEl(faceShape === 'square' ? 'rect' : 'circle', plateAttrs));
+    }
     var img = svgEl('image');
     if (placed) placeFaceImage(img, placed, FACE.cx, FACE.cy);
     pic.appendChild(img);
@@ -3887,6 +3904,158 @@ always</textarea>
     paintOwnPhoto(ownPhoto.dataUri);
   }
 
+  /* Loaded only when the buyer asks. The library is AGPL; the ISNet model
+     and the ONNX runtime are MIT. The small model is the quantized one. */
+  var BG_REMOVE_URL = 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.7.0/+esm';
+  var cutLib = null;
+  var cutJob = 0;
+
+  /* The runtime wants several WASM threads, which need cross-origin
+     isolation this page does not have. One thread still runs. */
+  function oneThread() {
+    try {
+      Object.defineProperty(navigator, 'hardwareConcurrency', {
+        configurable: true,
+        get: function () { return 1; }
+      });
+    } catch (e) {}
+  }
+
+  function yieldPaint() {
+    return new Promise(function (resolve) {
+      requestAnimationFrame(function () { setTimeout(resolve, 40); });
+    });
+  }
+
+  function setCutStatus(text, bad) {
+    var status = $('cut-status');
+    if (!status) return;
+    status.textContent = text || '';
+    status.classList.toggle('is-bad', !!bad);
+  }
+
+  function syncCutout() {
+    var btn = $('cut-bg');
+    if (!btn) return;
+    var on = !!(ownPhoto && ownPhoto.backgroundRemoved);
+    var busy = !!(ownPhoto && ownPhoto.cutBusy);
+    btn.textContent = on ? 'Keep background' : 'Remove background';
+    btn.classList.toggle('is-on', on);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.disabled = busy || !ownPhoto;
+  }
+
+  function rememberCutout() {
+    var on = !!(ownPhoto && ownPhoto.backgroundRemoved);
+    var dirty = false;
+    cart.forEach(function (l) {
+      if (l.key !== 'mug' || l.kind === 'quote' || l.kind === 'hand') return;
+      if (!!l.backgroundRemoved !== on) { l.backgroundRemoved = on; dirty = true; }
+    });
+    if (dirty) save();
+  }
+
+  function applyCutout(uri, w, h) {
+    if (!ownPhoto) return;
+    ownPhoto.cutout = uri;
+    ownPhoto.cutW = w;
+    ownPhoto.cutH = h;
+    ownPhoto.backgroundRemoved = true;
+    ownPhoto.dataUri = uri;
+    ownPhoto.w = w || ownPhoto.w;
+    ownPhoto.h = h || ownPhoto.h;
+    ownPhoto.cutBusy = false;
+    paintOwnPhoto(ownPhoto.dataUri);
+    rememberCutout();
+    setCutStatus('');
+  }
+
+  function failCut(photo, job) {
+    if (job !== cutJob || ownPhoto !== photo) return;
+    photo.cutBusy = false;
+    photo.backgroundRemoved = false;
+    if (photo.plain) {
+      photo.dataUri = photo.plain;
+      if (photo.plainW) { photo.w = photo.plainW; photo.h = photo.plainH; }
+    }
+    paintOwnPhoto(photo.dataUri);
+    setCutStatus('The background could not be removed. Your photo is unchanged.', true);
+    syncCutout();
+  }
+
+  function runCutout() {
+    var photo = ownPhoto;
+    if (!photo) return;
+    var source = photo.plain || photo.dataUri;
+    if (!source) return;
+    var job = ++cutJob;
+    photo.cutBusy = true;
+    syncCutout();
+    setCutStatus('Removing background…');
+    oneThread();
+    var started = Date.now();
+    var lib = cutLib || (cutLib = import(BG_REMOVE_URL));
+    lib.then(function (mod) {
+      if (job !== cutJob || ownPhoto !== photo) return null;
+      return yieldPaint().then(function () { return mod; });
+    }).then(function (mod) {
+      if (!mod || job !== cutJob || ownPhoto !== photo) return null;
+      return mod.removeBackground(source, {
+        model: 'small',
+        device: 'cpu',
+        output: { format: 'image/png', quality: 0.8 },
+        progress: function (key, current, total) {
+          if (job !== cutJob || ownPhoto !== photo) return;
+          var compute = key && String(key).indexOf('compute:') === 0;
+          if (!compute && total > 0) {
+            setCutStatus('Removing background… ' + Math.min(100, Math.round(current / total * 100)) + '%');
+          } else {
+            setCutStatus('Removing background…');
+          }
+        }
+      });
+    }).then(function (blob) {
+      if (!blob || job !== cutJob || ownPhoto !== photo) return null;
+      return new Promise(function (resolve, reject) {
+        var fr = new FileReader();
+        fr.onload = function () { resolve(String(fr.result || '')); };
+        fr.onerror = function () { reject(new Error('read')); };
+        fr.readAsDataURL(blob);
+      });
+    }).then(function (uri) {
+      if (!uri || job !== cutJob || ownPhoto !== photo) return;
+      var im = new Image();
+      im.onload = function () {
+        if (job !== cutJob || ownPhoto !== photo) return;
+        photo.cutMs = Date.now() - started;
+        applyCutout(uri, im.naturalWidth || im.width, im.naturalHeight || im.height);
+      };
+      im.onerror = function () { failCut(photo, job); };
+      im.src = uri;
+    }).catch(function (err) {
+      if (typeof console !== 'undefined' && console.error) console.error(err);
+      failCut(photo, job);
+    });
+  }
+
+  function toggleCutout() {
+    if (!ownPhoto || ownPhoto.cutBusy) return;
+    setCutStatus('');
+    if (ownPhoto.backgroundRemoved) {
+      ownPhoto.backgroundRemoved = false;
+      ownPhoto.dataUri = ownPhoto.plain || ownPhoto.dataUri;
+      if (ownPhoto.plainW) { ownPhoto.w = ownPhoto.plainW; ownPhoto.h = ownPhoto.plainH; }
+      paintOwnPhoto(ownPhoto.dataUri);
+      rememberCutout();
+      return;
+    }
+    if (ownPhoto.cutout) {
+      applyCutout(ownPhoto.cutout, ownPhoto.cutW, ownPhoto.cutH);
+      return;
+    }
+    runCutout();
+  }
+
   /**
    * Steps 2 and 3 stay on the card before a photo is chosen, marked locked,
    * so the numbers do not skip. Custom design swaps the name and background
@@ -3987,6 +4156,7 @@ always</textarea>
       lineSize.setAttribute('aria-valuetext', 'Size ' + faceLineSize);
     }
     syncWrapAdmin();
+    syncCutout();
   }
 
   /**
@@ -4176,6 +4346,20 @@ always</textarea>
     center.onclick = function () { centerPhoto(); };
     zoomRow.appendChild(zlab); zoomRow.appendChild(zoom); zoomRow.appendChild(center);
     faceTools.appendChild(zoomRow);
+    var cutRow = el('div', 'cut-row');
+    var cutBtn = el('button', 'cut-btn', 'Remove background');
+    cutBtn.type = 'button';
+    cutBtn.id = 'cut-bg';
+    cutBtn.setAttribute('aria-pressed', 'false');
+    cutBtn.addEventListener('click', toggleCutout);
+    var cutNote = el('p', 'proof-note', 'Our designer will touch it up before your proof.');
+    var cutStatus = el('p', 'cut-status');
+    cutStatus.id = 'cut-status';
+    cutStatus.setAttribute('role', 'status');
+    cutRow.appendChild(cutBtn);
+    cutRow.appendChild(cutNote);
+    cutRow.appendChild(cutStatus);
+    faceTools.appendChild(cutRow);
     var askBox = el('div', 'face-ask');
     askBox.id = 'face-ask';
     var askLab = el('label', null, 'What to keep in focus');
@@ -4497,7 +4681,10 @@ always</textarea>
       var drop = el('button', 'proof-drop', 'Remove');
       drop.type = 'button';
       drop.onclick = function () {
+        cutJob++;
         ownPhoto = null; input.value = '';
+        setCutStatus('');
+        rememberCutout();
         paintOwnPhoto(null);
         if (!chosenBg && styleKey() !== 'custom') {
           var chip = $('chip-yours');
@@ -4531,7 +4718,15 @@ always</textarea>
       row.appendChild(again);
     }
     function useCropped(cropped) {
+      cutJob++;
+      cropped.plain = cropped.dataUri;
+      cropped.plainW = cropped.w;
+      cropped.plainH = cropped.h;
+      cropped.cutout = null;
+      cropped.backgroundRemoved = false;
       ownPhoto = cropped;
+      setCutStatus('');
+      rememberCutout();
       var yoursChip = $('chip-yours');
       if (styleKey() === 'custom') {
         paintOwnPhoto(cropped.dataUri);
@@ -4648,11 +4843,13 @@ always</textarea>
       line.kind = kind;
       line.side = side;
       line.sidePrice = sidePrice;
+      line.backgroundRemoved = kind !== 'quote' && kind !== 'hand' && !!(ownPhoto && ownPhoto.backgroundRemoved);
     } else {
       cart.push({ key:p.key, title:p.title, price:price, image:p.image || '', qty:qty,
         background:background, bgSize:bgSize, words:words, curve:curve,
         font:fontLabel, nameSize:nameSize, lineSize:lineSize, ask:ask, kind:kind,
-        side:side, sidePrice:sidePrice });
+        side:side, sidePrice:sidePrice,
+        backgroundRemoved: kind !== 'quote' && kind !== 'hand' && !!(ownPhoto && ownPhoto.backgroundRemoved) });
     }
     save();
     applyAskToNote();
@@ -4704,6 +4901,7 @@ always</textarea>
         if (letter) main.appendChild(el('span', 'line-sub', letter));
       }
       if (l.ask) main.appendChild(el('span', 'line-sub', l.ask));
+      if (l.backgroundRemoved) main.appendChild(el('span', 'line-sub', 'Background removed. The designer will touch it up.'));
       if (l.background) {
         var sub = l.background + ', $' + BG_EXTRA;
         if (l.bgSize) sub += ', size ' + l.bgSize + '%';
@@ -4778,6 +4976,7 @@ always</textarea>
       if (l.words && l.kind !== 'quote' && l.kind !== 'hand') lines.push('Words: ' + l.words);
       if (l.ask) lines.push('Note on the photo: ' + l.ask);
       if (l.background) lines.push('Background: ' + l.background);
+      if (l.backgroundRemoved) lines.push('Background removed by the buyer. Our designer will touch it up before the proof.');
     });
     if (ownPhoto && ownPhoto.crop) lines.push('Crop: ' + cropDescribes(ownPhoto.crop) + '.');
     var place = placementNote();
@@ -4807,12 +5006,14 @@ always</textarea>
           title: l.title, qty: l.qty, price: l.price, kind: l.kind || 'photo',
           side: l.side || printSide, sidePrice: l.sidePrice || 0,
           words: l.words || '', ask: l.ask || '', background: l.background || '',
-          font: l.font || ''
+          font: l.font || '', backgroundRemoved: !!l.backgroundRemoved
         };
       }),
+      backgroundRemoved: cart.some(function (l) { return !!l.backgroundRemoved; }),
       crop: ownPhoto && ownPhoto.crop ? ownPhoto.crop : null,
       photoName: ownPhoto ? ownPhoto.name : '',
-      /* The cropped JPEG, so the shop preview can be opened again on this device. */
+      /* The cropped picture, so the shop preview can be opened again on this device.
+         A removed background is a PNG with alpha. A JPEG would paint the holes black. */
       photo: ownPhoto ? ownPhoto.dataUri : '',
       gift: gift
     };
@@ -4946,6 +5147,10 @@ always</textarea>
       if (place) qs.push('attributes[Photo placement]=' + encodeURIComponent(place));
       if (ownPhoto && ownPhoto.crop) {
         qs.push('attributes[Crop]=' + encodeURIComponent(cropDescribes(ownPhoto.crop)));
+      }
+      if (cart.some(function (l) { return l.backgroundRemoved; })) {
+        qs.push('attributes[Background removed]=' + encodeURIComponent(
+          'Yes. The buyer removed it. The designer will touch it up before the proof.'));
       }
     }
     cart.forEach(function (l) {
