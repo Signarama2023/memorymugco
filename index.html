@@ -194,7 +194,8 @@ section{scroll-margin-top:92px}
 }
 .order-bar .flow-n{background:var(--red)}
 .order-bar .flow-b{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:14px;row-gap:4px;align-items:center;padding-top:0}
-.order-bar .proof-head,.order-bar .price-extra,.order-bar .order-ask{grid-column:1 / -1}
+.order-bar .proof-head,.order-bar .price-extra,.order-bar .order-ask,.order-bar .side-block{grid-column:1 / -1}
+.order-bar .side-block{min-width:0}
 .order-bar .single-price{margin:0}
 .order-bar .single-price b{font-size:2.35rem}
 .order-bar .single-buy{margin-top:0;flex-wrap:nowrap}
@@ -363,6 +364,76 @@ section{scroll-margin-top:92px}
   font-size:.9375rem;color:var(--ink-2);line-height:1.55;
   background:var(--surface-2);border-radius:var(--r-md);padding:12px 14px;
 }
+.buy-safe{
+  font-size:.9375rem;color:var(--ink);line-height:1.5;font-weight:600;
+  background:var(--surface);border-radius:var(--r-sm);padding:12px 14px;
+  border-left:3px solid var(--red);
+}
+.side-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-width:0}
+.side-picks{display:flex;flex-wrap:wrap;gap:6px;min-width:0;flex:1 1 180px}
+.side-pick{
+  font-family:var(--f-body);font-weight:700;font-size:.95rem;line-height:1.2;
+  padding:8px 12px;border-radius:var(--r-sm);cursor:pointer;
+  border:2px solid var(--field);background:var(--surface);color:var(--ink);
+}
+.side-pick.is-on{border-color:var(--ink);background:var(--red-soft);color:var(--red-deep)}
+.side-preview{flex:none}
+.mini-mug{position:relative;width:78px;height:64px}
+.mini-body{
+  position:absolute;left:14px;top:6px;width:46px;height:52px;
+  border:3px solid var(--ink);border-radius:6px 8px 10px 8px;background:var(--surface);
+}
+.mini-handle{
+  position:absolute;top:18px;right:2px;width:16px;height:24px;
+  border:3px solid var(--ink);border-radius:0 12px 12px 0;border-left:0;
+}
+.mini-mug.is-left .mini-handle{
+  right:auto;left:2px;border-radius:12px 0 0 12px;border-left:3px solid var(--ink);border-right:0;
+}
+.mini-print{
+  position:absolute;left:11px;top:12px;width:20px;height:24px;border-radius:3px;background:var(--red);
+}
+.mini-mug.is-both .mini-print{box-shadow:7px 6px 0 0 var(--red-soft), 7px 6px 0 2px var(--red)}
+.side-note{margin:0;font-size:.9rem;line-height:1.45;color:var(--ink-2)}
+.gift-box{display:flex;flex-direction:column;gap:10px;min-width:0}
+.gift-box label{font-weight:700;font-size:.9375rem}
+.gift-check{display:flex;gap:10px;align-items:flex-start;font-weight:700;cursor:pointer}
+.gift-check input{margin-top:4px;accent-color:var(--red-deep);width:18px;height:18px;flex:none}
+.gift-fields{display:flex;flex-direction:column;gap:8px;min-width:0}
+.gift-fields input,.gift-fields textarea{
+  font:inherit;font-weight:600;font-size:1rem;color:var(--ink);width:100%;min-width:0;
+  padding:12px 14px;border-radius:var(--r-sm);border:2px solid var(--field);background:var(--surface);
+}
+.gift-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,.7fr) minmax(0,.6fr);gap:8px}
+.order-summary{
+  background:var(--surface-2);border-radius:var(--r-sm);padding:12px 14px;
+  font-size:.9rem;line-height:1.45;color:var(--ink);
+}
+.order-summary b{font-family:var(--f-display);font-weight:600}
+.order-summary img{width:72px;height:72px;object-fit:cover;border-radius:8px;display:block}
+.crop-panel{width:min(520px,calc(100vw - 24px))}
+.crop-stage{
+  position:relative;width:100%;height:min(62vh,420px);min-height:220px;
+  background:var(--surface-2);border-radius:var(--r-md);overflow:hidden;touch-action:none;
+}
+.crop-stage img{position:absolute;max-width:none;user-select:none;pointer-events:none}
+.crop-box{
+  position:absolute;border:2px solid var(--surface);touch-action:none;cursor:move;
+  box-shadow:0 0 0 9999px color-mix(in srgb, var(--ink) 45%, transparent);
+}
+.crop-box.is-circle{border-radius:50%}
+.crop-handle{
+  position:absolute;width:22px;height:22px;border-radius:50%;
+  background:var(--surface);border:2px solid var(--red-deep);touch-action:none;
+}
+.crop-handle[data-h="nw"]{left:-11px;top:-11px;cursor:nwse-resize}
+.crop-handle[data-h="ne"]{right:-11px;top:-11px;cursor:nesw-resize}
+.crop-handle[data-h="sw"]{left:-11px;bottom:-11px;cursor:nesw-resize}
+.crop-handle[data-h="se"]{right:-11px;bottom:-11px;cursor:nwse-resize}
+@media (max-width:420px){
+  .gift-grid{grid-template-columns:minmax(0,1fr)}
+  .crop-stage{height:min(54vh,360px)}
+}
 .hero-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(320px,.95fr);gap:clamp(16px,2.4vw,32px);align-items:start}
 @media (min-width:921px) and (max-height:860px){
   .mug-frame{max-height:430px;width:auto}
@@ -397,7 +468,7 @@ section{scroll-margin-top:92px}
      stretching an empty gap under the picture. */
   .stage{position:sticky;top:76px}
 }
-.stage-foot{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
+.stage-foot{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;min-width:0;max-width:100%}
 @media (max-width:920px){
   .stage{display:contents}
   .hero-head{order:1}
@@ -476,13 +547,26 @@ section{scroll-margin-top:92px}
 .chip--idea{border-style:dashed;border-color:var(--red);color:var(--ink)}
 .chip--idea[aria-pressed="true"]{border-style:solid}
 .stage-caption{font-size:.9375rem;color:var(--ink-2);text-align:center;max-width:42ch;min-height:2.6em}
-/* Handwriting and Recipe are typed, not photographs. The box sits with the chips. */
-.hand-box,.recipe-box{width:100%;max-width:420px;min-width:0}
-.hand-box textarea,.recipe-box textarea{
+/* Handwriting and funny quotes are typed, not photographs. The box sits with the chips. */
+.hand-box,.quote-box{width:100%;max-width:420px;min-width:0}
+.hand-box textarea{
   font-family:Caveat,cursive;font-weight:600;font-size:1.7rem;line-height:1.2;
   min-height:0;resize:vertical;
 }
-.mug-svg .hand-line,.mug-svg .recipe-line{fill:var(--ink);font-family:Caveat,cursive;font-weight:600}
+.quote-box textarea{
+  font-family:Fredoka,Outfit,sans-serif;font-weight:600;font-size:1.15rem;line-height:1.35;
+  min-height:0;resize:vertical;
+}
+.quote-picks{display:flex;flex-direction:column;gap:6px;width:100%;min-width:0}
+.quote-pick{
+  font-family:Fredoka,Outfit,sans-serif;font-weight:600;font-size:.98rem;line-height:1.3;
+  text-align:left;padding:10px 12px;border-radius:var(--r-sm);cursor:pointer;
+  border:2px solid var(--field);background:var(--surface);color:var(--ink);
+}
+.quote-pick.is-on{border-color:var(--ink);background:var(--red-soft);color:var(--red-deep)}
+.mug-svg .hand-line{fill:var(--ink);font-family:Caveat,cursive;font-weight:600}
+.mug-svg .quote-line{fill:var(--ink);font-family:Fredoka,Outfit,sans-serif;font-weight:600}
+.mug-svg .quote-rule{stroke:var(--red);fill:none}
 .hand-sizes{display:flex;flex-direction:column;gap:8px;width:100%;min-width:0}
 .hand-sizes:empty{display:none}
 .hand-size{display:flex;align-items:center;gap:10px;min-width:0}
@@ -521,7 +605,7 @@ section{scroll-margin-top:92px}
     box-shadow:0 16px 22px -20px rgba(22,19,17,.7);
   }
   .bg-drop,.bg-drop-btn,.bg-drop-opt,.face-stage,.face-fields input,.face-ask textarea,.ask-confirm,#face-curve,.font-pick,.shape-pick,.proof-tools,.proof-nudge button,
-  #pattern-size,#face-size,#photo-zoom,#photo-margin,#hand-text,#recipe-text,#face-name-size,#face-line-size,.hand-size input{
+  #pattern-size,#face-size,#photo-zoom,#photo-margin,#hand-text,#quote-text,#face-name-size,#face-line-size,.hand-size input,.quote-pick,#crop-zoom,.side-pick,.gift-box input,.gift-box textarea{
     scroll-margin-top:calc(var(--head-h, 96px) + 220px);
     scroll-margin-bottom:12px;
   }
@@ -539,6 +623,8 @@ section{scroll-margin-top:92px}
   background:var(--surface);border-radius:var(--r-md);padding:16px 10px;
   box-shadow:0 0 0 1px var(--rule);
 }
+a.ticker-cell{text-decoration:none;color:inherit}
+a.ticker-cell:hover{box-shadow:0 0 0 2px var(--red)}
 .ticker-k{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
 .ticker-v{font-family:var(--f-display);font-weight:600;font-size:1.28rem;letter-spacing:-.02em;color:var(--ink)}
 @media (max-width:760px){.ticker-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}}
@@ -570,8 +656,6 @@ section{scroll-margin-top:92px}
 .cat-photo--art{object-position:center 42%}
 .cat-photo--dog{object-position:center 46%}
 .cat-photo--hand{object-position:center 38%}
-.cat-photo--recipe{object-position:center 42%}
-.cat-photo--crew{object-position:center 42%}
 .cat h3{font-size:1.3rem}
 .cat p{font-size:.97rem;color:var(--ink-2);line-height:1.6}
 
@@ -742,18 +826,19 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 .panel{
   background:var(--surface);border:2px solid var(--rule-2);border-radius:var(--r-lg);
   width:min(580px,calc(100vw - 28px));max-height:min(86vh,900px);display:flex;flex-direction:column;
-  box-shadow:0 30px 70px -34px rgba(74,60,53,.55);
+  overflow:auto;box-shadow:0 30px 70px -34px rgba(74,60,53,.55);
 }
 .panel-head{
   display:flex;align-items:center;gap:14px;padding:20px 22px;border-bottom:2px solid var(--rule);
+  position:sticky;top:0;z-index:2;background:var(--surface);flex:none;
 }
 .panel-head h3{font-size:1.24rem;margin-right:auto}
 .panel-x{
   flex:none;width:36px;height:36px;border-radius:50%;border:2px solid var(--rule-2);background:var(--surface);
   font-size:1.2rem;line-height:1;color:var(--ink-2);cursor:pointer}
 .panel-x:hover{border-color:var(--red);color:var(--red-ink)}
-.panel-body{padding:22px;overflow:auto;display:flex;flex-direction:column;gap:16px}
-.panel-foot{padding:18px 22px;border-top:2px solid var(--rule);display:flex;flex-direction:column;gap:12px}
+.panel-body{padding:22px;overflow:visible;display:flex;flex-direction:column;gap:16px;flex:none}
+.panel-foot{padding:18px 22px;border-top:2px solid var(--rule);display:flex;flex-direction:column;gap:12px;flex:none}
 
 .line{display:flex;gap:14px;align-items:flex-start;padding-bottom:16px;border-bottom:2px solid var(--rule)}
 .line:last-child{border-bottom:0;padding-bottom:0}
@@ -809,7 +894,8 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
   background-repeat:no-repeat;background-position:right 14px center;background-size:12px 8px}
 .field input:focus-visible,.field textarea:focus-visible,.field select:focus-visible{border-color:var(--red-deep)}
 /* After .field's font shorthand, so the box matches the script on the mug. */
-.hand-box textarea,.recipe-box textarea{font-family:Caveat,cursive;font-weight:600;font-size:1.7rem;line-height:1.2}
+.hand-box textarea{font-family:Caveat,cursive;font-weight:600;font-size:1.7rem;line-height:1.2}
+.quote-box textarea{font-family:Fredoka,Outfit,sans-serif;font-weight:600}
 .field .hint{font-size:.9375rem;color:var(--ink-3);line-height:1.5}
 .field .hint a{color:var(--red-ink);font-weight:700}
 .status{border-radius:var(--r-md);padding:14px 16px;font-size:.92rem;line-height:1.55}
@@ -883,8 +969,8 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
     </a>
     <nav class="site-nav" aria-label="Main">
       <a href="#order">Design</a>
-      <a href="#how">How it works</a>
-      <a href="#faq">Questions</a>
+      <a href="process.html">How it works</a>
+      <a href="process.html#questions">Questions</a>
     </nav>
     <button type="button" class="cart-btn" id="cart-btn" aria-label="Open your order">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -907,7 +993,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         <p class="eyebrow">Custom photo mugs</p>
         <h1>Put your <em>favorite people</em> on a mug.</h1>
         <p class="lede">
-          Crop a face from your photo, add a name, and put the mug on your order.
+          Crop your photo, add a name or a funny line, and put it on one side of the mug.
           Want something else? We'll design it.
         </p>
       </div>
@@ -1015,7 +1101,7 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
           <g class="panel-art" clip-path="url(#panelClip)">
            <g id="panel-fit" transform="translate(-51.3103,-40.7429) scale(1.206897,1.228571)">
 
-            <!-- FAMILY — a close photo of the crew, full-bleed on the print -->
+            <!-- FAMILY — a close photo, full-bleed on the print -->
             <g class="memory is-on" data-key="family">
              <g class="scene-draw">
               <rect x="190" y="152" width="116" height="140" fill="url(#famSky)"/>
@@ -1132,9 +1218,9 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
               <g id="hand-words"></g>
             </g>
 
-            <!-- RECIPE — words the buyer types. No page, no photograph. -->
-            <g class="memory" data-key="recipe">
-              <g id="recipe-words"></g>
+            <!-- FUNNY QUOTE — words the buyer picks or types. -->
+            <g class="memory" data-key="quote">
+              <g id="quote-words"></g>
             </g>
 
             <!-- THE CUSTOMER'S OWN PHOTO — filled in on this device only -->
@@ -1142,22 +1228,6 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 
             <!-- SOMETHING ELSE — same photo preview. The shop designs the rest. -->
             <g class="memory" data-key="custom"></g>
-
-            <!-- THE CREW — a shop badge, for team and logo mugs -->
-            <g class="memory" data-key="team">
-             <g class="scene-draw">
-              <rect x="190" y="152" width="116" height="140" fill="#1A1614"/>
-              <circle cx="248" cy="208" r="42" fill="none" stroke="#C12F1A" stroke-width="2.5"/>
-              <circle cx="248" cy="208" r="36" fill="none" stroke="#F6E7D4" stroke-width="1" opacity=".45"/>
-              <g fill="none" stroke="#F6E7D4" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M234 190h18v15a9 9 0 0 1-9 9h0a9 9 0 0 1-9-9Z"/>
-                <path d="M252 194h4a5 5 0 0 1 0 10h-4"/>
-              </g>
-              <text fill="#C12F1A" x="248" y="236" font-family="Outfit, sans-serif" font-size="11" font-weight="700" text-anchor="middle" textLength="54" lengthAdjust="spacingAndGlyphs">THE CREW</text>
-              <path d="M226 244h44" stroke="#F6E7D4" stroke-width="1.2" opacity=".45"/>
-              <text fill="#F6E7D4" x="248" y="258" font-family="Outfit, sans-serif" font-size="9" text-anchor="middle" textLength="42" lengthAdjust="spacingAndGlyphs">EST. 2019</text>
-             </g>
-            </g>
            </g>
           </g>
           <!-- The customer's photo, opaque, when a wrap is behind it. Same
@@ -1178,9 +1248,8 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
         <button type="button" class="chip" id="chip-art" data-key="art" aria-pressed="false">Kid's art</button>
         <button type="button" class="chip" id="chip-pet" data-key="pet" aria-pressed="false">The dog</button>
         <button type="button" class="chip" id="chip-hand" data-key="hand" aria-pressed="false">Handwriting</button>
-        <button type="button" class="chip" id="chip-recipe" data-key="recipe" aria-pressed="false">Recipe</button>
+        <button type="button" class="chip" id="chip-quote" data-key="quote" aria-pressed="false">Funny quotes</button>
         <button type="button" class="chip chip--idea" id="chip-custom" data-key="custom" aria-pressed="false">We'll design it</button>
-        <button type="button" class="chip" id="chip-team" data-key="team" aria-pressed="false">The crew</button>
         <button type="button" class="chip" id="chip-yours" data-key="yours" aria-pressed="false" hidden>Your photo</button>
       </div>
       <div class="field hand-box" id="hand-box" hidden>
@@ -1189,15 +1258,17 @@ dialog::backdrop{background:rgba(74,60,53,.38)}
 always</textarea>
         <div class="hand-sizes" id="hand-sizes"></div>
       </div>
-      <div class="field recipe-box" id="recipe-box" hidden>
-        <label for="recipe-text">Your recipe</label>
-        <textarea id="recipe-text" rows="3" maxlength="160" autocomplete="off" spellcheck="true">Peach cobbler
-6 peaches</textarea>
+      <div class="field quote-box" id="quote-box" hidden>
+        <label for="quote-text">A funny line</label>
+        <div class="quote-picks" id="quote-picks" role="listbox" aria-label="Funny lines"></div>
+        <textarea id="quote-text" rows="2" maxlength="90" autocomplete="off" spellcheck="true">This is my emotional support mug.</textarea>
+        <p class="hint">Pick one, or type your own. It prints on the mug.</p>
       </div>
       <p class="stage-caption" id="mug-caption" aria-live="polite">
-        The whole crew, wrapped the entire way around. Yes, the dog counts as family.
+        A family, printed on the white mug. Yours would be your people.
       </p>
-      <p class="stage-caption" id="stage-fineprint" style="margin-top:-8px">An example on the mug. Yours carries your photo.</p>
+      <p class="stage-caption" id="side-caption">On one side. It faces you when you hold the mug in your right hand.</p>
+      <p class="stage-caption" id="stage-fineprint" style="margin-top:-8px">An example on one side of the mug. Yours carries your photo.</p>
       </div>
     </div>
 
@@ -1211,9 +1282,9 @@ always</textarea>
   <div class="wrap">
     <div class="ticker-row">
       <div class="ticker-cell"><span class="ticker-k">Order as few as</span><span class="ticker-v">One mug</span></div>
-      <div class="ticker-cell"><span class="ticker-k">Proof lands in</span><span class="ticker-v">24 hours</span></div>
+      <div class="ticker-cell"><span class="ticker-k">Proof lands in</span><span class="ticker-v">One business day</span></div>
       <div class="ticker-cell"><span class="ticker-k">On your counter in</span><span class="ticker-v">5–7 days</span></div>
-      <div class="ticker-cell"><span class="ticker-k">Pressed</span><span class="ticker-v">In our own shop</span></div>
+      <a class="ticker-cell" href="#order"><span class="ticker-k">Let's get started</span><span class="ticker-v">Design your mug</span></a>
     </div>
   </div>
 </div>
@@ -1223,166 +1294,52 @@ always</textarea>
 <section class="band band--tint" id="how">
   <div class="wrap">
     <div class="section-head">
-      <p class="eyebrow">How it works</p>
-      <h2 class="h2">Three steps, and one of them is just saying yes</h2>
-      <p class="lede">The order card above is the whole path. This is what happens after you send the photo.</p>
+      <p class="eyebrow">Let's get started</p>
+      <h2 class="h2">Three easy steps</h2>
+      <p class="lede">You design the mug on this page. Then you put it on an order. We send a proof before anything is printed.</p>
     </div>
     <div class="steps">
       <div class="step">
         <span class="step-n">1</span>
-        <h3 id="step1-h">Send the photo</h3>
-        <p id="step1-p">Place the photo on this page, then email it to hello@memorymugco.com after you order. Straight off your phone is fine. If it's too small to print well, we'll tell you before you pay a dime.</p>
+        <h3 id="step1-h">Design it here</h3>
+        <p id="step1-p">Pick a style, or use your own photo. Crop the photo, add a name or a funny line, and choose which side of the mug it goes on. One side is the usual.</p>
       </div>
       <div class="step">
         <span class="step-n">2</span>
-        <h3>Say yes to the proof</h3>
-        <p>Within 24 hours you get a picture of the actual mug. Want it bigger, moved over, a different photo entirely? Just say so — nothing gets printed until you're happy.</p>
+        <h3>Put it on your order</h3>
+        <p id="step2-p">Choose how many, and where they should go. A gift can ship to someone else, with your name and the prices left off. <span id="step-ship">Free shipping on orders of $56 or more.</span></p>
       </div>
       <div class="step">
         <span class="step-n">3</span>
-        <h3>It shows up</h3>
-        <p>We press it, pad it, box it, ship it. Five to seven days from "yes, that one" to a mug sitting on your counter.</p>
+        <h3>Say yes to the proof</h3>
+        <p>Within one business day you get a picture of the mug. Want it bigger, moved, or a different photo? Say so. Nothing is printed until you say yes. Then it is usually five to seven days to your counter.</p>
       </div>
     </div>
+    <p class="lede" style="margin-top:28px">The longer version, including how the picture is dyed into the mug, is on <a href="process.html">how it works</a>.</p>
+    <p style="margin-top:16px"><a class="btn btn--fill" href="#order">Design your mug</a></p>
   </div>
 </section>
 
-<!-- ══ CRAFT ═══════════════════════════════════════════════ -->
-<section class="band wrap" id="craft">
-  <div class="craft">
-    <div class="craft-body">
-      <p class="eyebrow">Why it lasts</p>
-      <h2 class="h2">Still looks like that a year from now</h2>
-      <p>
-        Most "custom" mugs are a sticker. A vinyl decal or a heat-transfer sheet pressed onto
-        the outside — you can catch the edge of the print with a fingernail. A few months of
-        hot water later, that edge lifts and your family slowly peels off in the sink.
-      </p>
-      <p>
-        We do it the other way. Dye sublimation on polymer-coated ceramic: under heat and
-        pressure the ink skips straight past liquid, turns to gas, and settles <em>inside</em>
-        the coating. When it cools, the picture is part of the surface. No edge to catch,
-        nothing to lift, nothing to fade.
-      </p>
-      <p class="pull">
-        Run your thumb across a finished one. You'll feel glaze, not a sticker.
-      </p>
-      <p>
-        We run the presses in-house. Same bench, same heat profiles, same color correction that keeps
-        everybody's face from going orange.
-      </p>
-    </div>
-
-    <div class="spec">
-      <div class="spec-head">The boring details</div>
-      <dl>
-        <dt>Base</dt><dd>AAA-grade white ceramic</dd>
-        <dt>Size</dt><dd>15 oz — one size</dd>
-        <dt>Process</dt><dd>Dye sublimation</dd>
-        <dt>Press</dt><dd>400°F · 60 seconds</dd>
-        <dt>Print area</dt><dd>Full wrap, edge to edge</dd>
-        <dt>Color</dt><dd>Hand-corrected per photo</dd>
-        <dt>Care</dt><dd>Dishwasher + microwave safe</dd>
-        <dt>Proof</dt><dd>Within 24 hours</dd>
-        <dt>Turnaround</dt><dd>5–7 business days</dd>
-        <dt>Minimum</dt><dd>One. Seriously, one.</dd>
-      </dl>
-    </div>
-  </div>
-</section>
-
-
-<!-- ══ FAQ ═════════════════════════════════════════════════ -->
-<section class="band band--alt" id="faq">
-  <div class="wrap">
-    <div class="section-head">
-      <p class="eyebrow">Questions</p>
-      <h2 class="h2">What people ask before they order</h2>
-    </div>
-    <div class="faq">
-      <details open>
-        <summary>Will a photo off my phone actually look good?</summary>
-        <div class="faq-a">
-          Almost always, yes. Anything shot on a phone in roughly the last decade has plenty
-          of resolution for an 8.5-inch print. Where it gets dicey is screenshots, photos that
-          got squashed by a group text, and old scans. Send it anyway — a human looks at every
-          file and tells you straight if it won't hold up, before you're charged.
-        </div>
-      </details>
-      <details>
-        <summary>How do I get my kid's drawing on there?</summary>
-        <div class="faq-a">
-          Lay it flat on the floor or the table in good daylight, hold your phone directly
-          above it, take one picture. That's it. We clean up the shadows, straighten it out,
-          and keep every wobbly crayon line exactly where your kid put it.
-        </div>
-      </details>
-      <details>
-        <summary>Does it really survive the dishwasher?</summary>
-        <div class="faq-a">
-          Yes. Because the image is cured into the coating instead of stuck on top of it,
-          there's no edge for water to work under. Top rack, bottom rack, microwave — it
-          holds.
-        </div>
-      </details>
-      <details>
-        <summary id="faq-send-q">How do I get you the photo?</summary>
-        <div class="faq-a" id="faq-send-a">
-          Place the photo here so we can see the size and shape, then email it to hello@memorymugco.com after you order.
-          Straight off your phone is fine.
-        </div>
-      </details>
-      <details>
-        <summary>Can you take the background out?</summary>
-        <div class="faq-a">
-          Yep, and it's free. Very common with pets and with the one good photo of somebody
-          that happens to have a stranger's elbow in it. We can also drop in a solid color,
-          add a name, or combine two photos side by side. Just ask on the proof.
-        </div>
-      </details>
-      <details>
-        <summary>I need a pile of these by a specific date.</summary>
-        <div class="faq-a">
-          Tell us the date in your very first message and we'll tell you honestly whether we
-          can hit it. Rush is often possible — ask before you order and we'll
-          tell you honestly whether the date is doable.
-        </div>
-      </details>
-      <details>
-        <summary>What if I don't like the proof?</summary>
-        <div class="faq-a">
-          Then we change it. Crop, text, placement, a totally different photo — we'll keep adjusting it until
-          you're happy. Nothing gets pressed until you say so.
-        </div>
-      </details>
-      <details>
-        <summary>Do you make anything besides mugs?</summary>
-        <div class="faq-a">
-          Mugs are the whole focus here.
-        </div>
-      </details>
-    </div>
-  </div>
-</section>
-
-<!-- ══ CLOSER ══════════════════════════════════════════════ -->
+<!-- ══ IF CHECKOUT IS CLOSED ════════════════════════════ -->
 <section class="band closer" id="start">
   <div class="wrap closer-grid">
     <div class="closer-copy">
       <p class="eyebrow">If checkout is not open yet</p>
-      <h2>Email the photo and we'll start the mug.</h2>
+      <h2>Let's get started anyway.</h2>
       <p class="lede">
-        Payment runs on Shopify once the shop is connected. Until then, write to us and
-        attach the picture. We'll send you a proof within 24 hours, before anything is printed.
+        Design the mug above and add it to your order. Nothing is charged on this page
+        until the shop connects checkout. Your crop, your words, and your shipping notes
+        stay in this browser. You do not need to email a photo.
       </p>
     </div>
     <div class="signup">
-      <p>Write to <a href="mailto:hello@memorymugco.com" data-cfg-mail="supportEmail"><span data-cfg="supportEmail">hello@memorymugco.com</span></a> and attach the photo.</p>
-      <a class="btn btn--fill" href="mailto:hello@memorymugco.com" data-cfg-mail="supportEmail">Email the shop</a>
-      <p class="signup-fine">Or build the mug above and add it to your order. Nothing is charged on this page.</p>
+      <p>A question that is not about the design can go to <a href="mailto:hello@memorymugco.com" data-cfg-mail="supportEmail"><span data-cfg="supportEmail">hello@memorymugco.com</span></a>.</p>
+      <a class="btn btn--fill" href="#order">Design your mug</a>
+      <p class="signup-fine">Or read <a href="process.html">how a mug gets made</a>.</p>
     </div>
   </div>
 </section>
+
 
 </main>
 
@@ -1393,20 +1350,20 @@ always</textarea>
       <div class="foot-brand">
         <span class="brand-name">Memory Mug Company</span>
         <p>
-          Custom photo mugs, proofed and pressed by hand.
+          Custom photo mugs, proofed before they are printed.
         </p>
       </div>
       <div class="foot-links">
         <div class="foot-col">
           <h4>Shop</h4>
           <a href="#order">Design your mug</a>
-          <a href="#how">How it works</a>
-          <a href="#faq">Questions</a>
+          <a href="process.html">How it works</a>
+          <a href="process.html#questions">Questions</a>
         </div>
         <div class="foot-col">
           <h4>Details</h4>
-          <a href="#craft">Why it lasts</a>
-          <a href="#start">Email the shop</a>
+          <a href="process.html#made">Dyed into the mug</a>
+          <a href="#how">Three easy steps</a>
         </div>
         <div class="foot-col">
           <h4>Reach us</h4>
@@ -1419,7 +1376,7 @@ always</textarea>
     </div>
     <div class="foot-base">
       <span>© 2026 Memory Mug Company</span>
-      <span>Dishwasher safe · Pressed in-house</span>
+      <span>Dishwasher safe · Won't peel</span>
     </div>
   </div>
 </footer>
@@ -1433,11 +1390,31 @@ always</textarea>
     </div>
     <div class="panel-body" id="cart-lines"></div>
     <div class="panel-foot" id="cart-foot" hidden>
+      <div id="order-summary" class="order-summary" hidden></div>
+      <div class="gift-box" id="gift-box">
+          <label class="gift-check"><input type="checkbox" id="gift-on"> This is a gift. Ship it to someone else.</label>
+          <p class="hint">A surprise for them. We pack it from these notes. Checkout still asks you to confirm the address.</p>
+          <div class="gift-fields" id="gift-fields" hidden>
+          <label for="gift-name">Their name</label>
+          <input id="gift-name" type="text" autocomplete="name" maxlength="80" placeholder="Sam">
+          <label for="gift-street">Street</label>
+          <input id="gift-street" type="text" autocomplete="street-address" maxlength="120" placeholder="12 Oak Street">
+          <div class="gift-grid">
+            <input id="gift-city" type="text" autocomplete="address-level2" maxlength="60" placeholder="City" aria-label="City">
+            <input id="gift-state" type="text" autocomplete="address-level1" maxlength="40" placeholder="State" aria-label="State">
+            <input id="gift-zip" type="text" autocomplete="postal-code" maxlength="12" placeholder="ZIP" aria-label="ZIP">
+          </div>
+          <label class="gift-check"><input type="checkbox" id="gift-anon"> Send it anonymously. We leave your name off, and we leave the prices off the packing slip.</label>
+          <p class="hint" id="gift-anon-hint" hidden>They get the mug and your note. They do not get your name or what you paid.</p>
+          <label for="gift-note">Gift note, if you want one</label>
+          <textarea id="gift-note" rows="2" maxlength="240" placeholder="Happy birthday. The dog misses you."></textarea>
+        </div>
+      </div>
       <div class="field" id="cart-note-field">
-        <label for="cart-note">Anything we should know about the photo?</label>
+        <label for="cart-note">Anything we should know?</label>
         <textarea id="cart-note" rows="3"
-          placeholder="e.g. The beach one of all four of us — please take the background out"></textarea>
-        <span class="hint" id="cart-note-hint">Optional. This rides along with the order. Your photo stays on this device. After you order, email it to hello@memorymugco.com.</span>
+          placeholder="e.g. Please take the background out of the beach photo"></textarea>
+        <span class="hint" id="cart-note-hint">Optional. This rides along with the order. You do not need to email a photo.</span>
       </div>
       <!-- A Shopify product URL carries no order note, so on the upload flow this
            box is hidden rather than silently throwing away what was typed in it. -->
@@ -1519,7 +1496,12 @@ always</textarea>
       <div class="field">
         <label for="a-freeship">Free shipping over, in dollars</label>
         <input id="a-freeship" type="number" min="0" step="1" inputmode="numeric" autocomplete="off">
-        <span class="hint">Drives the "add one more" prompt. Set 0 to switch the prompt off. Keep it the same as the shipping note and your Shopify setting.</span>
+        <span class="hint">The only free-shipping number. Buyers see how many mugs away they are. Set 0 to switch that off. Match it to Shopify when shipping rates are set there.</span>
+      </div>
+      <div class="field">
+        <label for="a-second">Second side, in dollars</label>
+        <input id="a-second" type="number" min="0" step="0.01" inputmode="decimal" autocomplete="off">
+        <span class="hint">Added when a buyer puts the design on both sides. The price line uses this number. One side is the usual, and it does not add this.</span>
       </div>
 
       <div class="field">
@@ -1639,7 +1621,7 @@ always</textarea>
       <div class="field">
         <label for="cfg-flow">How does the photo reach you?</label>
         <select id="cfg-flow">
-          <option value="email">Emailed after checkout &mdash; no app needed</option>
+          <option value="email">Details travel with the order &mdash; no app needed</option>
           <option value="uploadery">Uploaded with the order &mdash; Uploadery</option>
         </select>
         <span class="hint">
@@ -1682,9 +1664,10 @@ always</textarea>
           anyone ordering more than one to check it on the way through.
         </p>
         <p class="hint" style="margin-top:12px">
-          Leave this on <strong>Emailed after checkout</strong> until the test order works. A
-          missing or misspelled handle falls back to email on its own rather than sending
-          anyone to a dead page.
+          Leave this on <strong>Details travel with the order</strong> until an upload test works. A
+          missing or misspelled handle falls back to that on its own rather than sending
+          anyone to a dead page. The photo file itself still needs an upload field, or it
+          stays in the buyer's browser.
         </p>
       </details>
 
@@ -1697,7 +1680,7 @@ always</textarea>
         <label for="cfg-support">Support email</label>
         <input id="cfg-support" type="email" autocomplete="off" spellcheck="false"
                placeholder="orders@eighthstreetcustoms.com">
-        <span class="hint">Where customers send their photo. Must be a real, monitored inbox before launch.</span>
+        <span class="hint">For questions. Buyers are not asked to email their photo.</span>
       </div>
 
       <div class="field">
@@ -1719,6 +1702,40 @@ always</textarea>
   </div>
 </dialog>
 
+<dialog id="crop-dlg" aria-labelledby="crop-title">
+  <div class="panel crop-panel">
+    <div class="panel-head">
+      <h3 id="crop-title">Crop your photo</h3>
+      <button type="button" class="panel-x" data-close aria-label="Close crop">&times;</button>
+    </div>
+    <div class="panel-body">
+      <p>Drag the box. Drag a corner to resize. Use the slider to zoom. This crops a rectangle. It does not cut the background out.</p>
+      <div class="crop-stage" id="crop-stage">
+        <img id="crop-img" alt="">
+        <div id="crop-box" role="application" tabindex="0" aria-label="Crop box. Drag to move it. Drag a handle to resize.">
+          <span class="crop-handle" data-h="nw"></span>
+          <span class="crop-handle" data-h="ne"></span>
+          <span class="crop-handle" data-h="sw"></span>
+          <span class="crop-handle" data-h="se"></span>
+        </div>
+      </div>
+      <div class="proof-zoom">
+        <label for="crop-zoom">Zoom</label>
+        <input id="crop-zoom" type="range" min="100" max="300" step="1" value="100" aria-valuemin="100" aria-valuemax="300">
+      </div>
+      <div class="shape-picks" role="radiogroup" aria-label="Crop shape">
+        <button type="button" class="shape-pick is-on" id="crop-shape-rect" data-crop-shape="rect">Rectangle</button>
+        <button type="button" class="shape-pick" id="crop-shape-circle" data-crop-shape="circle">Circle</button>
+      </div>
+      <p class="hint" id="crop-shape-note">A rectangle crop. You can still choose a circle or a square on the mug.</p>
+    </div>
+    <div class="panel-foot">
+      <button type="button" class="btn btn--line" id="crop-cancel">Back</button>
+      <button type="button" class="btn btn--fill" id="crop-use">Place this crop on the mug</button>
+    </div>
+  </div>
+</dialog>
+
 
 <script>
 (function () {
@@ -1728,16 +1745,14 @@ always</textarea>
     art:    "A kid's drawing, photographed and printed on the ceramic.",
     pet:    "A dog, close up. Yours would be your dog.",
     hand:   "Type a few words. They show up on the mug.",
-    recipe: "Type a recipe. The words show up on the mug.",
-    team:   "A crew, printed on the white base.",
-    yours:  "Your photo on the front. Drag it until it sits in the box.",
+    quote:  "A funny line, printed on the mug. Pick one, or type your own.",
+    yours:  "Your photo, on one side. Drag it until it sits in the box.",
     custom: "Something else? Upload a photo and tell us what to add."
   };
 
   var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
   var scenes = Array.prototype.slice.call(document.querySelectorAll('.memory'));
   var caption = document.getElementById('mug-caption');
-  var order = ['family', 'art', 'pet', 'hand', 'recipe', 'team'];
   var timer = null;
 
   function show(key) {
@@ -1750,26 +1765,27 @@ always</textarea>
     if (caption && CAPTIONS[key]) caption.textContent = CAPTIONS[key];
     var handBox = document.getElementById('hand-box');
     if (handBox) handBox.hidden = key !== 'hand';
-    var recipeBox = document.getElementById('recipe-box');
-    if (recipeBox) recipeBox.hidden = key !== 'recipe';
+    var quoteBox = document.getElementById('quote-box');
+    if (quoteBox) quoteBox.hidden = key !== 'quote';
     var fine = document.getElementById('stage-fineprint');
     if (fine) fine.textContent = fineLine(key);
+    if (key === 'quote') repaintQuote();
   }
 
   function fineLine(key) {
-    if (key === 'hand' || key === 'recipe') return 'Our 15 oz mug. The words are what you typed.';
+    if (key === 'hand' || key === 'quote') return 'Our 15 oz mug. The words are what you typed, on one side.';
     if (key === 'custom') return 'Our 15 oz mug. Tell us the idea and we will design it.';
     var svg = document.querySelector('.hero .mug-svg');
     if (svg && svg.classList.contains('has-photo')) {
-      return 'Our 15 oz mug. The photograph on it is an example \u2014 yours carries your photo.';
+      return 'Our 15 oz mug. The photograph on it is an example, on one side. Yours carries your photo.';
     }
-    return 'An example on the mug. Yours carries your photo.';
+    return 'An example on one side of the mug. Yours carries your photo.';
   }
 
   /* The words live in the same print box as the other examples. A canvas
      measurement is in the same units as an SVG font-size, so the lines can
      be wrapped without reading the scaled mug. Handwriting keeps its own
-     size controls. Recipe uses the same print box and its own typing box. */
+     size controls. Funny quotes use the same print box and a bolder face. */
   var HAND = { x: 190, y: 152, w: 116, h: 140, pad: 8 };
   /* A buyer-chosen size for each typed line. Empty means the line still uses
      the size that fits the whole note. */
@@ -1942,10 +1958,28 @@ always</textarea>
     syncHandSizes(lines, sizes);
   }
 
-  /* Recipe is the same kind of box: whatever the buyer types is drawn
-     on the mug. Line breaks stay. It does not share Handwriting's sizes. */
-  function paintRecipe(raw) {
-    var g = document.getElementById('recipe-words');
+  var QUOTES = [
+    'This is my emotional support mug.',
+    "Don't talk to me until this is empty.",
+    'Coffee first. Everything else can wait.',
+    'I like my mug the way I like my mornings. Slow.',
+    'Be the person your dog thinks you are.',
+    'Official mug of the one who did the dishes.',
+    'May your coffee kick in before reality does.',
+    'I paused my show for this.'
+  ];
+
+  function measureQuote(str, size) {
+    var canvas = measureQuote.c || (measureQuote.c = document.createElement('canvas'));
+    var ctx = canvas.getContext && canvas.getContext('2d');
+    if (!ctx) return String(str || '').length * size * 0.55;
+    ctx.font = '600 ' + size + 'px Fredoka, Outfit, sans-serif';
+    return ctx.measureText(str || '').width;
+  }
+
+  /* A funny line, wrapped to the print. Line breaks the buyer typed stay. */
+  function paintQuote(raw) {
+    var g = document.getElementById('quote-words');
     if (!g) return;
     var SVG = 'http://www.w3.org/2000/svg';
     while (g.firstChild) g.removeChild(g.firstChild);
@@ -1953,33 +1987,78 @@ always</textarea>
       return line.replace(/[ \t]+/g, ' ').trim();
     }).filter(Boolean);
     if (!paragraphs.length) return;
-    var laid = layoutHand(paragraphs);
-    var lines = laid.lines;
-    if (!lines.length) return;
-    var size = laid.auto;
     var maxW = HAND.w - HAND.pad * 2;
+    var maxH = HAND.h - HAND.pad * 2;
+    var size = 22, lines = paragraphs.slice(), fit;
+    var s;
+    for (s = 26; s >= 13; s--) {
+      fit = wrapQuote(paragraphs, s, maxW);
+      if (!fit.tooWide && fit.lines.length && fit.lines.length * s * 1.2 <= maxH) {
+        size = s; lines = fit.lines; break;
+      }
+    }
+    if (s < 13) { size = 13; lines = fit && fit.lines.length ? fit.lines : lines; }
+    var maxLines = Math.max(1, Math.floor(maxH / (size * 1.2)));
+    lines = lines.slice(0, maxLines);
+    if (!lines.length) return;
     var cx = HAND.x + HAND.w / 2;
     var mid = HAND.y + HAND.h / 2;
-    var span = 0;
-    for (var i = 1; i < lines.length; i++) span += 1.12 * size;
-    var y = mid - span / 2;
-    lines.forEach(function (line, i) {
+    var gap = size * 1.2;
+    var y = mid - ((lines.length - 1) * gap) / 2;
+    var rule = document.createElementNS(SVG, 'path');
+    rule.setAttribute('class', 'quote-rule');
+    rule.setAttribute('stroke-width', '1.4');
+    rule.setAttribute('stroke-linecap', 'round');
+    var ruleW = Math.min(maxW, 72);
+    var top = y - size * 0.85;
+    var bot = y + (lines.length - 1) * gap + size * 0.55;
+    rule.setAttribute('d',
+      'M' + (cx - ruleW / 2).toFixed(1) + ' ' + top.toFixed(1) +
+      ' H' + (cx + ruleW / 2).toFixed(1) +
+      ' M' + (cx - ruleW / 2).toFixed(1) + ' ' + bot.toFixed(1) +
+      ' H' + (cx + ruleW / 2).toFixed(1));
+    g.appendChild(rule);
+    lines.forEach(function (line) {
       var t = document.createElementNS(SVG, 'text');
-      t.setAttribute('class', 'recipe-line');
+      t.setAttribute('class', 'quote-line');
       t.setAttribute('x', cx.toFixed(2));
       t.setAttribute('y', y.toFixed(2));
       t.setAttribute('text-anchor', 'middle');
       t.setAttribute('dominant-baseline', 'middle');
       t.setAttribute('font-size', String(size));
-      var width = measureHand(line, size);
+      var width = measureQuote(line, size);
       if (width > maxW && width > 0) {
         t.setAttribute('textLength', maxW.toFixed(1));
         t.setAttribute('lengthAdjust', 'spacingAndGlyphs');
       }
       t.textContent = line;
       g.appendChild(t);
-      if (i < lines.length - 1) y += 1.12 * size;
+      y += gap;
     });
+    var picks = document.querySelectorAll('.quote-pick');
+    var current = String(raw || '').replace(/\s+/g, ' ').trim();
+    Array.prototype.forEach.call(picks, function (b) {
+      var on = b.getAttribute('data-quote') === current;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+  }
+
+  function wrapQuote(paragraphs, size, maxW) {
+    var lines = [], tooWide = false;
+    paragraphs.forEach(function (p) {
+      var words = p.split(' '), cur = '';
+      words.forEach(function (word) {
+        if (!word) return;
+        var trial = cur ? (cur + ' ' + word) : word;
+        if (measureQuote(trial, size) <= maxW) { cur = trial; return; }
+        if (cur) lines.push(cur);
+        if (measureQuote(word, size) > maxW) tooWide = true;
+        cur = word;
+      });
+      if (cur) lines.push(cur);
+    });
+    return { lines: lines, tooWide: tooWide };
   }
 
   function repaintHand() {
@@ -1987,9 +2066,9 @@ always</textarea>
     paintHand(input ? input.value : '');
   }
 
-  function repaintRecipe() {
-    var input = document.getElementById('recipe-text');
-    paintRecipe(input ? input.value : '');
+  function repaintQuote() {
+    var input = document.getElementById('quote-text');
+    paintQuote(input ? input.value : '');
   }
 
   function stopCycle() {
@@ -2005,51 +2084,30 @@ always</textarea>
 
   var handInput = document.getElementById('hand-text');
   if (handInput) handInput.addEventListener('input', repaintHand);
-  /* Seven typed lines, counting the breaks. An eighth line is refused,
-     whether it comes from Enter or from a paste. */
-  var RECIPE_MAX_LINES = 7;
-  function recipeLines(value) {
-    return String(value || '').replace(/\r\n/g, '\n').split('\n');
-  }
-  function recipeWithinLimit(value) {
-    var lines = recipeLines(value);
-    return lines.length <= RECIPE_MAX_LINES ? lines.join('\n') : lines.slice(0, RECIPE_MAX_LINES).join('\n');
-  }
-  function recipeEnterFits(el) {
-    var next = el.value.slice(0, el.selectionStart) + '\n' + el.value.slice(el.selectionEnd);
-    return recipeLines(next).length <= RECIPE_MAX_LINES;
-  }
-  var recipeInput = document.getElementById('recipe-text');
-  if (recipeInput) {
-    recipeInput.addEventListener('keydown', function (e) {
-      if (e.key !== 'Enter' || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
-      if (!recipeEnterFits(recipeInput)) e.preventDefault();
-    });
-    recipeInput.addEventListener('beforeinput', function (e) {
-      if (e.inputType !== 'insertLineBreak' && e.inputType !== 'insertParagraph') return;
-      if (!recipeEnterFits(recipeInput)) e.preventDefault();
-    });
-    recipeInput.addEventListener('input', function () {
-      var next = recipeWithinLimit(recipeInput.value);
-      if (next !== recipeInput.value) {
-        var caret = recipeInput.selectionStart;
-        recipeInput.value = next;
-        var pos = Math.min(caret == null ? next.length : caret, next.length);
-        try { recipeInput.setSelectionRange(pos, pos); } catch (err) {}
-      }
-      repaintRecipe();
+  var quotePicks = document.getElementById('quote-picks');
+  if (quotePicks) {
+    QUOTES.forEach(function (q) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'quote-pick';
+      b.setAttribute('role', 'option');
+      b.setAttribute('data-quote', q);
+      b.textContent = q;
+      b.addEventListener('click', function () {
+        var input = document.getElementById('quote-text');
+        if (input) input.value = q;
+        repaintQuote();
+      });
+      quotePicks.appendChild(b);
     });
   }
+  var quoteInput = document.getElementById('quote-text');
+  if (quoteInput) quoteInput.addEventListener('input', repaintQuote);
   repaintHand();
-  repaintRecipe();
+  repaintQuote();
   if (document.fonts && document.fonts.load) {
-    document.fonts.load('600 36px Caveat').then(function () {
-      repaintHand();
-      repaintRecipe();
-    }).catch(function () {
-      repaintHand();
-      repaintRecipe();
-    });
+    document.fonts.load('600 36px Caveat').then(repaintHand).catch(repaintHand);
+    document.fonts.load('600 26px Fredoka').then(repaintQuote).catch(repaintQuote);
   }
 
   /* No auto-rotation: the designs change only when someone picks one.
@@ -2057,7 +2115,7 @@ always</textarea>
 
   /* Marks the section in view so a buyer can tell where they are. */
   var navLinks = Array.prototype.slice.call(document.querySelectorAll('.site-nav a'));
-  var sections = ['order', 'how', 'faq'].map(function (id) {
+  var sections = ['order', 'how'].map(function (id) {
     return document.getElementById(id);
   }).filter(Boolean);
   function markNav() {
@@ -2129,9 +2187,11 @@ always</textarea>
 
     /* How the customer's artwork actually reaches the shop.
 
-       'email'     — they email the file after checkout. Works with a bare
-                     Shopify store and no apps at all. The order hands over
-                     through a cart permalink.
+       'email'     — no app. The crop, the words, the side, and the gift notes
+                     ride on the cart permalink as text. The photo file itself
+                     stays in this browser (and in the saved order copy),
+                     because a cart link cannot carry a file. Works with a
+                     bare Shopify store.
        'uploadery' — Uploadery (by ShopPad) puts a real file field on the
                      Shopify PRODUCT page, and saves the uploaded file's URL
                      onto the order as a line-item property. A cart permalink
@@ -2149,23 +2209,26 @@ always</textarea>
        artworkFlow is 'uploadery'. Pasting the whole URL works too. */
     productHandle: '',
 
-    /* The free-shipping threshold, as a number. The nudge is computed from this,
-       so change it here and the copy and the math stay in step. 0 turns it off. */
-    freeShipOver: 0,
+    /* The free-shipping threshold, in dollars. The nudge is computed from this,
+       so change it here and the copy and the math stay in step. 0 turns it off.
+       56 is two mugs at the $28 price. */
+    freeShipOver: 56,
 
-    shipNote: 'Shipping is calculated at checkout. '  +
-              'Ordering for a wedding, a team or a classroom? Get in touch and we’ll quote it.',
+    /* Added when the design is printed on both sides. One side does not add it. */
+    secondSide: 5,
+
+    shipNote: 'Ordering a bunch for a wedding, a team, or a classroom? Write to us and we’ll quote it.',
 
     /* The one thing we sell. `variantId` is the numeric Shopify variant ID.
        `price` is only what the page DISPLAYS; Shopify charges its own. */
     products: [
       { key:'mug', title:'The Memory Mug', price:28, variantId:'', image:'',
-        blurb:'White ceramic, 15 oz. Your photo on the front, in a circle or a square.',
+        blurb:'White ceramic, 15 oz. Your photo on one side, in a circle or a square.',
         includes:[
-          'A digital proof within 24 hours, before anything is printed',
+          'A digital proof within one business day, before anything is printed',
           'Color correction by hand, every time',
           'Background removal if you want it — no charge',
-          'Dishwasher and microwave safe, for good',
+          'Dyed into the mug, not a sticker. Dishwasher and microwave safe',
           'Ships in 5–7 days'
         ] }
     ]
@@ -2204,13 +2267,12 @@ always</textarea>
      the beach, the wall, the table, the paper — already cleared, so it
      sits on the ceramic as a cutout. A blank slot falls back to the drawing.
      They stay on the mug itself: no credits, and no lineup beside it.
-     Handwriting and Recipe are typed words, not photographs, so they are
-     not in this list. A buyer's own upload is not cut out here. */
+     Handwriting and Funny quotes are typed words, not photographs, so they
+     are not in this list. A buyer's own upload is not cut out here. */
   var EXAMPLE_PHOTOS = {
-    family: 'assets/examples/family.png',
-    art:    'assets/examples/art.png',
-    pet:    'assets/examples/dog.png',
-    team:   'assets/examples/crew.png'
+    family: 'assets/examples/family.jpg',
+    art:    'assets/examples/art.jpg',
+    pet:    'assets/examples/dog.jpg'
   };
   /* ADMIN-CONFIG-END */
 
@@ -2232,12 +2294,11 @@ always</textarea>
 
   /* Where each photo sits, in SVG user units: [x, y, width, height]. */
   var PHOTO_BOX = {
-    family:[190,152,116,140], art:[190,152,116,140], pet:[190,152,116,140],
-    team:[190,152,116,140]
+    family:[190,152,116,140], art:[190,152,116,140], pet:[190,152,116,140]
   };
   var PHOTO_LABEL = {
     family:'Family — on the mug', art:"Kid's art — on the mug",
-    pet:'The dog — on the mug', team:'The crew — on the mug'
+    pet:'The dog — on the mug'
   };
 
   var LS_CFG = 'mmc.config.v3', LS_CART = 'mmc.cart.v3', LS_NOTE = 'mmc.note.v3';
@@ -2248,14 +2309,23 @@ always</textarea>
   function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
   function lsDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
 
+  /** A saved 0 stays 0. A blank falls back to the built-in number. */
+  function settingNum(saved, key, fallback) {
+    if (!saved || saved[key] == null || saved[key] === '') return fallback;
+    var n = Number(saved[key]);
+    return isFinite(n) && n >= 0 ? n : fallback;
+  }
+
   /** Saved edits win over the built-in defaults, so the admin previews before committing. */
   function cfg() {
     var saved = lsGet(LS_CFG) || {};
     var out = {};
     ['operatorName','operatorUrl','operatorDomain','shopifyDomain','shipNote','adminKey',
-     'supportEmail','freeShipOver','artworkFlow','productHandle'].forEach(function (k) {
+     'supportEmail','artworkFlow','productHandle'].forEach(function (k) {
       out[k] = saved[k] || SITE_CONFIG[k];
     });
+    out.freeShipOver = settingNum(saved, 'freeShipOver', SITE_CONFIG.freeShipOver);
+    out.secondSide = settingNum(saved, 'secondSide', SITE_CONFIG.secondSide);
     var over = saved.product || {};
     out.products = SITE_CONFIG.products.map(function (p) {
       return {
@@ -2346,14 +2416,14 @@ always</textarea>
     var fine = $('stage-fineprint');
     if (fine) {
       var customOn = document.querySelector('#chip-custom[aria-pressed="true"]');
-      var typedOn = document.querySelector('#chip-hand[aria-pressed="true"], #chip-recipe[aria-pressed="true"]');
+      var typedOn = document.querySelector('#chip-hand[aria-pressed="true"], #chip-quote[aria-pressed="true"]');
       fine.textContent = customOn
         ? 'Our 15 oz mug. Tell us the idea and we will design it.'
         : (typedOn
-          ? 'Our 15 oz mug. The words are what you typed.'
+          ? 'Our 15 oz mug. The words are what you typed, on one side.'
           : (src
-            ? 'Our 15 oz mug. The photograph on it is an example \u2014 yours carries your photo.'
-            : 'An example on the mug. Yours carries your photo.'));
+            ? 'Our 15 oz mug. The photograph on it is an example, on one side. Yours carries your photo.'
+            : 'An example on one side of the mug. Yours carries your photo.'));
     }
 
     var fit = svg.querySelector('#panel-fit');
@@ -2426,38 +2496,35 @@ always</textarea>
    * The file itself never leaves the browser on the email flow.
    */
   function photoCopy() {
-    var mail = supportMail();
-    var proof = 'We\'ll send you a proof within 24 hours.';
+    var proof = 'We\'ll send you a proof within one business day.';
     if (uploadFlow()) {
-      var attach = 'Attach the same photo on the next page. It goes with the order.';
+      var attach = 'Attach the same photo on the next page. It goes with the order. You do not email it.';
       return {
-        before: 'Preview on this device. Pick a photo to see it on the mug, then attach the same file on the Shopify page. ' + proof,
-        after: 'This is a preview, not a proof. Nothing has been sent — the photo is still only in this browser. ' + attach + ' ' + proof,
+        before: 'Preview on this device. Pick a photo, crop it, then attach the same file on the Shopify page. ' + proof,
+        after: 'This is a preview, not a proof. Nothing has been sent yet. ' + attach + ' ' + proof,
         cart: attach,
         cartAlt: 'You\'ll attach your photo on the next page, and there\'s a box there for anything we should know.',
-        process: 'Checkout happens on Shopify, where you attach your photo to the order. ' + proof,
-        stepH: 'Upload the photo',
-        stepP: 'Place the photo on this page, then attach the same photo on the Shopify page. '
-          + 'Straight off your phone is fine. If it\'s too small to print well, we\'ll tell you before we print anything.',
+        process: 'Checkout happens on Shopify, where you attach your photo to the order. You do not email it. ' + proof,
+        stepH: 'Design it here',
+        stepP: 'Pick a style or use your own photo. Crop it on this page, then attach the same photo on the Shopify page. You do not email it.',
         faqQ: 'How do I send you the photo?',
-        faqA: 'Place the photo here so we can see the size and shape, then attach the same photo on the Shopify page. It arrives with the order. Straight off your phone is fine.',
-        noStore: 'This page cannot take payment. Attach your photo when the shop\'s checkout is open. ' + proof,
+        faqA: 'Crop it here, then attach the same photo on the Shopify page. It arrives with the order.',
+        noStore: 'This page cannot take payment. Your design is saved in this browser. ' + proof,
         proof: proof
       };
     }
-    var send = 'Your photo stays on this device. After you order, email it to ' + mail + '.';
+    var send = 'Your crop, your words, and your shipping notes stay with this order. You do not need to email a photo.';
     return {
-      before: send + ' ' + proof,
-      after: 'This is a preview, not a proof. ' + send + ' ' + proof,
-      cart: 'This rides along with the order. ' + send,
+      before: 'Choose a photo to see it on the mug, then crop it. ' + send + ' ' + proof,
+      after: 'This is a preview on your device. ' + send + ' ' + proof,
+      cart: 'These details stay with the order. You do not need to email a photo.',
       cartAlt: '',
       process: send + ' ' + proof,
-      stepH: 'Send the photo',
-      stepP: 'Place the photo on this page, then email it to ' + mail + ' after you order. '
-        + 'Straight off your phone is fine. If it\'s too small to print well, we\'ll tell you before you pay a dime.',
+      stepH: 'Design it here',
+      stepP: 'Pick a style, or use your own photo. Crop the photo, add a name or a funny line, and choose which side of the mug it goes on. One side is the usual.',
       faqQ: 'How do I get you the photo?',
-      faqA: 'Place the photo here so we can see the size and shape, then email it to ' + mail + ' after you order. Straight off your phone is fine.',
-      noStore: 'This page cannot take payment. ' + send + ' ' + proof,
+      faqA: 'Crop it on this page. It stays with your order. You do not email it.',
+      noStore: 'Checkout is not connected yet, so nothing is charged on this page. Your design is saved in this browser. ' + proof,
       proof: proof
     };
   }
@@ -2476,10 +2543,11 @@ always</textarea>
    */
   function shipGap(subtotal, unit) {
     var over = Number(cfg().freeShipOver) || 0;
-    if (!over || !unit) return null;
-    if (subtotal > over) return { free: true };
-    var more = Math.floor((over - subtotal) / unit) + 1;
-    return more <= 2 ? { more: more } : null;
+    if (!over) return null;
+    if (subtotal >= over - 0.001) return { free: true, remain: 0 };
+    var remain = Math.max(0, over - subtotal);
+    var more = (unit > 0) ? Math.max(1, Math.ceil(remain / unit - 1e-9)) : null;
+    return { more: more, remain: remain };
   }
 
   function nudgeInto(node, subtotal, unit) {
@@ -2489,10 +2557,23 @@ always</textarea>
     node.hidden = !gap;
     if (!gap) return;
     node.className = 'nudge' + (gap.free ? ' nudge--free' : '');
-    node.textContent = gap.free
-      ? 'Shipping is free on this order.'
-      : (gap.more === 1 ? 'Add one more and shipping is free.'
-                        : 'Add ' + gap.more + ' more and shipping is free.');
+    if (gap.free) {
+      node.textContent = 'Free shipping on this order.';
+      return;
+    }
+    var mugs = gap.more == null ? '' : (gap.more === 1
+      ? 'Add 1 more mug for free shipping.'
+      : 'Add ' + gap.more + ' more mugs for free shipping.');
+    node.textContent = mugs + (gap.remain ? ' You are ' + money(gap.remain) + ' away.' : '');
+  }
+
+  function shipBlurb() {
+    var over = Number(cfg().freeShipOver) || 0;
+    var extra = String(cfg().shipNote || '').trim();
+    var lead = over
+      ? ('Free shipping on orders of ' + money(over) + ' or more. Under that, shipping is calculated at checkout.')
+      : 'Shipping is calculated at checkout.';
+    return extra ? (lead + ' ' + extra) : lead;
   }
 
   function money(n) {
@@ -2515,9 +2596,9 @@ always</textarea>
     target.appendChild(box);
   }
 
-  /** Lays each example cutout in its print box. Re-runnable.
-      The drawing underneath steps aside, so a clear pixel shows ceramic
-      rather than the stand-in. Meet keeps the whole subject in the box. */
+  /** Lays each example photo in its print box. Re-runnable.
+      The drawing underneath steps aside when the photo is in place.
+      Slice fills the print. The page does not cut the background out. */
   function mountPhotos() {
     var SVG = 'http://www.w3.org/2000/svg', XLINK = 'http://www.w3.org/1999/xlink', live = photos();
     layoutPanel();
@@ -2538,7 +2619,7 @@ always</textarea>
       var img = document.createElementNS(SVG, 'image');
       img.setAttribute('x', box[0]); img.setAttribute('y', box[1]);
       img.setAttribute('width', box[2]); img.setAttribute('height', box[3]);
-      img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+      img.setAttribute('preserveAspectRatio', 'xMidYMid slice');
       img.setAttribute('href', src);
       img.setAttributeNS(XLINK, 'xlink:href', src);
       img.addEventListener('error', function () {
@@ -2577,6 +2658,41 @@ always</textarea>
     '<circle class="f-ink" cx="116" cy="109" r="4"/>' +
     '</svg>';
 
+  function buildSidePicker() {
+    var wrap = el('div', 'side-block');
+    wrap.appendChild(el('p', 'proof-head', 'Which side of the mug?'));
+    var row = el('div', 'side-row');
+    var picks = el('div', 'side-picks');
+    picks.setAttribute('role', 'radiogroup');
+    picks.setAttribute('aria-label', 'Which side of the mug?');
+    [
+      { id: 'right', label: 'Right hand' },
+      { id: 'left', label: 'Left hand' },
+      { id: 'both', label: 'Both sides' }
+    ].forEach(function (s) {
+      var b = el('button', 'side-pick', s.label);
+      b.type = 'button';
+      b.setAttribute('role', 'radio');
+      b.setAttribute('data-side', s.id);
+      b.addEventListener('click', function () {
+        printSide = s.id;
+        syncSide();
+        refreshPrice();
+        rememberSide();
+      });
+      picks.appendChild(b);
+    });
+    row.appendChild(picks);
+    var preview = el('div', 'side-preview');
+    preview.innerHTML = '<div class="mini-mug is-right" id="mini-mug" aria-hidden="true"><span class="mini-handle"></span><span class="mini-body"><span class="mini-print"></span></span></div>';
+    row.appendChild(preview);
+    wrap.appendChild(row);
+    var note = el('p', 'side-note');
+    note.id = 'side-explain';
+    wrap.appendChild(note);
+    return wrap;
+  }
+
   function renderShop() {
     var box = $('shop-single'), notice = $('shop-notice'), c = cfg();
     if (!box) return;
@@ -2602,6 +2718,7 @@ always</textarea>
     step3.appendChild(n3);
     var step3b = el('div', 'flow-b');
     step3b.appendChild(el('p', 'proof-head', 'Your order'));
+    step3b.appendChild(buildSidePicker());
 
     var price = el('p', 'single-price');
     var priceB = el('b', null, money(unitPrice(p)));
@@ -2650,6 +2767,14 @@ always</textarea>
         extra.textContent = priceLine(p);
       }
       nudgeInto(nudge, Number(qty.value) * unit, unit);
+      syncSide();
+      var ship = $('step-ship');
+      if (ship) {
+        var over = Number(cfg().freeShipOver) || 0;
+        ship.textContent = over
+          ? ('Free shipping on orders of ' + money(over) + ' or more.')
+          : 'Shipping is calculated at checkout.';
+      }
     };
     qty.addEventListener('change', refreshPrice);
     refreshPrice();
@@ -2663,9 +2788,11 @@ always</textarea>
 
     /* Said before payment, not after, so nobody discovers how the photo gets to
        us only once they have already paid. */
+    box.appendChild(el('p', 'buy-safe',
+      'The picture is sublimated into the mug. It is not a sticker or a decal, so it will not peel. Dishwasher and microwave safe.'));
     box.appendChild(el('p', 'buy-process', photoCopy().process));
 
-    box.appendChild(el('p', 'single-fine', c.shipNote || ''));
+    box.appendChild(el('p', 'single-fine', shipBlurb()));
 
     notice.innerHTML = '';
     if (!ready()) {
@@ -2680,11 +2807,10 @@ always</textarea>
   }
 
   /* ══ The customer's own photo ══
-     A file picker is NOT an upload. The image is read in this browser and
-     drawn on the mug so they can see roughly how it sits; it never leaves
-     the device, and a Shopify cart permalink cannot carry a file. So the
-     wording promises a preview and nothing more, and the filename rides
-     along on the order so the emailed photo can be matched to it. */
+     A file picker is not an upload. The image is read in this browser, cropped,
+     and drawn on the mug. A Shopify cart permalink can carry the crop numbers
+     and the filename, not the file. The cropped JPEG is kept in this browser
+     and in the order copy the buyer can save. */
   /* { dataUri, name, w, h, zoom, ox, oy } — in memory only, never stored.
      zoom 1 is the photo just covering the print; above that it crops in.
      ox/oy are the offset from centre as a fraction of the print's own width
@@ -2697,6 +2823,8 @@ always</textarea>
      $8 ride along as a cart attribute on the cart-permalink path. A product
      URL cannot carry that attribute. */
   var BG_EXTRA = 8;
+  /* right: faces you in your right hand. left: faces you in your left hand. both: extra charge. */
+  var printSide = 'right';
   /* The order card and the cart use the same ceiling. */
   var QTY_MAX = 24;
   /* Cell size in the wrap's own units. The range stays a repeating pattern:
@@ -2838,34 +2966,90 @@ always</textarea>
   function isCustom() { return styleKey() === 'custom'; }
   function orderKind() {
     var k = styleKey();
-    if (k === 'custom' || k === 'recipe' || k === 'hand') return k;
+    if (k === 'custom' || k === 'quote' || k === 'hand') return k;
     return 'photo';
   }
-  /* The repeating pattern belongs on the buyer's own photo. Recipe,
+  /* The repeating pattern belongs on the buyer's own photo. Funny quotes,
      handwriting, the examples, and a design we make leave it off, so the
      price matches the mug on screen. */
   function bgApplies() { return styleKey() === 'yours' && !!chosenBg; }
   function activeBg() { return bgApplies() ? chosenBg : null; }
 
+  function secondSidePrice() {
+    return settingNum(cfg(), 'secondSide', 5);
+  }
+
+  function moneyPlain(n) {
+    var v = Number(n) || 0;
+    if (Math.abs(v - Math.round(v)) < 0.001) return '$' + Math.round(v);
+    return money(v);
+  }
+
+  function sideLabel(side) {
+    if (side === 'both') return 'Both sides';
+    if (side === 'left') return 'Left-hand side';
+    return 'Right-hand side';
+  }
+
+  function sideExplain() {
+    var price = moneyPlain(secondSidePrice());
+    if (printSide === 'both') {
+      return 'The same picture on both sides, so it faces you either way. Adds ' + price + '.';
+    }
+    if (printSide === 'left') {
+      return 'This side faces you when you hold the mug in your left hand. The other side stays plain.';
+    }
+    return 'This side faces you when you hold the mug in your right hand. The other side stays plain.';
+  }
+
+  function syncSide() {
+    var cap = $('side-caption');
+    if (cap) {
+      cap.textContent = printSide === 'both'
+        ? 'On both sides. It faces you either way you hold the mug.'
+        : (printSide === 'left'
+          ? 'On one side. It faces you when you hold the mug in your left hand.'
+          : 'On one side. It faces you when you hold the mug in your right hand.');
+    }
+    var note = $('side-explain');
+    if (note) note.textContent = sideExplain();
+    var mini = $('mini-mug');
+    if (mini) {
+      mini.classList.toggle('is-left', printSide === 'left');
+      mini.classList.toggle('is-right', printSide !== 'left');
+      mini.classList.toggle('is-both', printSide === 'both');
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('.side-pick'), function (b) {
+      var on = b.getAttribute('data-side') === printSide;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-checked', on ? 'true' : 'false');
+    });
+  }
+
   function unitPrice(p) {
     var base = p ? Number(p.price) || 0 : 0;
-    return base + (activeBg() ? BG_EXTRA : 0);
+    return base + (activeBg() ? BG_EXTRA : 0) + (printSide === 'both' ? secondSidePrice() : 0);
   }
 
   function priceLine(p) {
-    var base = money(p.price);
     var kind = orderKind();
+    var bits = [moneyPlain(p.price) + ' mug'];
+    if (activeBg()) bits.push(moneyPlain(BG_EXTRA) + ' ' + activeBg().name + ' background');
+    if (printSide === 'both') bits.push(moneyPlain(secondSidePrice()) + ' second side');
+    var line = bits.join(' + ');
     var off = chosenBg && !bgApplies()
       ? ' The ' + chosenBg.name + ' background is off on this design, and it is not in the price.'
       : '';
-    if (kind === 'custom') {
-      return base + ' for the mug. We design what you describe.' + off;
+    if (printSide !== 'both') {
+      line += '. One side. Second side adds ' + moneyPlain(secondSidePrice()) + '.';
+    } else if (!/[.]$/.test(line)) {
+      line += '.';
     }
-    if (kind === 'recipe') return base + ' for the mug. The words on it are your recipe.' + off;
-    if (kind === 'hand') return base + ' for the mug. The words on it are your handwriting.' + off;
-    if (activeBg()) return base + ' mug + $' + BG_EXTRA + ' ' + activeBg().name + ' background';
-    if (off) return base + ' for the mug.' + off;
-    return base + ' for the mug. A background adds $' + BG_EXTRA + '.';
+    if (kind === 'custom') return line + ' We design what you describe.' + off;
+    if (kind === 'quote') return line + ' The line on it is your quote.' + off;
+    if (kind === 'hand') return line + ' The words on it are your handwriting.' + off;
+    if (!activeBg() && !off && kind === 'photo') line += ' A background adds $' + BG_EXTRA + '.';
+    return line + off
   }
 
   /**
@@ -3431,7 +3615,7 @@ always</textarea>
   function ridingText() {
     var kind = orderKind();
     if (kind === 'custom') return tidyAsk(customAsk);
-    if (kind === 'recipe') return typedBox('recipe-text');
+    if (kind === 'quote') return typedBox('quote-text');
     if (kind === 'hand') return typedBox('hand-text');
     return tidyAsk(faceAsk);
   }
@@ -3489,7 +3673,7 @@ always</textarea>
   function rememberRequest() {
     var kind = orderKind();
     var ask = kind === 'custom' ? tidyAsk(customAsk) : (kind === 'photo' ? tidyAsk(faceAsk) : '');
-    var words = (kind === 'recipe' || kind === 'hand') ? ridingText().replace(/\n+/g, ' / ') : null;
+    var words = (kind === 'quote' || kind === 'hand') ? ridingText().replace(/\n+/g, ' / ') : null;
     var dirty = false;
     cart.forEach(function (l) {
       if (l.key !== 'mug' || (l.kind || 'photo') !== kind) return;
@@ -4171,7 +4355,7 @@ always</textarea>
     ideaBox.appendChild(el('p', 'proof-note', 'This goes with your order.'));
     ideaBox.appendChild(ideaConfirm);
     ideaB.appendChild(ideaBox);
-    ideaB.appendChild(el('p', 'proof-promise', 'We\'ll send you a proof within 24 hours.'));
+    ideaB.appendChild(el('p', 'proof-promise', 'We\'ll send you a proof within one business day.'));
     ideaStep.appendChild(ideaB);
     wrap.appendChild(ideaStep);
 
@@ -4305,30 +4489,48 @@ always</textarea>
       note.textContent = ownPhoto ? copy.after : copy.before;
     };
 
+    function addCropAgain() {
+      if (row.querySelector('.crop-again')) return;
+      var again = el('button', 'proof-drop crop-again', 'Crop');
+      again.type = 'button';
+      again.onclick = function () {
+        if (!ownPhoto || !ownPhoto.original) return;
+        openCropper(ownPhoto.original, useCropped);
+      };
+      row.appendChild(again);
+    }
+    function useCropped(cropped) {
+      ownPhoto = cropped;
+      var yoursChip = $('chip-yours');
+      if (styleKey() === 'custom') {
+        paintOwnPhoto(cropped.dataUri);
+        if (yoursChip) yoursChip.hidden = false;
+      } else if (yoursChip) {
+        yoursChip.hidden = false;
+        yoursChip.click();
+      } else {
+        paintOwnPhoto(cropped.dataUri);
+      }
+      name.textContent = cropped.name;
+      addDrop();
+      addCropAgain();
+      setNote();
+    }
+
     input.onchange = function () {
       var f = input.files && input.files[0];
       if (!f) return;
       readImage(f, function (dataUri, problem, size) {
         if (problem) { name.textContent = problem; return; }
-        ownPhoto = { dataUri: dataUri, name: f.name,
-                     w: (size && size.w) || 0, h: (size && size.h) || 0,
-                     zoom: 1, ox: 0, oy: 0 };
-        var yoursChip = $('chip-yours');
-        if (styleKey() === 'custom') {
-          paintOwnPhoto(dataUri);
-          if (yoursChip) yoursChip.hidden = false;
-        } else if (yoursChip) {
-          yoursChip.hidden = false;
-          yoursChip.click();
-        } else {
-          paintOwnPhoto(dataUri);
-        }
-        name.textContent = f.name;
-        addDrop();
-        setNote();
+        openCropper({
+          dataUri: dataUri,
+          name: f.name,
+          w: (size && size.w) || 0,
+          h: (size && size.h) || 0
+        }, useCropped);
       });
     };
-    if (ownPhoto) { name.textContent = ownPhoto.name; addDrop(); }
+    if (ownPhoto) { name.textContent = ownPhoto.name; addDrop(); addCropAgain(); }
     setNote();
     syncPhotoControls();
     syncSceneChrome();
@@ -4342,7 +4544,8 @@ always</textarea>
   function count() { return cart.reduce(function (n, l) { return n + l.qty; }, 0); }
 
   function buyerFont(stored, kind) {
-    if (kind === 'recipe' || kind === 'hand') return 'Handwriting';
+    if (kind === 'quote') return 'Rounded';
+    if (kind === 'hand') return 'Handwriting';
     var map = {
       'Outfit': 'Simple',
       'Libre Baskerville': 'Serif',
@@ -4354,6 +4557,25 @@ always</textarea>
     if (stored === 'Simple' || stored === 'Serif' || stored === 'Script' ||
         stored === 'Display' || stored === 'Rounded' || stored === 'Handwriting') return stored;
     return stored || '';
+  }
+
+  function rememberSide() {
+    if (!cart.length) return;
+    var p = cfg().products[0];
+    if (!p) return;
+    var price = unitPrice(p);
+    var sidePrice = printSide === 'both' ? secondSidePrice() : 0;
+    var dirty = false;
+    cart.forEach(function (l) {
+      if (l.key !== 'mug') return;
+      if (l.side !== printSide || Number(l.price) !== price || Number(l.sidePrice || 0) !== sidePrice) {
+        l.side = printSide;
+        l.sidePrice = sidePrice;
+        l.price = price;
+        dirty = true;
+      }
+    });
+    if (dirty) save();
   }
 
   function add(p, qty) {
@@ -4369,9 +4591,11 @@ always</textarea>
     var nameSize = faceName ? faceNameSize : 0;
     var lineSize = faceLine ? faceLineSize : 0;
     var ask = kind === 'custom' ? tidyAsk(customAsk) : tidyAsk(faceAsk);
-    if (kind === 'recipe' || kind === 'hand') {
+    var side = printSide;
+    var sidePrice = side === 'both' ? secondSidePrice() : 0;
+    if (kind === 'quote' || kind === 'hand') {
       words = ridingText().replace(/\n+/g, ' / ');
-      fontLabel = 'Handwriting';
+      fontLabel = kind === 'quote' ? 'Rounded' : 'Handwriting';
       curve = 0; nameSize = 0; lineSize = 0;
       ask = '';
       background = ''; bgSize = 0;
@@ -4391,10 +4615,13 @@ always</textarea>
       line.lineSize = lineSize;
       line.ask = ask;
       line.kind = kind;
+      line.side = side;
+      line.sidePrice = sidePrice;
     } else {
       cart.push({ key:p.key, title:p.title, price:price, image:p.image || '', qty:qty,
         background:background, bgSize:bgSize, words:words, curve:curve,
-        font:fontLabel, nameSize:nameSize, lineSize:lineSize, ask:ask, kind:kind });
+        font:fontLabel, nameSize:nameSize, lineSize:lineSize, ask:ask, kind:kind,
+        side:side, sidePrice:sidePrice });
     }
     save();
     applyAskToNote();
@@ -4430,7 +4657,12 @@ always</textarea>
       var main = el('div', 'line-main');
       main.appendChild(el('b', null, l.title));
       if (l.kind === 'custom') main.appendChild(el('span', 'line-sub', 'We\'ll design it'));
-      var letterKind = l.kind === 'recipe' || l.kind === 'hand';
+      if (l.kind === 'quote') main.appendChild(el('span', 'line-sub', 'Funny quote'));
+      var sideBit = l.side === 'both'
+        ? ('Both sides, ' + moneyPlain(l.sidePrice != null ? l.sidePrice : secondSidePrice()))
+        : sideLabel(l.side || 'right');
+      main.appendChild(el('span', 'line-sub', sideBit));
+      var letterKind = l.kind === 'quote' || l.kind === 'hand';
       var font = buyerFont(l.font, l.kind);
       if (l.words || l.curve || l.nameSize || l.lineSize || letterKind) {
         var letter = l.words || '';
@@ -4473,10 +4705,144 @@ always</textarea>
 
     var total = cart.reduce(function (s, l) { return s + l.price * l.qty; }, 0);
     $('cart-total').textContent = money(total);
-    nudgeInto($('cart-nudge'), total, cart.length ? cart[0].price : 0);
+    var unit = cart.length ? (cart[0].price / Math.max(1, 1)) : 0;
+    /* The gap is in mugs at the current line price, which already includes extras. */
+    nudgeInto($('cart-nudge'), total, cart.length ? cart[0].price : unit);
+    paintOrderSummary();
   }
 
   function openCart() { var d = $('cart-dlg'); if (d && !d.open) d.showModal(); }
+
+  var LS_GIFT = 'mmc.gift.v1';
+  var LS_ORDER = 'mmc.order.v1';
+
+  function giftState() {
+    var on = !!($('gift-on') && $('gift-on').checked);
+    return {
+      on: on,
+      name: on && $('gift-name') ? $('gift-name').value.trim() : '',
+      street: on && $('gift-street') ? $('gift-street').value.trim() : '',
+      city: on && $('gift-city') ? $('gift-city').value.trim() : '',
+      state: on && $('gift-state') ? $('gift-state').value.trim() : '',
+      zip: on && $('gift-zip') ? $('gift-zip').value.trim() : '',
+      anon: on && !!($('gift-anon') && $('gift-anon').checked),
+      note: on && $('gift-note') ? $('gift-note').value.trim() : ''
+    };
+  }
+
+  function orderId() {
+    var saved = lsGet(LS_ORDER);
+    if (saved && saved.id) return saved.id;
+    var n = Math.floor(Math.random() * 9000 + 1000);
+    return 'MMC-' + n;
+  }
+
+  function orderNoteText() {
+    var lines = [];
+    cart.forEach(function (l) {
+      lines.push(l.title + ' x' + l.qty + ' — ' + sideLabel(l.side || printSide));
+      if (l.kind === 'quote' && l.words) lines.push('Quote: ' + l.words);
+      if (l.kind === 'hand' && l.words) lines.push('Handwriting: ' + l.words);
+      if (l.kind === 'custom') lines.push('We design it.');
+      if (l.words && l.kind !== 'quote' && l.kind !== 'hand') lines.push('Words: ' + l.words);
+      if (l.ask) lines.push('Note on the photo: ' + l.ask);
+      if (l.background) lines.push('Background: ' + l.background);
+    });
+    if (ownPhoto && ownPhoto.crop) {
+      var cr = ownPhoto.crop;
+      lines.push('Crop: left ' + Math.round(cr.x * 100) + '%, top ' + Math.round(cr.y * 100) +
+        '%, ' + Math.round(cr.w * 100) + '% wide, ' + Math.round(cr.h * 100) + '% tall.');
+    }
+    var place = placementNote();
+    if (place) lines.push('Placement: ' + place);
+    var gift = giftState();
+    if (gift.on) {
+      var who = [gift.name, gift.street, gift.city, gift.state, gift.zip].filter(Boolean).join(', ');
+      lines.push('Ship to: ' + (who || 'address not filled in yet'));
+      lines.push(gift.anon
+        ? 'Anonymous gift: no sender name, no prices on the packing slip.'
+        : 'Gift, with the sender named as usual.');
+      if (gift.note) lines.push('Gift note: ' + gift.note);
+    }
+    lines.push('You do not need an email from the buyer for these details.');
+    return lines.join('\n');
+  }
+
+  function orderPacket() {
+    var gift = giftState();
+    return {
+      id: orderId(),
+      at: new Date().toISOString(),
+      note: ($('cart-note') && $('cart-note').value.trim()) || '',
+      summary: orderNoteText(),
+      lines: cart.map(function (l) {
+        return {
+          title: l.title, qty: l.qty, price: l.price, kind: l.kind || 'photo',
+          side: l.side || printSide, sidePrice: l.sidePrice || 0,
+          words: l.words || '', ask: l.ask || '', background: l.background || '',
+          font: l.font || ''
+        };
+      }),
+      crop: ownPhoto && ownPhoto.crop ? ownPhoto.crop : null,
+      photoName: ownPhoto ? ownPhoto.name : '',
+      /* The cropped JPEG, so the shop preview can be opened again on this device. */
+      photo: ownPhoto ? ownPhoto.dataUri : '',
+      gift: gift
+    };
+  }
+
+  function rememberOrder(packet) {
+    if (!packet) packet = orderPacket();
+    lsSet(LS_ORDER, packet);
+    lsSet(LS_GIFT, packet.gift || giftState());
+  }
+
+  function paintOrderSummary() {
+    var box = $('order-summary');
+    if (!box) return;
+    if (!cart.length) { box.hidden = true; box.innerHTML = ''; return; }
+    var packet = orderPacket();
+    box.hidden = false;
+    box.innerHTML = '';
+    box.appendChild(el('b', null, 'Goes with this order'));
+    var p = el('p', null, 'You do not need to email us. These choices stay with the order.');
+    box.appendChild(p);
+    if (packet.photo) {
+      var img = new Image();
+      img.src = packet.photo;
+      img.alt = 'Your cropped photo';
+      box.appendChild(img);
+    }
+    var pre = el('p');
+    pre.style.whiteSpace = 'pre-wrap';
+    pre.textContent = packet.summary;
+    box.appendChild(pre);
+    var keep = el('button', 'btn btn--line', 'Save a copy on this device');
+    keep.type = 'button';
+    keep.addEventListener('click', function () { downloadOrderCopy(packet); });
+    box.appendChild(keep);
+  }
+
+  function downloadOrderCopy(packet) {
+    var img = packet.photo
+      ? '<img alt="Cropped photo" src="' + packet.photo + '" style="max-width:280px;height:auto">'
+      : '';
+    var html = '<!doctype html><meta charset="utf-8"><title>' + packet.id +
+      '</title><body style="font:16px sans-serif;max-width:40rem;margin:24px auto;padding:0 16px">' +
+      '<h1>Memory Mug order ' + packet.id + '</h1>' + img +
+      '<pre style="white-space:pre-wrap;font:inherit">' +
+      String(packet.summary || '').replace(/[&<>]/g, function (c) {
+        return { '&':'&amp;', '<':'&lt;', '>':'&gt;' }[c];
+      }) + '</pre></body>';
+    var url = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = packet.id + '.html';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+  }
 
   /**
    * Builds the link that hands the order to Shopify. Two shapes, picked by
@@ -4484,7 +4850,8 @@ always</textarea>
    *
    *   cart permalink   https://store.myshopify.com/cart/44012345:2?note=...
    *     Opens Shopify's cart with the lines already in it. Carries a note and
-   *     cart attributes, but cannot carry a file — so the photo comes by email.
+   *     cart attributes, but cannot carry a file. The crop numbers and the
+   *     filename ride here. The JPEG stays in this browser.
    *
    *   product page     https://store.myshopify.com/products/the-memory-mug?variant=44012345&quantity=2
    *     Slower by one click, but it is the only page an Uploadery field lives
@@ -4534,7 +4901,7 @@ always</textarea>
     var via = (location.hostname && location.hostname.indexOf('.') > 0)
       ? location.hostname.replace(/^www\./, '') : 'memorymugco.com';
     qs.push('attributes[Ordered via]=' + encodeURIComponent(via));
-    var photoOrder = cart.some(function (l) { return l.kind !== 'recipe' && l.kind !== 'hand'; });
+    var photoOrder = cart.some(function (l) { return l.kind !== 'quote' && l.kind !== 'hand'; });
     if (photoOrder && ownPhoto && ownPhoto.name) {
       qs.push('attributes[Photo to expect]=' + encodeURIComponent(ownPhoto.name));
     }
@@ -4550,7 +4917,38 @@ always</textarea>
     if (photoOrder) {
       var place = placementNote();
       if (place) qs.push('attributes[Photo placement]=' + encodeURIComponent(place));
+      if (ownPhoto && ownPhoto.crop) {
+        var cr = ownPhoto.crop;
+        qs.push('attributes[Crop]=' + encodeURIComponent(
+          'left ' + Math.round(cr.x * 100) + '%, top ' + Math.round(cr.y * 100) +
+          '%, width ' + Math.round(cr.w * 100) + '%, height ' + Math.round(cr.h * 100) + '% of the photo'));
+      }
     }
+    cart.forEach(function (l) {
+      if (!l.side) return;
+      var label = sideLabel(l.side);
+      if (l.side === 'both') label += ', ' + moneyPlain(l.sidePrice != null ? l.sidePrice : secondSidePrice());
+      qs.push('attributes[Side]=' + encodeURIComponent(label));
+    });
+    var gift = giftState();
+    if (gift.on) {
+      var who = [gift.name, gift.street, gift.city, gift.state, gift.zip].filter(Boolean).join(', ');
+      if (who) qs.push('attributes[Ship to]=' + encodeURIComponent(who));
+      if (gift.anon) qs.push('attributes[Anonymous gift]=' + encodeURIComponent('Yes. No sender name. No prices on the packing slip.'));
+      if (gift.note) qs.push('attributes[Gift note]=' + encodeURIComponent(gift.note));
+    }
+    var packet = orderPacket();
+    if (packet.id) qs.push('attributes[Order ref]=' + encodeURIComponent(packet.id));
+    /* The note is what Shopify admin shows first. Keep it readable, and
+       do not put the photo bytes in the URL. */
+    var summary = orderNoteText();
+    if (summary) {
+      var combined = note ? (note + '\n\n' + summary) : summary;
+      /* Replace a note we already pushed so the gift and design are in it. */
+      qs = qs.filter(function (q) { return q.indexOf('note=') !== 0; });
+      qs.unshift('note=' + encodeURIComponent(combined.slice(0, 4500)));
+    }
+    rememberOrder(packet);
     return { url: 'https://' + host(c) + '/cart/' + parts.join(',') + '?' + qs.join('&') };
   }
 
@@ -4559,17 +4957,7 @@ always</textarea>
 
     if (!host()) {
       statusBox(box, 'info', 'No Shopify store linked yet.', photoCopy().noStore);
-      if (!box.querySelector('.checkout-mail')) {
-        var jump = document.createElement('a');
-        jump.href = '#start';
-        jump.className = 'btn btn--fill checkout-mail';
-        jump.textContent = 'Email the shop';
-        jump.addEventListener('click', function () {
-          var d = $('cart-dlg');
-          if (d && d.open) d.close();
-        });
-        box.appendChild(jump);
-      }
+      rememberOrder(orderPacket());
       return;
     }
     var built = handoffUrl();
@@ -4981,6 +5369,7 @@ always</textarea>
       artworkFlow:    $('cfg-flow').value,
       productHandle:  productHandle($('cfg-handle').value),
       freeShipOver:   $('a-freeship').value.trim(),
+      secondSide:     $('a-second') ? $('a-second').value.trim() : '',
       variants:       variants,
       photos:         saved.photos || {},
       wrapFit:        { size: patternSize, x: patternX, y: patternY },
@@ -5020,7 +5409,7 @@ always</textarea>
       if (!raw) {
         statusBox(box, 'bad', 'Uploads need the mug\u2019s product handle.',
           'It is the last part of the product\u2019s storefront URL, like the-memory-mug. '
-          + 'Until it is set, the page goes back to asking for the photo by email.');
+          + 'Until it is set, the page keeps the details on the order and does not send anyone to a product page.');
         return false;
       }
       if (!v.productHandle) {
@@ -5083,6 +5472,7 @@ always</textarea>
       artworkFlow:    v.artworkFlow === 'uploadery' ? 'uploadery' : 'email',
       productHandle:  v.productHandle || '',
       freeShipOver:   v.freeShipOver !== '' ? Number(v.freeShipOver) : base.freeShipOver,
+      secondSide:     v.secondSide !== '' ? Number(v.secondSide) : base.secondSide,
       shipNote:       v.shipNote || base.shipNote,
       products: base.products.map(function (p) {
         return {
@@ -5208,6 +5598,7 @@ always</textarea>
     $('a-includes').value   = (p.includes || []).join('\n');
     $('a-ship').value       = c.shipNote || '';
     $('a-freeship').value   = c.freeShipOver != null ? c.freeShipOver : '';
+    if ($('a-second')) $('a-second').value = c.secondSide != null ? c.secondSide : '';
   }
 
   /** Builds a one-item cart link so the owner can confirm it opens their cart. */
@@ -5232,6 +5623,280 @@ always</textarea>
       ' It should open your Shopify cart with that mug in it. An empty cart means the variant ID is wrong, ' +
       'or the product is not published to the Online Store channel.'));
     box.appendChild(s);
+  }
+
+  /* ══ Crop tool. A rectangle or a circle, before the photo is placed. ══ */
+  var cropSession = null;
+
+  function openCropper(src, onDone) {
+    var dlg = $('crop-dlg');
+    var img = $('crop-img');
+    if (!dlg || !img || !src || !src.dataUri) return;
+    cropSession = {
+      src: src, onDone: onDone, natW: src.w || 1, natH: src.h || 1,
+      zoom: 1, shape: 'rect', ix: 0, iy: 0, x: 20, y: 20, w: 80, h: 80
+    };
+    var zoom = $('crop-zoom');
+    if (zoom) zoom.value = '100';
+    setCropShape('rect');
+    img.onload = function () {
+      if (img.naturalWidth) {
+        cropSession.natW = img.naturalWidth;
+        cropSession.natH = img.naturalHeight;
+      }
+      resetCropBox();
+      paintCropper();
+    };
+    img.src = src.dataUri;
+    if (!dlg.open) dlg.showModal();
+    requestAnimationFrame(function () {
+      if (img.naturalWidth) img.onload();
+    });
+  }
+
+  function cropScale() {
+    var stage = $('crop-stage');
+    if (!stage || !cropSession) return 1;
+    var fit = Math.min(stage.clientWidth / cropSession.natW, stage.clientHeight / cropSession.natH);
+    if (!isFinite(fit) || fit <= 0) fit = 1;
+    return fit * cropSession.zoom;
+  }
+
+  function resetCropBox() {
+    var stage = $('crop-stage');
+    if (!stage || !cropSession) return;
+    var sw = stage.clientWidth, sh = stage.clientHeight;
+    var scale = Math.min(sw / cropSession.natW, sh / cropSession.natH) * cropSession.zoom;
+    var dw = cropSession.natW * scale, dh = cropSession.natH * scale;
+    cropSession.ix = (sw - dw) / 2;
+    cropSession.iy = (sh - dh) / 2;
+    var w = dw * 0.82, h = dh * 0.82;
+    if (cropSession.shape === 'circle') {
+      var s = Math.min(w, h);
+      w = s; h = s;
+    }
+    cropSession.x = cropSession.ix + (dw - w) / 2;
+    cropSession.y = cropSession.iy + (dh - h) / 2;
+    cropSession.w = w;
+    cropSession.h = h;
+  }
+
+  function imageRect() {
+    var scale = cropScale();
+    return {
+      x: cropSession.ix, y: cropSession.iy,
+      w: cropSession.natW * scale, h: cropSession.natH * scale, scale: scale
+    };
+  }
+
+  function clampCrop() {
+    var im = imageRect();
+    var min = 36;
+    if (cropSession.shape === 'circle') {
+      var s = Math.max(min, Math.min(cropSession.w, cropSession.h));
+      cropSession.w = s;
+      cropSession.h = s;
+    }
+    cropSession.w = Math.max(min, Math.min(cropSession.w, im.w));
+    cropSession.h = Math.max(min, Math.min(cropSession.h, im.h));
+    cropSession.x = Math.max(im.x, Math.min(cropSession.x, im.x + im.w - cropSession.w));
+    cropSession.y = Math.max(im.y, Math.min(cropSession.y, im.y + im.h - cropSession.h));
+  }
+
+  function paintCropper() {
+    if (!cropSession) return;
+    clampCrop();
+    var img = $('crop-img');
+    var box = $('crop-box');
+    var im = imageRect();
+    if (img) {
+      img.style.width = im.w + 'px';
+      img.style.height = im.h + 'px';
+      img.style.left = im.x + 'px';
+      img.style.top = im.y + 'px';
+    }
+    if (box) {
+      box.style.left = cropSession.x + 'px';
+      box.style.top = cropSession.y + 'px';
+      box.style.width = cropSession.w + 'px';
+      box.style.height = cropSession.h + 'px';
+      box.classList.toggle('is-circle', cropSession.shape === 'circle');
+    }
+  }
+
+  function setCropZoom(z) {
+    if (!cropSession) return;
+    var old = cropScale();
+    var cx = cropSession.x + cropSession.w / 2;
+    var cy = cropSession.y + cropSession.h / 2;
+    var imgX = old ? (cx - cropSession.ix) / old : 0;
+    var imgY = old ? (cy - cropSession.iy) / old : 0;
+    cropSession.zoom = Math.max(1, Math.min(3, z));
+    var scale = cropScale();
+    cropSession.ix = cx - imgX * scale;
+    cropSession.iy = cy - imgY * scale;
+    paintCropper();
+  }
+
+  function setCropShape(shape) {
+    if (cropSession) {
+      cropSession.shape = shape;
+      if (shape === 'circle') {
+        var s = Math.min(cropSession.w, cropSession.h);
+        cropSession.x += (cropSession.w - s) / 2;
+        cropSession.y += (cropSession.h - s) / 2;
+        cropSession.w = s;
+        cropSession.h = s;
+      }
+    }
+    var rect = $('crop-shape-rect');
+    var circ = $('crop-shape-circle');
+    if (rect) { rect.classList.toggle('is-on', shape !== 'circle'); rect.setAttribute('aria-checked', shape !== 'circle' ? 'true' : 'false'); }
+    if (circ) { circ.classList.toggle('is-on', shape === 'circle'); circ.setAttribute('aria-checked', shape === 'circle' ? 'true' : 'false'); }
+    var note = $('crop-shape-note');
+    if (note) note.textContent = shape === 'circle'
+      ? 'A circle crop is a square of the photo, shown as a circle on the mug.'
+      : 'A rectangle crop. You can still choose a circle or a square on the mug.';
+    if (cropSession) paintCropper();
+  }
+
+  function applyCrop() {
+    if (!cropSession) return;
+    var im = imageRect();
+    var sx = (cropSession.x - im.x) / im.scale;
+    var sy = (cropSession.y - im.y) / im.scale;
+    var sw = cropSession.w / im.scale;
+    var sh = cropSession.h / im.scale;
+    sx = Math.max(0, Math.min(cropSession.natW - 1, sx));
+    sy = Math.max(0, Math.min(cropSession.natH - 1, sy));
+    sw = Math.max(1, Math.min(cropSession.natW - sx, sw));
+    sh = Math.max(1, Math.min(cropSession.natH - sy, sh));
+    var canvas = document.createElement('canvas');
+    var max = 900;
+    var sc = Math.min(1, max / Math.max(sw, sh));
+    canvas.width = Math.max(1, Math.round(sw * sc));
+    canvas.height = Math.max(1, Math.round(sh * sc));
+    var ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage($('crop-img'), sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+    var uri;
+    try { uri = canvas.toDataURL('image/jpeg', 0.82); }
+    catch (e) { return; }
+    if (cropSession.shape === 'circle') faceShape = 'circle';
+    var done = cropSession.onDone;
+    var src = cropSession.src;
+    var cropped = {
+      dataUri: uri, name: src.name, w: canvas.width, h: canvas.height,
+      zoom: 1, ox: 0, oy: 0, original: src,
+      crop: {
+        x: sx / cropSession.natW, y: sy / cropSession.natH,
+        w: sw / cropSession.natW, h: sh / cropSession.natH,
+        shape: cropSession.shape
+      }
+    };
+    cropSession = null;
+    var dlg = $('crop-dlg');
+    if (dlg && dlg.open) dlg.close();
+    if (done) done(cropped);
+  }
+
+  function wireCropper() {
+    if (wireCropper.done) return;
+    wireCropper.done = true;
+    var stage = $('crop-stage');
+    var box = $('crop-box');
+    if (!stage || !box) return;
+    var drag = null;
+    stage.addEventListener('pointerdown', function (e) {
+      if (!cropSession) return;
+      var handle = e.target.getAttribute && e.target.getAttribute('data-h');
+      var onBox = e.target === box || (e.target.closest && e.target.closest('#crop-box'));
+      drag = {
+        kind: handle ? 'handle' : (onBox ? 'box' : 'pan'),
+        h: handle || '',
+        x: e.clientX, y: e.clientY,
+        bx: cropSession.x, by: cropSession.y, bw: cropSession.w, bh: cropSession.h,
+        ix: cropSession.ix, iy: cropSession.iy
+      };
+      try { stage.setPointerCapture(e.pointerId); } catch (err) {}
+      e.preventDefault();
+    });
+    stage.addEventListener('pointermove', function (e) {
+      if (!drag || !cropSession) return;
+      var dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+      if (drag.kind === 'pan') {
+        cropSession.ix = drag.ix + dx;
+        cropSession.iy = drag.iy + dy;
+      } else if (drag.kind === 'box') {
+        cropSession.x = drag.bx + dx;
+        cropSession.y = drag.by + dy;
+      } else {
+        var h = drag.h;
+        var x = drag.bx, y = drag.by, w = drag.bw, hh = drag.bh;
+        if (h.indexOf('w') >= 0) { x = drag.bx + dx; w = drag.bw - dx; }
+        if (h.indexOf('e') >= 0) { w = drag.bw + dx; }
+        if (h.indexOf('n') >= 0) { y = drag.by + dy; hh = drag.bh - dy; }
+        if (h.indexOf('s') >= 0) { hh = drag.bh + dy; }
+        if (cropSession.shape === 'circle') {
+          var s = Math.max(36, (w + hh) / 2);
+          if (h.indexOf('w') >= 0) x = drag.bx + drag.bw - s;
+          if (h.indexOf('n') >= 0) y = drag.by + drag.bh - s;
+          w = s; hh = s;
+        }
+        cropSession.x = x; cropSession.y = y; cropSession.w = w; cropSession.h = hh;
+      }
+      paintCropper();
+    });
+    var stop = function () { drag = null; };
+    stage.addEventListener('pointerup', stop);
+    stage.addEventListener('pointercancel', stop);
+    var zoom = $('crop-zoom');
+    if (zoom) zoom.addEventListener('input', function () {
+      setCropZoom(Number(zoom.value) / 100);
+      zoom.setAttribute('aria-valuetext', 'Zoom ' + zoom.value + ' percent');
+    });
+    var use = $('crop-use');
+    if (use) use.onclick = function () { applyCrop(); };
+    var cancel = $('crop-cancel');
+    if (cancel) cancel.onclick = function () {
+      cropSession = null;
+      if ($('crop-dlg') && $('crop-dlg').open) $('crop-dlg').close();
+    };
+    Array.prototype.forEach.call(document.querySelectorAll('[data-crop-shape]'), function (b) {
+      b.addEventListener('click', function () { setCropShape(b.getAttribute('data-crop-shape')); });
+    });
+    window.addEventListener('resize', function () { if (cropSession) paintCropper(); });
+  }
+
+  function syncGift() {
+    var on = !!($('gift-on') && $('gift-on').checked);
+    if ($('gift-fields')) $('gift-fields').hidden = !on;
+    var anon = !!($('gift-anon') && $('gift-anon').checked);
+    if ($('gift-anon-hint')) $('gift-anon-hint').hidden = !on || !anon;
+    lsSet(LS_GIFT, giftState());
+    if ($('order-summary') && cart.length) paintOrderSummary();
+  }
+
+  function wireGift() {
+    var saved = lsGet(LS_GIFT);
+    if (saved && $('gift-on')) {
+      $('gift-on').checked = !!saved.on;
+      if ($('gift-name')) $('gift-name').value = saved.name || '';
+      if ($('gift-street')) $('gift-street').value = saved.street || '';
+      if ($('gift-city')) $('gift-city').value = saved.city || '';
+      if ($('gift-state')) $('gift-state').value = saved.state || '';
+      if ($('gift-zip')) $('gift-zip').value = saved.zip || '';
+      if ($('gift-anon')) $('gift-anon').checked = !!saved.anon;
+      if ($('gift-note')) $('gift-note').value = saved.note || '';
+    }
+    ['gift-on', 'gift-anon', 'gift-name', 'gift-street', 'gift-city', 'gift-state', 'gift-zip', 'gift-note'].forEach(function (id) {
+      var n = $(id);
+      if (!n) return;
+      n.addEventListener('input', syncGift);
+      n.addEventListener('change', syncGift);
+    });
+    syncGift();
   }
 
   /* ══ Wiring ══ */
@@ -5265,16 +5930,19 @@ always</textarea>
     if (ridingText() && $('cart-note') && $('cart-note').value.indexOf(ridingText()) === -1) applyAskToNote();
     else applyAskToNote.prev = ridingText();
     syncAskPreview();
-    ['recipe-text', 'hand-text'].forEach(function (id) {
+    ['quote-text', 'hand-text'].forEach(function (id) {
       var box = document.getElementById(id);
       if (!box) return;
       box.addEventListener('input', function () {
-        var key = id === 'recipe-text' ? 'recipe' : 'hand';
+        var key = id === 'quote-text' ? 'quote' : 'hand';
         if (styleKey() === key) rememberRequest();
       });
     });
 
-    var dialogs = [$('cart-dlg'), $('connect-dlg'), $('gate-dlg')];
+    wireCropper();
+    wireGift();
+
+    var dialogs = [$('cart-dlg'), $('connect-dlg'), $('gate-dlg'), $('crop-dlg')];
     $('cart-btn').onclick = openCart;
     $('checkout-btn').onclick = goToShopify;
     $('owner-link').onclick = askForKey;
